@@ -37,11 +37,11 @@
             position: fixed;
             top: 24px;
             left: 24px;
+            bottom: 100px;
             width: 280px;
-            max-height: calc(100dvh - 48px);
             display: flex;
             flex-direction: column;
-            gap: 18px;
+            gap: 16px;
             box-sizing: border-box;
             z-index: 100;
         }
@@ -50,8 +50,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 100px;
-            padding: 22px;
+            min-height: 80px;
+            padding: 14px 20px;
             flex-shrink: 0;
             border: 1px solid #e1e7df;
             border-radius: 24px;
@@ -62,12 +62,13 @@
 
         .sidebar-brand img {
             display: block;
-            width: 214px;
+            width: 190px;
             max-width: 100%;
             height: auto;
         }
 
         .sidebar-navigation {
+            flex: 1;
             padding: 18px;
             border-radius: 26px;
             background: var(--black);
@@ -1432,8 +1433,8 @@
             }
 
             .sidebar-brand {
-                min-height: 84px;
-                padding: 16px;
+                min-height: 76px;
+                padding: 12px 18px;
                 border-radius: 20px;
             }
 
