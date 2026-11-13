@@ -53,10 +53,6 @@
             min-height: 80px;
             padding: 14px 20px;
             flex-shrink: 0;
-            border: 1px solid #e1e7df;
-            border-radius: 24px;
-            background: white;
-            box-shadow: 0 10px 30px rgba(20, 38, 18, 0.06);
             box-sizing: border-box;
         }
 
@@ -69,6 +65,8 @@
 
         .sidebar-navigation {
             flex: 1;
+            display: flex;
+            flex-direction: column;
             padding: 18px;
             border-radius: 26px;
             background: var(--black);
@@ -80,8 +78,47 @@
             min-height: 0;
         }
 
-        .sidebar-navigation > .nav-main:last-child {
+        .sidebar-navigation > * {
+            flex-shrink: 0;
+        }
+
+        .sidebar-navigation > .nav-main:last-of-type {
             margin-bottom: 0;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 24px;
+        }
+
+        .sidebar-demo {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding: 12px 14px;
+            border: 1px solid rgba(117, 166, 99, 0.16);
+            border-radius: 14px;
+            background: rgba(58, 127, 49, 0.13);
+            line-height: 1.4;
+        }
+
+        .sidebar-demo strong {
+            color: #bed5b5;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .sidebar-demo a {
+            align-self: flex-start;
+            color: #8cb67e;
+            font-size: 11px;
+            text-decoration: none;
+            text-underline-offset: 3px;
+        }
+
+        .sidebar-demo a:hover {
+            color: #c4dfb9;
+            text-decoration: underline;
         }
 
         .sidebar a:focus-visible,
@@ -1435,7 +1472,6 @@
             .sidebar-brand {
                 min-height: 76px;
                 padding: 12px 18px;
-                border-radius: 20px;
             }
 
             .sidebar-navigation {
@@ -1634,6 +1670,11 @@
                 margin: 0;
             }
 
+            .sidebar-footer {
+                grid-column: 1 / -1;
+                padding-top: 4px;
+            }
+
             .content {
                 padding: 14px 10px 30px 10px;
             }
@@ -1688,11 +1729,6 @@
         margin-top: 4px;
     }
     </style>
-<style>
-.portfolio-banner{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 20px;margin:0 0 22px;border:1px solid #d8e5d5;border-radius:16px;background:#edf5eb;font:14px/1.5 system-ui,sans-serif;color:#314a2b}
-.portfolio-banner strong{display:block;color:#286722}.portfolio-banner a{color:#286722;font-weight:650;white-space:nowrap}
-@media(max-width:700px){.portfolio-banner{align-items:flex-start;flex-direction:column}}
-</style>
 </head>
 
 <body>
@@ -1781,14 +1817,16 @@
             >
                 Datenquellen
             </a>
+            <div class="sidebar-footer">
+                <div class="sidebar-demo">
+                    <strong>Lizenzmanagement-Demo</strong>
+                    <a href="https://github.com/mhicyor/lizenzmanagement-django" target="_blank" rel="noopener noreferrer">Quellcode auf GitHub</a>
+                </div>
+            </div>
             </nav>
         </aside>
 
         <main class="content">
-            <div class="portfolio-banner" role="note">
-                <span><strong>Portfolio-Demo · Nur ansehen</strong>Echte Django-Anwendung mit vollständig erfundenen Beispieldaten.</span>
-                <a href="https://github.com/mhicyor/lizenzmanagement-django" target="_blank" rel="noopener noreferrer">Quellcode auf GitHub ↗</a>
-            </div>
             {% block content %}
             {% endblock %}
         </main>
