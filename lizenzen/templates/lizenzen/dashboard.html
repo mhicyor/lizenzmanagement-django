@@ -855,6 +855,23 @@
         .dashboard-v2-lizenz-kosten strong, .dashboard-v2-lizenz-kapazitaet strong { font-size: 15px; }
         .dashboard-v2-lizenz-oeffnen { font-size: 12px; padding: 6px 0 6px 12px; }
     }
+    .dashboard-title-mobile { display: none; }
+    @media (max-width: 700px) {
+        .dashboard-title-desktop { display: none; }
+        .dashboard-title-mobile { display: inline; }
+        .dashboard-v2-hero { display: flex; flex-direction: column; align-items: stretch; gap: 16px; padding: 20px; }
+        .dashboard-v2-hero-text, .dashboard-v2-rechte-spalte { display: contents; }
+        .dashboard-v2-label, .dashboard-v2-hero-text > p { display: none; }
+        .dashboard-v2-hero h1 { order: 0; margin: 0; padding-right: 44px; font-size: 27px; line-height: 1.2; }
+        .dashboard-v2-bilanz { order: 1; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+        .dashboard-v2-bilanz > span { font-size: 10px; }
+        .dashboard-v2-bilanz > strong { font-size: 26px; }
+        .dashboard-v2-aktionen { order: 2; display: block; margin-top: 0; }
+        .dashboard-v2-aktion:not(.primaer) { display: none; }
+        .dashboard-v2-aktion.primaer { min-height: 40px; }
+        .dashboard-v2-kennzahl { min-height: 82px; padding: 14px; }
+        .dashboard-v2-kennzahl-text small { display: none; }
+    }
 </style>
 
 <div class="dashboard-v2-shell">
@@ -862,7 +879,7 @@
         <div class="dashboard-v2-hero-text">
             <span class="dashboard-v2-label">Übersicht</span>
 
-            <h1>Lizenzmanagement</h1>
+            <h1><span class="dashboard-title-desktop">Lizenzmanagement</span><span class="dashboard-title-mobile">Dashboard</span></h1>
 
             <p>
                 Bestand, Nutzung und Kosten auf einen Blick – mit
