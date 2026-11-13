@@ -1,0 +1,243 @@
+<div
+    class="bestand-modal-overlay"
+    id="bestand-modal-overlay"
+    aria-hidden="true"
+>
+    <div
+        class="bestand-modal-box"
+        id="bestand-modal-box"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="bestand-modal-titel"
+    >
+        <div class="bestand-modal-kopf">
+            <div class="bestand-modal-kopf-text">
+                <small id="bestand-modal-bereich">Bestand</small>
+
+                <strong id="bestand-modal-titel">
+                    Details
+                </strong>
+            </div>
+
+            <button
+                type="button"
+                class="bestand-modal-schliessen"
+                id="bestand-modal-schliessen"
+                aria-label="Modal schließen"
+            >
+                ×
+            </button>
+        </div>
+
+        <iframe
+            src=""
+            class="bestand-modal-frame"
+            id="bestand-modal-frame"
+            title="Bestandsdetails"
+        ></iframe>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const overlay = document.getElementById(
+            "bestand-modal-overlay"
+        );
+        const box = document.getElementById(
+            "bestand-modal-box"
+        );
+        const frame = document.getElementById(
+            "bestand-modal-frame"
+        );
+        const titel = document.getElementById(
+            "bestand-modal-titel"
+        );
+        const bereich = document.getElementById(
+            "bestand-modal-bereich"
+        );
+        const schliessenButton = document.getElementById(
+            "bestand-modal-schliessen"
+        );
+        const oeffnenElemente = document.querySelectorAll(
+            ".bestand-modal-oeffnen"
+        );
+
+        function modalGroesseSetzen(groesse) {
+            if (!box) {
+                return;
+            }
+
+            box.classList.remove("kompakt", "breit");
+
+            if (groesse === "kompakt" || groesse === "breit") {
+                box.classList.add(groesse);
+            }
+        }
+
+        function modalInhaltSetzen(konfiguration) {
+            if (
+                !frame
+                || !konfiguration
+                || !konfiguration.url
+            ) {
+                return false;
+            }
+
+            if (titel) {
+                titel.textContent = (
+                    konfiguration.titel
+                    || "Details"
+                );
+            }
+
+            if (bereich) {
+                bereich.textContent = (
+                    konfiguration.bereich
+                    || "Bestand"
+                );
+            }
+
+            modalGroesseSetzen(
+                konfiguration.groesse
+            );
+
+            frame.src = konfiguration.url;
+            frame.title = (
+                konfiguration.titel
+                || "Bestandsdetails"
+            );
+
+            return true;
+        }
+
+        function modalAnzeigen() {
+            if (!overlay) {
+                return;
+            }
+
+            overlay.classList.add("aktiv");
+            overlay.setAttribute("aria-hidden", "false");
+            document.body.style.overflow = "hidden";
+        }
+
+        function modalOeffnen(element) {
+            const konfiguration = {
+                url: element.dataset.modalUrl,
+                titel: element.dataset.modalTitel,
+                groesse: element.dataset.modalGroesse,
+                bereich: element.dataset.modalBereich,
+            };
+
+            if (!konfiguration.url) {
+                return;
+            }
+
+            if (
+                element.dataset.modalEbene === "parent"
+                && window.parent !== window
+            ) {
+                window.parent.postMessage(
+                    {
+                        typ: "bestand_modal_navigieren",
+                        ...konfiguration,
+                    },
+                    window.location.origin
+                );
+                return;
+            }
+
+            if (!modalInhaltSetzen(konfiguration)) {
+                return;
+            }
+
+            modalAnzeigen();
+        }
+
+        function modalSchliessen(neuLaden) {
+            if (!overlay || !frame) {
+                return;
+            }
+
+            overlay.classList.remove("aktiv");
+            overlay.setAttribute("aria-hidden", "true");
+
+            window.setTimeout(function () {
+                frame.src = "";
+                document.body.style.overflow = "";
+
+                if (neuLaden) {
+                    window.location.reload();
+                }
+            }, 200);
+        }
+
+        oeffnenElemente.forEach(function (element) {
+            element.addEventListener("click", function (event) {
+                event.preventDefault();
+                modalOeffnen(element);
+            });
+        });
+
+        if (schliessenButton) {
+            schliessenButton.addEventListener(
+                "click",
+                function () {
+                    modalSchliessen(false);
+                }
+            );
+        }
+
+        if (overlay) {
+            overlay.addEventListener("click", function (event) {
+                if (event.target === overlay) {
+                    modalSchliessen(false);
+                }
+            });
+        }
+
+        document.addEventListener("keydown", function (event) {
+            if (
+                event.key === "Escape"
+                && overlay
+                && overlay.classList.contains("aktiv")
+            ) {
+                modalSchliessen(false);
+            }
+        });
+
+        window.addEventListener("message", function (event) {
+            if (event.origin !== window.location.origin) {
+                return;
+            }
+
+            if (
+                event.data
+                && event.data.typ === "bestand_modal_navigieren"
+            ) {
+                if (modalInhaltSetzen(event.data)) {
+                    modalAnzeigen();
+                }
+
+                return;
+            }
+
+            if (
+                event.data === "geraet_gespeichert"
+                || event.data === "benutzer_gespeichert"
+                || event.data === "lizenz_gespeichert"
+                || event.data === "lizenz_geloescht"
+                || event.data === "profil_gespeichert"
+            ) {
+                modalSchliessen(true);
+                return;
+            }
+
+            if (
+                event.data === "geraet_modal_schliessen"
+                || event.data === "benutzer_modal_schliessen"
+            ) {
+                modalSchliessen(false);
+            }
+        });
+    }());
+</script>

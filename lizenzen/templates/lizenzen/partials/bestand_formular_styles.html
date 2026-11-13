@@ -1,0 +1,189 @@
+<style>
+    .bestand-form-seite {
+        max-width: 720px;
+        margin: 0 auto;
+    }
+
+    .bestand-form-kopf {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        margin-bottom: 24px;
+    }
+
+    .bestand-form-symbol {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        width: 44px;
+        height: 44px;
+        border-radius: 13px;
+        background: rgba(58, 127, 49, 0.11);
+        color: var(--dpz-green-dark);
+        font-size: 13px;
+        font-weight: 900;
+    }
+
+    .bestand-form-kopf h1 {
+        margin: 0 0 6px;
+        color: #222222;
+        font-size: 26px;
+        line-height: 1.15;
+        letter-spacing: -0.025em;
+    }
+
+    .bestand-form-kopf p {
+        margin: 0;
+        color: #6b6b6b;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .bestand-form-fehler {
+        margin-bottom: 18px;
+        padding: 12px 14px;
+        border: 1px solid #efcaca;
+        border-radius: 13px;
+        background: #fff4f4;
+        color: #8b2929;
+        font-size: 13px;
+        font-weight: 750;
+        line-height: 1.45;
+    }
+
+    .bestand-formular {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .bestand-form-feld {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 0;
+    }
+
+    .bestand-form-feld.voll {
+        grid-column: 1 / -1;
+    }
+
+    .bestand-form-feld label {
+        color: #333333;
+        font-size: 12px;
+        font-weight: 850;
+    }
+
+    .bestand-form-feld label span {
+        color: #8a8a8a;
+        font-weight: 650;
+    }
+
+    .bestand-form-feld input,
+    .bestand-form-feld select {
+        width: 100%;
+        height: 46px;
+        min-height: 46px;
+        padding: 0 13px;
+        border: 1px solid #d8ddd8;
+        border-radius: 14px;
+        background: #ffffff;
+        color: #222222;
+        box-sizing: border-box;
+        font-family: inherit;
+        font-size: 13px;
+        transition:
+            border-color 0.18s ease,
+            box-shadow 0.18s ease,
+            background 0.18s ease;
+    }
+
+    .bestand-form-feld input:hover,
+    .bestand-form-feld select:hover {
+        border-color: #c7cec7;
+        background: #fcfdfc;
+    }
+
+    .bestand-form-feld input:focus,
+    .bestand-form-feld select:focus {
+        outline: none;
+        border-color: var(--dpz-green);
+        box-shadow: 0 0 0 3px rgba(58, 127, 49, 0.11);
+        background: #ffffff;
+    }
+
+    .bestand-form-hilfe {
+        color: #8a8a8a;
+        font-size: 10px;
+        line-height: 1.4;
+    }
+
+    .bestand-form-aktionen {
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: flex-end;
+        gap: 9px;
+        margin-top: 8px;
+        padding-top: 18px;
+        border-top: 1px solid #e8eae8;
+    }
+
+    .bestand-form-aktionen button,
+    .bestand-form-aktionen a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 0 17px;
+        border: 1px solid #dddddd;
+        border-radius: 13px;
+        background: #ffffff;
+        color: #333333;
+        box-sizing: border-box;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 800;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .bestand-form-aktionen button[type="submit"] {
+        border-color: var(--dpz-green);
+        background: var(--dpz-green);
+        color: #ffffff;
+        box-shadow: 0 9px 22px rgba(58, 127, 49, 0.18);
+    }
+
+    .bestand-form-aktionen button[type="submit"]:hover {
+        border-color: var(--dpz-green-dark);
+        background: var(--dpz-green-dark);
+    }
+
+    .bestand-form-abbrechen:hover {
+        border-color: rgba(58, 127, 49, 0.28);
+        background: rgba(58, 127, 49, 0.06);
+        color: var(--dpz-green-dark);
+    }
+
+    @media (max-width: 620px) {
+        .bestand-formular {
+            grid-template-columns: 1fr;
+        }
+
+        .bestand-form-feld.voll,
+        .bestand-form-aktionen {
+            grid-column: auto;
+        }
+
+        .bestand-form-aktionen {
+            align-items: stretch;
+            flex-direction: column-reverse;
+        }
+
+        .bestand-form-aktionen button,
+        .bestand-form-aktionen a {
+            width: 100%;
+        }
+    }
+</style>

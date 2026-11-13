@@ -1,0 +1,783 @@
+<style>
+    .bestand-seite {
+        width: min(1180px, calc(100vw - 436px));
+        max-width: 1180px;
+        margin: 0 auto;
+    }
+
+    .bestand-kopf {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 28px;
+        margin-bottom: 24px;
+    }
+
+    .bestand-kopf-text {
+        max-width: 720px;
+    }
+
+    .bestand-kopf h1 {
+        margin: 0 0 8px;
+        font-size: 32px;
+        line-height: 1.08;
+        letter-spacing: -0.035em;
+    }
+
+    .bestand-kopf p {
+        margin: 0;
+        color: #666666;
+        font-size: 14px;
+        line-height: 1.55;
+    }
+
+    .bestand-kopf-aktionen {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 9px;
+        flex-wrap: wrap;
+    }
+
+    .bestand-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 0 17px;
+        border: 1px solid #dddddd;
+        border-radius: 13px;
+        background: #ffffff;
+        color: #333333;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 800;
+        text-decoration: none;
+        white-space: nowrap;
+        box-sizing: border-box;
+        cursor: pointer;
+        transition:
+            transform 0.18s ease,
+            border-color 0.18s ease,
+            background 0.18s ease,
+            color 0.18s ease,
+            box-shadow 0.18s ease;
+    }
+
+    .bestand-button:hover {
+        border-color: rgba(58, 127, 49, 0.34);
+        background: rgba(58, 127, 49, 0.06);
+        color: var(--dpz-green-dark);
+        transform: translateY(-1px);
+    }
+
+    .bestand-button.primaer {
+        border-color: var(--dpz-green);
+        background: var(--dpz-green);
+        color: #ffffff;
+        box-shadow: 0 10px 24px rgba(58, 127, 49, 0.20);
+    }
+
+    .bestand-button.primaer:hover {
+        border-color: var(--dpz-green-dark);
+        background: var(--dpz-green-dark);
+        color: #ffffff;
+        box-shadow: 0 14px 30px rgba(58, 127, 49, 0.24);
+    }
+
+    .bestand-statistik {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 22px;
+    }
+
+    .bestand-statistik-karte {
+        position: relative;
+        min-height: 74px;
+        padding: 13px 15px;
+        border: 1px solid #e9e9e9;
+        border-radius: 15px;
+        background: #fbfbfb;
+        box-sizing: border-box;
+    }
+
+    .bestand-statistik-wert {
+        display: block;
+        margin-bottom: 4px;
+        color: #222222;
+        font-size: 22px;
+        font-weight: 850;
+        line-height: 1;
+        letter-spacing: -0.025em;
+    }
+
+    .bestand-statistik-label {
+        color: #777777;
+        font-size: 11px;
+        font-weight: 750;
+        line-height: 1.35;
+    }
+
+    .bestand-werkzeuge {
+        margin-bottom: 24px;
+        padding: 9px;
+        border: 1px solid #e3e7e3;
+        border-radius: 24px;
+        background: #f5f8f5;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+
+    .bestand-filterformular {
+        display: grid;
+        grid-template-columns: minmax(250px, 1fr) minmax(170px, auto) minmax(150px, auto) auto;
+        gap: 9px;
+        align-items: center;
+    }
+
+    .bestand-filterformular.zwei-felder {
+        grid-template-columns: minmax(280px, 1fr) minmax(210px, auto) auto;
+    }
+
+    .bestand-eingabe,
+    .bestand-auswahl,
+    .bestand-filter-button {
+        width: 100%;
+        height: 46px;
+        min-height: 46px;
+        border-radius: 18px;
+        box-sizing: border-box;
+        font-family: inherit;
+        font-size: 13px;
+    }
+
+    .bestand-eingabe,
+    .bestand-auswahl {
+        border: 1px solid #d9ded9;
+        background: #ffffff;
+        color: #222222;
+        box-shadow: 0 1px 2px rgba(30, 45, 30, 0.03);
+        transition:
+            border-color 0.18s ease,
+            background-color 0.18s ease,
+            box-shadow 0.18s ease,
+            transform 0.18s ease;
+    }
+
+    .bestand-eingabe {
+        padding: 0 14px;
+    }
+
+    .bestand-auswahl {
+        padding: 0 42px 0 15px;
+        border-radius: 17px;
+        background-color: #ffffff;
+        background-image:
+            linear-gradient(45deg, transparent 50%, #5f6d5f 50%),
+            linear-gradient(135deg, #5f6d5f 50%, transparent 50%);
+        background-position:
+            calc(100% - 21px) 20px,
+            calc(100% - 15px) 20px;
+        background-repeat: no-repeat;
+        background-size: 6px 6px, 6px 6px;
+        font-weight: 700;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+    }
+
+    .bestand-auswahl:hover {
+        border-color: rgba(58, 127, 49, 0.30);
+        background-color: #fbfdfb;
+        box-shadow:
+            0 4px 14px rgba(30, 45, 30, 0.06),
+            0 0 0 1px rgba(58, 127, 49, 0.04);
+        transform: translateY(-1px);
+    }
+
+    .bestand-eingabe:focus,
+    .bestand-auswahl:focus {
+        outline: none;
+        border-color: var(--dpz-green);
+        box-shadow: 0 0 0 3px rgba(58, 127, 49, 0.10);
+    }
+
+    .bestand-filter-button {
+        width: auto;
+        padding: 0 20px;
+        border-radius: 17px;
+        border: 1px solid var(--dpz-green);
+        background: var(--dpz-green);
+        color: #ffffff;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: 0 7px 16px rgba(58, 127, 49, 0.16);
+    }
+
+    .bestand-reset {
+        display: inline-flex;
+        align-items: center;
+        width: fit-content;
+        margin-top: 10px;
+        color: #777777;
+        font-size: 12px;
+        font-weight: 750;
+        text-decoration: none;
+    }
+
+    .bestand-reset:hover {
+        color: var(--dpz-green-dark);
+    }
+
+    .bestand-listen-kopf {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 14px;
+    }
+
+    .bestand-listen-kopf h2 {
+        margin: 0 0 4px;
+        font-size: 22px;
+        line-height: 1.2;
+        letter-spacing: -0.025em;
+    }
+
+    .bestand-listen-kopf p {
+        margin: 0;
+        color: #777777;
+        font-size: 12px;
+        line-height: 1.45;
+    }
+
+    .bestand-anzahl {
+        display: inline-flex;
+        align-items: center;
+        min-height: 30px;
+        padding: 0 10px;
+        border-radius: 10px;
+        background: rgba(58, 127, 49, 0.10);
+        color: var(--dpz-green-dark);
+        font-size: 12px;
+        font-weight: 850;
+        white-space: nowrap;
+    }
+
+    .bestand-listen-spalten,
+    .bestand-zeile {
+        display: grid;
+        grid-template-columns: var(--bestand-spalten);
+        gap: 15px;
+        align-items: center;
+    }
+
+    .bestand-listen-spalten {
+        padding: 0 16px 9px;
+        color: #777777;
+        font-size: 10px;
+        font-weight: 850;
+        text-transform: uppercase;
+        letter-spacing: 0.055em;
+    }
+
+    .bestand-liste {
+        display: grid;
+        gap: 10px;
+    }
+
+    .bestand-zeile {
+        min-height: 64px;
+        padding: 9px 14px;
+        border: 1px solid #e9e9e9;
+        border-radius: 15px;
+        background: #ffffff;
+        box-sizing: border-box;
+        box-shadow: 0 7px 22px rgba(0, 0, 0, 0.035);
+        transition:
+            transform 0.18s ease,
+            border-color 0.18s ease,
+            box-shadow 0.18s ease;
+    }
+
+    .bestand-zeile:hover {
+        transform: translateY(-1px);
+        border-color: rgba(58, 127, 49, 0.25);
+        box-shadow: 0 11px 28px rgba(0, 0, 0, 0.055);
+    }
+
+    .bestand-identitaet {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+    }
+
+    .bestand-avatar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        width: 38px;
+        height: 38px;
+        border-radius: 11px;
+        background: rgba(58, 127, 49, 0.11);
+        color: var(--dpz-green-dark);
+        font-size: 14px;
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    .bestand-identitaet-text {
+        min-width: 0;
+    }
+
+    .bestand-name {
+        display: block;
+        overflow: hidden;
+        margin-bottom: 4px;
+        color: #222222;
+        font-size: 14px;
+        font-weight: 850;
+        line-height: 1.3;
+        text-decoration: none;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    a.bestand-name:hover {
+        color: var(--dpz-green-dark);
+    }
+
+    .bestand-meta {
+        color: #888888;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .bestand-zelle {
+        min-width: 0;
+        overflow: hidden;
+        color: #3f3f3f;
+        font-size: 13px;
+        line-height: 1.4;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .bestand-zelle-label {
+        display: none;
+        margin-bottom: 3px;
+        color: #8a8a8a;
+        font-size: 9px;
+        font-weight: 850;
+        text-transform: uppercase;
+        letter-spacing: 0.055em;
+    }
+
+    .bestand-leerwert {
+        color: #999999;
+    }
+
+    .bestand-chip {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: fit-content;
+        min-height: 25px;
+        padding: 0 9px;
+        border-radius: 999px;
+        background: #eeeeee;
+        color: #555555;
+        font-size: 11px;
+        font-weight: 850;
+        white-space: nowrap;
+    }
+
+    .bestand-chip.aktiv {
+        background: rgba(58, 127, 49, 0.12);
+        color: var(--dpz-green-dark);
+    }
+
+    .bestand-chip.inaktiv {
+        background: #eeeeee;
+        color: #666666;
+    }
+
+    .bestand-chip.typ {
+        max-width: 100%;
+        overflow: hidden;
+        border: 1px solid #e4e4e4;
+        background: #fafafa;
+        color: #4a4a4a;
+        text-overflow: ellipsis;
+    }
+
+    .bestand-modal-overlay {
+        position: fixed;
+        z-index: 4000;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: rgba(16, 20, 16, 0.58);
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        backdrop-filter: blur(0);
+        transition:
+            opacity 0.2s ease,
+            visibility 0.2s ease,
+            backdrop-filter 0.2s ease;
+    }
+
+    .bestand-modal-overlay.aktiv {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        backdrop-filter: blur(6px);
+    }
+
+    .bestand-modal-box {
+        width: min(980px, calc(100vw - 48px));
+        height: min(840px, calc(100vh - 48px));
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.72);
+        border-radius: 24px;
+        background: #ffffff;
+        box-shadow: 0 30px 90px rgba(0, 0, 0, 0.32);
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
+        transition:
+            opacity 0.2s ease,
+            transform 0.2s ease,
+            width 0.2s ease,
+            height 0.2s ease;
+    }
+
+    .bestand-modal-box.kompakt {
+        width: min(760px, calc(100vw - 48px));
+        height: min(680px, calc(100vh - 48px));
+    }
+
+    .bestand-modal-box.breit {
+        width: min(1120px, calc(100vw - 48px));
+        height: min(880px, calc(100vh - 48px));
+    }
+
+    .bestand-modal-overlay.aktiv .bestand-modal-box {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+
+    .bestand-modal-kopf {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 66px;
+        padding: 0 16px 0 22px;
+        border-bottom: 1px solid #e8ebe8;
+        background: #fbfcfb;
+    }
+
+    .bestand-modal-kopf-text {
+        min-width: 0;
+    }
+
+    .bestand-modal-kopf small {
+        display: block;
+        margin-bottom: 2px;
+        color: var(--dpz-green-dark);
+        font-size: 9px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .bestand-modal-kopf strong {
+        display: block;
+        overflow: hidden;
+        color: #222222;
+        font-size: 15px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .bestand-modal-schliessen {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        width: 36px;
+        height: 36px;
+        border: 0;
+        border-radius: 11px;
+        background: #ecefec;
+        color: #333333;
+        font-family: inherit;
+        font-size: 20px;
+        line-height: 1;
+        cursor: pointer;
+    }
+
+    .bestand-modal-schliessen:hover {
+        background: #dfe4df;
+    }
+
+    .bestand-modal-frame {
+        display: block;
+        width: 100%;
+        height: calc(100% - 66px);
+        border: 0;
+        background: #ffffff;
+    }
+
+    .bestand-zeilen-aktionen {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 7px;
+        flex-wrap: wrap;
+    }
+
+    .bestand-zeilen-aktionen form {
+        margin: 0;
+    }
+
+    .bestand-miniaktion {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 34px;
+        padding: 0 11px;
+        border: 1px solid #dddddd;
+        border-radius: 10px;
+        background: #ffffff;
+        color: #333333;
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 800;
+        text-decoration: none;
+        cursor: pointer;
+        box-sizing: border-box;
+    }
+
+    .bestand-miniaktion:hover {
+        border-color: rgba(58, 127, 49, 0.34);
+        background: rgba(58, 127, 49, 0.06);
+        color: var(--dpz-green-dark);
+    }
+
+    .bestand-miniaktion.gefahr {
+        border-color: rgba(180, 45, 45, 0.22);
+        color: #9b2f2f;
+    }
+
+    .bestand-miniaktion.gefahr:hover {
+        border-color: rgba(180, 45, 45, 0.34);
+        background: rgba(180, 45, 45, 0.07);
+        color: #842525;
+    }
+
+    .bestand-pagination {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .bestand-pagination a,
+    .bestand-pagination span {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 36px;
+        padding: 0 12px;
+        border-radius: 10px;
+        box-sizing: border-box;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    .bestand-pagination a {
+        border: 1px solid #dddddd;
+        background: #ffffff;
+        color: #333333;
+        text-decoration: none;
+    }
+
+    .bestand-pagination a:hover {
+        border-color: rgba(58, 127, 49, 0.34);
+        background: rgba(58, 127, 49, 0.06);
+        color: var(--dpz-green-dark);
+    }
+
+    .bestand-pagination span {
+        background: #f2f2f2;
+        color: #666666;
+    }
+
+    .bestand-leer {
+        padding: 44px 24px;
+        border: 1px dashed #d7d7d7;
+        border-radius: 18px;
+        background: #fafafa;
+        text-align: center;
+    }
+
+    .bestand-leer-symbol {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        margin: 0 auto 13px;
+        border-radius: 14px;
+        background: rgba(58, 127, 49, 0.10);
+        color: var(--dpz-green-dark);
+        font-size: 14px;
+        font-weight: 900;
+    }
+
+    .bestand-leer strong {
+        display: block;
+        margin-bottom: 5px;
+        color: #333333;
+        font-size: 15px;
+    }
+
+    .bestand-leer p {
+        margin: 0;
+        color: #777777;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    @media (max-width: 1200px) {
+        .bestand-listen-spalten {
+            display: none;
+        }
+
+        .bestand-zeile {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px 20px;
+        }
+
+        .bestand-identitaet,
+        .bestand-zeilen-aktionen {
+            grid-column: 1 / -1;
+        }
+
+        .bestand-zelle-label {
+            display: block;
+        }
+
+        .bestand-zelle {
+            white-space: normal;
+        }
+
+        .bestand-zeilen-aktionen {
+            justify-content: flex-start;
+            padding-top: 11px;
+            border-top: 1px solid #eeeeee;
+        }
+    }
+
+    @media (max-width: 1050px) {
+        .bestand-statistik {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .bestand-filterformular,
+        .bestand-filterformular.zwei-felder {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .bestand-filterformular .bestand-eingabe {
+            grid-column: 1 / -1;
+        }
+
+        .bestand-filter-button {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 900px) {
+        .bestand-seite {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 760px) {
+        .bestand-kopf {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .bestand-kopf-aktionen {
+            justify-content: flex-start;
+        }
+
+        .bestand-button {
+            flex: 1;
+        }
+
+        .bestand-listen-kopf {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .bestand-kopf h1 {
+            font-size: 28px;
+        }
+
+        .bestand-statistik {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .bestand-statistik-wert {
+            font-size: 21px;
+        }
+
+        .bestand-filterformular,
+        .bestand-filterformular.zwei-felder,
+        .bestand-zeile {
+            grid-template-columns: 1fr;
+        }
+
+        .bestand-filterformular .bestand-eingabe,
+        .bestand-identitaet,
+        .bestand-zeilen-aktionen {
+            grid-column: auto;
+        }
+
+        .bestand-kopf-aktionen,
+        .bestand-zeilen-aktionen {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .bestand-button,
+        .bestand-miniaktion,
+        .bestand-zeilen-aktionen form,
+        .bestand-zeilen-aktionen form button {
+            width: 100%;
+        }
+
+        .bestand-modal-overlay {
+            padding: 8px;
+        }
+
+        .bestand-modal-box,
+        .bestand-modal-box.kompakt,
+        .bestand-modal-box.breit {
+            width: calc(100vw - 16px);
+            height: calc(100vh - 16px);
+            border-radius: 18px;
+        }
+    }
+</style>
