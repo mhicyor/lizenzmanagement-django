@@ -1,5 +1,8 @@
 # Lizenzmanagement · Django-Portfolio
 
+**[Live-Demo öffnen](https://lizenzmanagement-django.onrender.com/)** ·
+ohne Anmeldung, mit fiktiven Daten und serverseitigem Schreibschutz.
+
 Eine webbasierte Anwendung zur Verwaltung von Softwarelizenzen, Benutzern,
 Geräten, Kosten und Datenquellen. Entwickelt von **Muhammed Hicyorulmazlar**
 im Umfeld des Deutschen Primatenzentrums (DPZ).
