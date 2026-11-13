@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: lizenzmanagement-django
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --no-input
+    startCommand: bash start-demo.sh
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: PYTHON_DOTENV_DISABLED
+        value: "1"
