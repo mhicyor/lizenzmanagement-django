@@ -1739,8 +1739,16 @@
     .sidebar-brand img, .sidebar-brand svg { width: 166px; }
     .mobile-menu-toggle { display: inline-flex; align-items: center; gap: 8px; padding: 10px 12px; min-height: 44px; border: 1px solid #dce3d9; border-radius: 13px; background: white; color: #263823; font: 600 13px Arial,sans-serif; cursor: pointer; }
     .sidebar-navigation { display: none !important; flex: none; padding: 14px; margin-bottom: 8px; max-height: calc(100dvh - 100px); }
-    .sidebar.menu-open .sidebar-navigation { display: flex !important; }
-    .sidebar-navigation .nav-main, .sidebar-navigation .nav-group-title { margin-bottom: 8px; min-height: 44px; box-sizing: border-box; }
+    .sidebar.menu-open .sidebar-navigation { display: flex !important; align-items: stretch; gap: 4px; border: 1px solid rgba(255,255,255,.05); box-shadow: 0 12px 28px rgba(0,0,0,.12); }
+    .mobile-menu-toggle { margin-top: 16px; }
+    .mobile-menu-toggle[aria-expanded="true"] { background: #edf5ea; border-color: #aac9a0; }
+    .mobile-menu-toggle > span { width: 14px; font-size: 16px; line-height: 1; text-align: center; }
+    .sidebar-navigation > .nav-main, .sidebar-navigation > .nav-group { width: 100%; margin: 0; box-sizing: border-box; }
+    .sidebar-navigation .nav-main, .sidebar-navigation .nav-group-title { width: 100%; margin-bottom: 0; padding: 14px; font-size: 14px; border-radius: 12px; }
+    .sidebar-navigation .nav-group-title { justify-content: space-between; }
+    .sidebar-navigation .nav-sub { padding: 12px 18px; margin: 4px 0 0; }
+    .sidebar-navigation .sidebar-footer { width: 100%; box-sizing: border-box; }
+    .sidebar-navigation .nav-main, .sidebar-navigation .nav-group-title { margin-bottom: 0; min-height: 44px; box-sizing: border-box; }
     .sidebar-footer { padding-top: 14px; }
     .content { padding: 8px 16px 28px; }
 }
@@ -1873,11 +1881,13 @@
             menuToggle.addEventListener('click', function () {
                 const open = rail.classList.toggle('menu-open');
                 menuToggle.setAttribute('aria-expanded', String(open));
+                menuToggle.querySelector('span').textContent = open ? '×' : '☰';
             });
             document.addEventListener('keydown', function (event) {
                 if (event.key === 'Escape' && rail.classList.contains('menu-open')) {
                     rail.classList.remove('menu-open');
                     menuToggle.setAttribute('aria-expanded', 'false');
+                    menuToggle.querySelector('span').textContent = '☰';
                     menuToggle.focus();
                 }
             });
