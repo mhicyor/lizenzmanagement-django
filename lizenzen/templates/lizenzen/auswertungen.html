@@ -1,0 +1,32 @@
+{% extends "lizenzen/base.html" %}
+
+{% block title %}Auswertungen{% endblock %}
+
+{% block content %}
+<div class="karte">
+    <h1>Auswertungen</h1>
+    <p>Wähle eine Auswertung aus.</p>
+
+    <div class="dashboard-grid">
+        <a class="auswertung-card" href="/auswertungen/lizenzbestand/">
+            <div class="dashboard-label">Bericht</div>
+            <div class="dashboard-value">Lizenzbestand</div>
+        </a>
+
+        <a class="auswertung-card" href="/auswertungen/kostenbericht/">
+            <div class="dashboard-label">Bericht</div>
+            <div class="dashboard-value">Kostenbericht</div>
+        </a>
+
+        <a class="auswertung-card" href="/auswertungen/ablaufende-lizenzen/">
+            <div class="dashboard-label">Bericht</div>
+            <div class="dashboard-value">Ablaufende Lizenzen</div>
+        </a>
+
+        <a class="auswertung-card" href="/auswertungen/deaktivierte-benutzer/">
+            <div class="dashboard-label">Bericht</div>
+            <div class="dashboard-value">Deaktivierte Benutzer</div>
+        </a>
+    </div>
+</div>
+{% endblock %}

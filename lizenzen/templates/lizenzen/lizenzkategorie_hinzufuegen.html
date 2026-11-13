@@ -1,0 +1,245 @@
+{% extends template_basis|default:"lizenzen/base.html" %}
+
+{% block title %}Kategorie hinzufügen{% endblock %}
+
+{% block content %}
+<style>
+    .kategorie-modal-page {
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 30px;
+        box-sizing: border-box;
+    }
+
+    .kategorie-header {
+        margin-bottom: 22px;
+    }
+
+    .kategorie-header h1 {
+        margin: 0 0 10px 0;
+        font-size: 30px;
+        line-height: 1.1;
+    }
+
+    .kategorie-header p {
+        margin: 0;
+        color: #666;
+        font-size: 14px;
+        line-height: 1.45;
+        max-width: 560px;
+    }
+
+    .kategorie-form-block {
+        padding: 22px;
+        border: 1px solid #eeeeee;
+        border-radius: 20px;
+        background: #fbfbfb;
+    }
+
+    .kategorie-form-grid {
+        display: grid;
+        gap: 18px;
+    }
+
+    .kategorie-feld {
+        display: grid;
+        gap: 8px;
+    }
+
+    .kategorie-feld label {
+        font-weight: 800;
+        color: #222;
+        font-size: 14px;
+    }
+
+    .kategorie-feld input,
+    .kategorie-feld textarea {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid #d2d2d2;
+        border-radius: 12px;
+        background: white;
+        font-size: 14px;
+        font-family: inherit;
+        transition:
+            border-color 0.18s ease,
+            box-shadow 0.18s ease;
+    }
+
+    .kategorie-feld input {
+        height: 46px;
+        padding: 0 14px;
+    }
+
+    .kategorie-feld textarea {
+        min-height: 96px;
+        padding: 13px 14px;
+        line-height: 1.45;
+        resize: vertical;
+    }
+
+    .kategorie-feld input:focus,
+    .kategorie-feld textarea:focus {
+        outline: none;
+        border-color: var(--dpz-green);
+        box-shadow: 0 0 0 3px rgba(58, 127, 49, 0.12);
+    }
+
+    .kategorie-feld small {
+        color: #666;
+        font-size: 12px;
+        line-height: 1.35;
+    }
+
+    .kategorie-aktionen {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 22px;
+        padding-top: 20px;
+        border-top: 1px solid #e5e5e5;
+    }
+
+    .kategorie-aktionen button,
+    .kategorie-aktionen a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 44px;
+        padding: 0 18px;
+        border-radius: 12px;
+        border: none;
+        font-size: 14px;
+        font-weight: 800;
+        text-decoration: none;
+        cursor: pointer;
+        font-family: inherit;
+        box-sizing: border-box;
+    }
+
+    .kategorie-aktionen button {
+        background: var(--dpz-green);
+        color: white;
+    }
+
+    .kategorie-aktionen button:hover {
+        background: var(--dpz-green-dark);
+    }
+
+    .kategorie-aktionen a {
+        background: #555;
+        color: white;
+    }
+
+    .kategorie-aktionen a:hover {
+        background: #333;
+        color: white;
+    }
+
+    .kategorie-fehler {
+        margin-bottom: 18px;
+        padding: 13px 15px;
+        border-radius: 14px;
+        background: #fff2f2;
+        border: 1px solid #ffd1d1;
+        color: #a00000;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .zurueck-link {
+        display: inline-flex;
+        margin-bottom: 18px;
+        color: #555;
+        font-size: 13px;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .zurueck-link:hover {
+        color: var(--dpz-green);
+    }
+
+    @media (max-width: 700px) {
+        .kategorie-modal-page {
+            padding: 22px;
+        }
+
+        .kategorie-aktionen {
+            flex-direction: column;
+        }
+
+        .kategorie-aktionen button,
+        .kategorie-aktionen a {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="kategorie-modal-page">
+    {% if not ist_modal %}
+        <a class="zurueck-link" href="{% url 'lizenzkategorien' %}">
+            ← Zurück zu den Kategorien
+        </a>
+    {% endif %}
+
+    <div class="kategorie-header">
+        <h1>Kategorie hinzufügen</h1>
+        <p>
+            Lege eine einfache Lizenzkategorie an. Die Kategorie beschreibt die Art der Lizenz,
+            nicht das spätere Zuweisungsziel.
+        </p>
+    </div>
+
+    {% if fehler %}
+        <div class="kategorie-fehler">{{ fehler }}</div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="kategorie-form-block">
+            <div class="kategorie-form-grid">
+                <div class="kategorie-feld">
+                    <label for="name">Name *</label>
+                    <input
+                        type="text"
+                        name="name"
+                        id="name"
+                        placeholder="z. B. Nutzerbasierte Lizenz"
+                        required
+                    >
+                    <small>Kurzer, verständlicher Name der Kategorie.</small>
+                </div>
+
+                <div class="kategorie-feld">
+                    <label for="beschreibung">Beschreibung</label>
+                    <textarea
+                        name="beschreibung"
+                        id="beschreibung"
+                        placeholder="z. B. Lizenzen, die typischerweise einem Benutzer, Account oder einer Person zugeordnet werden."
+                    ></textarea>
+                    <small>Beschreibt, was diese Kategorie allgemein bedeutet.</small>
+                </div>
+
+                <input type="hidden" name="lizenzlogik" value="">
+                <input type="hidden" name="interne_lizenzklasse" value="benutzer">
+                <input type="hidden" name="standard_zuweisungsart" value="benutzer">
+                <input type="hidden" name="sortierung" value="100">
+            </div>
+
+            <div class="kategorie-aktionen">
+                <button type="submit">Kategorie speichern</button>
+
+                {% if ist_modal %}
+                    <a href="#" onclick="window.parent.postMessage('kategorie_modal_schliessen', '*'); return false;">
+                        Abbrechen
+                    </a>
+                {% else %}
+                    <a href="{% url 'lizenzkategorien' %}">Abbrechen</a>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

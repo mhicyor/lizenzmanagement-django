@@ -1,0 +1,668 @@
+{% extends template_basis %}
+
+{% block content %}
+<style>
+    .csv-bearbeitung {
+        width: min(100%, 780px);
+        margin: 0 auto;
+        color: #202623;
+    }
+
+    .csv-kopf {
+        margin-bottom: 22px;
+    }
+
+    .csv-kopf h1 {
+        margin: 0 0 7px;
+        font-size: 1.55rem;
+        line-height: 1.25;
+    }
+
+    .csv-kopf p {
+        margin: 0;
+        color: #667169;
+        line-height: 1.55;
+    }
+
+    .csv-bereich {
+        margin-bottom: 16px;
+        padding: 18px;
+        border: 1px solid #e1e7e2;
+        border-radius: 14px;
+        background: #ffffff;
+    }
+
+    .csv-bereich-hervorgehoben {
+        border-color: #c9ddcc;
+        background: #f8fbf8;
+    }
+
+    .csv-bereich h2 {
+        margin: 0 0 6px;
+        font-size: 1.05rem;
+    }
+
+    .csv-bereich-einleitung {
+        margin: 0 0 15px;
+        color: #6c776f;
+        font-size: 0.88rem;
+        line-height: 1.5;
+    }
+
+    .csv-upload-formular {
+        display: grid;
+        gap: 13px;
+    }
+
+    .csv-dateifeld {
+        display: grid;
+        gap: 7px;
+    }
+
+    .csv-dateifeld label {
+        color: #344039;
+        font-size: 0.88rem;
+        font-weight: 700;
+    }
+
+    .csv-dateifeld input {
+        width: 100%;
+        min-width: 0;
+        padding: 11px;
+        box-sizing: border-box;
+        border: 1px solid #d7dfd8;
+        border-radius: 10px;
+        background: #ffffff;
+        font: inherit;
+    }
+
+    .csv-pruefen-button {
+        justify-self: start;
+        min-height: 42px;
+        padding: 10px 17px;
+        border: 1px solid #2b7137;
+        border-radius: 10px;
+        background: #327d3f;
+        color: #ffffff;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .csv-pruefen-button:hover {
+        background: #286b34;
+    }
+
+    .csv-fehler {
+        margin: 0 0 14px;
+        padding: 11px 13px;
+        border: 1px solid #efc1bd;
+        border-radius: 10px;
+        background: #fff4f3;
+        color: #a52a22;
+        font-size: 0.88rem;
+        font-weight: 600;
+    }
+
+    .csv-aktuell {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        min-width: 0;
+    }
+
+    .csv-symbol {
+        display: grid;
+        width: 44px;
+        height: 44px;
+        flex: 0 0 44px;
+        place-items: center;
+        border-radius: 11px;
+        background: #e6f1e7;
+        color: #287036;
+        font-size: 0.78rem;
+        font-weight: 800;
+    }
+
+    .csv-aktuell-text {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .csv-aktuell-text strong {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .csv-aktuell-text span {
+        display: block;
+        margin-top: 4px;
+        color: #768078;
+        font-size: 0.84rem;
+    }
+
+    .csv-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        flex: 0 0 auto;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #e7f3e9;
+        color: #286934;
+        font-size: 0.78rem;
+        font-weight: 700;
+    }
+
+    .csv-status::before {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+        content: "";
+    }
+
+    .csv-kurzinfos {
+        display: grid;
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 16px;
+    }
+
+    .csv-kurzinfo {
+        padding: 12px 13px;
+        border-radius: 10px;
+        background: #f6f8f6;
+    }
+
+    .csv-kurzinfo span {
+        display: block;
+        margin-bottom: 4px;
+        color: #78827a;
+        font-size: 0.76rem;
+        font-weight: 700;
+    }
+
+    .csv-kurzinfo strong {
+        display: block;
+        font-size: 0.92rem;
+    }
+
+    .csv-details {
+        margin-bottom: 16px;
+        border: 1px solid #e1e7e2;
+        border-radius: 14px;
+        background: #ffffff;
+    }
+
+    .csv-details summary {
+        padding: 15px 18px;
+        color: #344039;
+        font-weight: 700;
+        cursor: pointer;
+        list-style: none;
+    }
+
+    .csv-details summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .csv-details summary::after {
+        float: right;
+        color: #748078;
+        content: "⌄";
+    }
+
+    .csv-details[open] summary::after {
+        content: "⌃";
+    }
+
+    .csv-details-inhalt {
+        padding: 0 18px 18px;
+    }
+
+    .csv-mapping-liste {
+        display: grid;
+        gap: 8px;
+    }
+
+    .csv-mapping-zeile {
+        display: grid;
+        grid-template-columns:
+            minmax(120px, 0.8fr)
+            24px
+            minmax(140px, 1fr);
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 9px;
+        background: #f7f9f7;
+    }
+
+    .csv-mapping-ziel {
+        color: #3b463f;
+        font-weight: 700;
+    }
+
+    .csv-mapping-pfeil {
+        color: #949d96;
+        text-align: center;
+    }
+
+    .csv-mapping-quelle {
+        overflow-wrap: anywhere;
+        color: #287036;
+        font-weight: 700;
+    }
+
+    .csv-vorschau-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 13px;
+    }
+
+    .csv-vorschau-chip {
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #eaf3eb;
+        color: #2c6f37;
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+    .csv-tabellenrahmen {
+        max-width: 100%;
+        overflow-x: auto;
+        border: 1px solid #e0e6e1;
+        border-radius: 11px;
+    }
+
+    .csv-vorschau-tabelle {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.84rem;
+    }
+
+    .csv-vorschau-tabelle th,
+    .csv-vorschau-tabelle td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #e8ece9;
+        text-align: left;
+        white-space: nowrap;
+    }
+
+    .csv-vorschau-tabelle th {
+        background: #f4f7f4;
+        color: #455048;
+        font-weight: 700;
+    }
+
+    .csv-vorschau-tabelle tr:last-child td {
+        border-bottom: 0;
+    }
+
+    .csv-uebernehmen-formular {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 16px;
+    }
+
+    .csv-uebernehmen-button {
+        min-height: 42px;
+        padding: 10px 18px;
+        border: 1px solid #256b32;
+        border-radius: 10px;
+        background: #2f7d3d;
+        color: #ffffff;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .csv-uebernehmen-button:hover {
+        background: #286b34;
+    }
+
+    .csv-aktionen {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 20px;
+    }
+
+    .csv-schliessen {
+        min-height: 42px;
+        padding: 10px 17px;
+        border: 1px solid #d9dfda;
+        border-radius: 10px;
+        background: #ffffff;
+        color: #374139;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    @media (max-width: 650px) {
+        .csv-aktuell {
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        .csv-kurzinfos {
+            grid-template-columns: 1fr;
+        }
+
+        .csv-mapping-zeile {
+            grid-template-columns: 1fr;
+            gap: 4px;
+        }
+
+        .csv-mapping-pfeil {
+            display: none;
+        }
+    }
+</style>
+
+<div class="csv-bearbeitung">
+    <header class="csv-kopf">
+        <h1>CSV-Datenquelle bearbeiten</h1>
+
+        <p>
+            Tausche die hinterlegte Datei aus oder prüfe die
+            aktuellen Einstellungen.
+        </p>
+    </header>
+
+    <section
+        class="
+            csv-bereich
+            csv-bereich-hervorgehoben
+        "
+    >
+        <h2>Neue CSV-Datei verwenden</h2>
+
+        <p class="csv-bereich-einleitung">
+            Wähle eine aktualisierte Datei aus. Die bisherige
+            Datei wird erst ersetzt, nachdem die neue Datei
+            erfolgreich geprüft wurde.
+        </p>
+
+        {% if csv_fehler %}
+            <p class="csv-fehler">
+                {{ csv_fehler }}
+            </p>
+        {% endif %}
+
+        <form
+            method="post"
+            enctype="multipart/form-data"
+            class="csv-upload-formular"
+        >
+            {% csrf_token %}
+
+            <input
+                type="hidden"
+                name="aktion"
+                value="pruefen"
+            >
+
+            {% if ist_modal %}
+                <input
+                    type="hidden"
+                    name="modal"
+                    value="1"
+                >
+            {% endif %}
+
+            <div class="csv-dateifeld">
+                <label for="csv-datei-ersetzen">
+                    CSV-Datei auswählen
+                </label>
+
+                <input
+                    type="file"
+                    id="csv-datei-ersetzen"
+                    name="csv_datei"
+                    accept=".csv,text/csv"
+                    required
+                >
+            </div>
+
+            <button
+                type="submit"
+                class="csv-pruefen-button"
+            >
+                Datei prüfen
+            </button>
+        </form>
+    </section>
+
+    {% if ersatz_spalten %}
+        <section class="csv-bereich">
+            <h2>Neue Datei erkannt</h2>
+
+            <p class="csv-bereich-einleitung">
+                Prüfe kurz, ob die Daten korrekt erkannt wurden.
+                Die Datei ist noch nicht gespeichert.
+            </p>
+
+            <div class="csv-vorschau-meta">
+                <span class="csv-vorschau-chip">
+                    {{ ersatz_dateiname }}
+                </span>
+
+                <span class="csv-vorschau-chip">
+                    {{ ersatz_datensatzanzahl }}
+                    Datensätze
+                </span>
+
+                <span class="csv-vorschau-chip">
+                    {{ ersatz_spalten|length }}
+                    Spalten
+                </span>
+
+                <span class="csv-vorschau-chip">
+                    {{ ersatz_trennzeichen }}
+                </span>
+            </div>
+
+            <div class="csv-tabellenrahmen">
+                <table class="csv-vorschau-tabelle">
+                    <thead>
+                        <tr>
+                            {% for spalte in ersatz_spalten %}
+                                <th>{{ spalte }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for zeile in ersatz_vorschau %}
+                            <tr>
+                                {% for wert in zeile.werte %}
+                                    <td>{{ wert }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <form
+                method="post"
+                class="csv-uebernehmen-formular"
+            >
+                {% csrf_token %}
+
+                <input
+                    type="hidden"
+                    name="aktion"
+                    value="uebernehmen"
+                >
+
+                {% if ist_modal %}
+                    <input
+                        type="hidden"
+                        name="modal"
+                        value="1"
+                    >
+                {% endif %}
+
+                <input
+                    type="hidden"
+                    name="ersatz_temp_datei"
+                    value="{{ ersatz_temp_datei }}"
+                >
+
+                <input
+                    type="hidden"
+                    name="ersatz_dateiname"
+                    value="{{ ersatz_dateiname }}"
+                >
+
+                <input
+                    type="hidden"
+                    name="ersatz_datensatzanzahl"
+                    value="{{ ersatz_datensatzanzahl }}"
+                >
+
+                <input
+                    type="hidden"
+                    name="ersatz_trennzeichen_roh"
+                    value="{{ ersatz_trennzeichen_roh }}"
+                >
+
+                {% for spalte in ersatz_spalten %}
+                    <input
+                        type="hidden"
+                        name="ersatz_spalten"
+                        value="{{ spalte }}"
+                    >
+                {% endfor %}
+
+                <button
+                    type="submit"
+                    class="csv-uebernehmen-button"
+                >
+                    Neue Datei übernehmen
+                </button>
+            </form>
+        </section>
+    {% endif %}
+
+    <section class="csv-bereich">
+        <div class="csv-aktuell">
+            <div class="csv-symbol">
+                CSV
+            </div>
+
+            <div class="csv-aktuell-text">
+                <strong>
+                    {{ datenquelle.name }}
+                </strong>
+
+                <span>
+                    Aktuelle Datei:
+                    {{ dateiname }}
+                </span>
+            </div>
+
+            <span class="csv-status">
+                {% if datenquelle.aktiv %}
+                    Aktiv
+                {% else %}
+                    Deaktiviert
+                {% endif %}
+            </span>
+        </div>
+
+        <div class="csv-kurzinfos">
+            <div class="csv-kurzinfo">
+                <span>Datensätze</span>
+                <strong>
+                    {{ datensatzanzahl }}
+                </strong>
+            </div>
+
+            <div class="csv-kurzinfo">
+                <span>Trennzeichen</span>
+                <strong>
+                    {{ trennzeichen_anzeige }}
+                </strong>
+            </div>
+        </div>
+    </section>
+
+    <details class="csv-details">
+        <summary>
+            Feldzuordnung anzeigen
+        </summary>
+
+        <div class="csv-details-inhalt">
+            {% if feld_mapping %}
+                <div class="csv-mapping-liste">
+                    {% for ziel, quelle in feld_mapping.items %}
+                        <div class="csv-mapping-zeile">
+                            <span class="csv-mapping-ziel">
+                                {% if ziel == "name" %}
+                                    Vollständiger Name
+                                {% elif ziel == "vorname" %}
+                                    Vorname
+                                {% elif ziel == "nachname" %}
+                                    Nachname
+                                {% elif ziel == "benutzername" %}
+                                    Benutzername
+                                {% elif ziel == "email" %}
+                                    E-Mail-Adresse
+                                {% elif ziel == "abteilung" %}
+                                    Abteilung
+                                {% elif ziel == "externe_id" %}
+                                    Externe ID
+                                {% elif ziel == "status" %}
+                                    Status
+                                {% else %}
+                                    {{ ziel }}
+                                {% endif %}
+                            </span>
+
+                            <span class="csv-mapping-pfeil">
+                                →
+                            </span>
+
+                            <span class="csv-mapping-quelle">
+                                {{ quelle }}
+                            </span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>
+                    Keine Feldzuordnung gespeichert.
+                </p>
+            {% endif %}
+        </div>
+    </details>
+
+    <div class="csv-aktionen">
+        <button
+            type="button"
+            class="csv-schliessen"
+            onclick="
+                if (window.parent !== window) {
+                    window.parent.postMessage(
+                        'datenquelle_modal_schliessen',
+                        window.location.origin
+                    );
+                } else {
+                    window.history.back();
+                }
+            "
+        >
+            Schließen
+        </button>
+    </div>
+</div>
+{% endblock %}

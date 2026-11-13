@@ -1,0 +1,251 @@
+{% extends template_basis|default:"lizenzen/base.html" %}
+
+{% block title %}Anbieter hinzufügen{% endblock %}
+
+{% block content %}
+<style>
+    .anbieter-modal-page {
+        max-width: 680px;
+        margin: 0 auto;
+        padding: 26px 30px 30px 30px;
+        box-sizing: border-box;
+    }
+
+    .anbieter-modal-page .zurueck-link {
+        display: inline-flex;
+        margin-bottom: 18px;
+        color: #555;
+        font-size: 13px;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .anbieter-modal-page .zurueck-link:hover {
+        color: var(--dpz-green);
+    }
+
+    .anbieter-header {
+        margin-bottom: 24px;
+    }
+
+    .anbieter-header h1 {
+        margin: 0 0 10px 0;
+        font-size: 30px;
+        line-height: 1.1;
+    }
+
+    .anbieter-header p {
+        margin: 0;
+        color: #666;
+        font-size: 14px;
+        line-height: 1.45;
+        max-width: 560px;
+    }
+
+    .anbieter-form-block {
+        padding: 22px;
+        border: 1px solid #eeeeee;
+        border-radius: 20px;
+        background: #fbfbfb;
+    }
+
+    .anbieter-form-grid {
+        display: grid;
+        gap: 18px;
+    }
+
+    .anbieter-feld {
+        display: grid;
+        gap: 8px;
+    }
+
+    .anbieter-feld label {
+        font-weight: 800;
+        color: #222;
+        font-size: 14px;
+    }
+
+    .anbieter-feld input,
+    .anbieter-feld textarea,
+    .anbieter-feld select {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid #d2d2d2;
+        border-radius: 12px;
+        background: white;
+        font-size: 14px;
+        font-family: inherit;
+        transition:
+            border-color 0.18s ease,
+            box-shadow 0.18s ease,
+            background-color 0.18s ease;
+    }
+
+    .anbieter-feld input,
+    .anbieter-feld select {
+        height: 45px;
+        padding: 0 14px;
+        line-height: 45px;
+    }
+
+    .anbieter-feld textarea {
+        min-height: 110px;
+        padding: 13px 14px;
+        line-height: 1.45;
+        resize: vertical;
+    }
+
+    .anbieter-feld input:focus,
+    .anbieter-feld textarea:focus,
+    .anbieter-feld select:focus {
+        outline: none;
+        border-color: var(--dpz-green);
+        box-shadow: 0 0 0 3px rgba(58, 127, 49, 0.12);
+    }
+
+    .anbieter-feld small {
+        color: #666;
+        font-size: 12px;
+        line-height: 1.35;
+    }
+
+    .anbieter-aktionen {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 22px;
+        padding-top: 20px;
+        border-top: 1px solid #e5e5e5;
+    }
+
+    .anbieter-aktionen button,
+    .anbieter-aktionen a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 44px;
+        padding: 0 18px;
+        border-radius: 12px;
+        border: none;
+        font-size: 14px;
+        font-weight: 800;
+        text-decoration: none;
+        cursor: pointer;
+        font-family: inherit;
+        box-sizing: border-box;
+    }
+
+    .anbieter-aktionen button {
+        background: var(--dpz-green);
+        color: white;
+    }
+
+    .anbieter-aktionen button:hover {
+        background: var(--dpz-green-dark);
+    }
+
+    .anbieter-aktionen a {
+        background: #555;
+        color: white;
+    }
+
+    .anbieter-aktionen a:hover {
+        background: #333;
+        color: white;
+    }
+
+    .anbieter-fehler {
+        margin-bottom: 18px;
+        padding: 13px 15px;
+        border-radius: 14px;
+        background: #fff2f2;
+        border: 1px solid #ffd1d1;
+        color: #a00000;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    @media (max-width: 700px) {
+        .anbieter-modal-page {
+            padding: 22px;
+        }
+
+        .anbieter-aktionen {
+            flex-direction: column;
+        }
+
+        .anbieter-aktionen button,
+        .anbieter-aktionen a {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="anbieter-modal-page">
+    {% if not ist_modal %}
+        <a class="zurueck-link" href="{% url 'anbieter_liste' %}">← Zurück zur Anbieter-Verwaltung</a>
+    {% endif %}
+
+    <div class="anbieter-header">
+        <h1>Anbieter hinzufügen</h1>
+        <p>
+            Lege einen neuen Softwareanbieter an. Der Anbieter steht danach direkt im Lizenzformular zur Auswahl.
+        </p>
+    </div>
+
+    {% if fehler %}
+        <div class="anbieter-fehler">{{ fehler }}</div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="anbieter-form-block">
+            <div class="anbieter-form-grid">
+                <div class="anbieter-feld">
+                    <label for="name">Anbietername *</label>
+                    <input
+                        type="text"
+                        name="name"
+                        id="name"
+                        placeholder="z. B. Adobe, Microsoft, Sophos"
+                        required
+                    >
+                    <small>Der Name sollte eindeutig sein, damit Anbieter später sauber gefiltert und ausgewertet werden können.</small>
+                </div>
+
+                <div class="anbieter-feld">
+                    <label for="beschreibung">Beschreibung</label>
+                    <textarea
+                        name="beschreibung"
+                        id="beschreibung"
+                        placeholder="Kurze Beschreibung des Anbieters oder der genutzten Produkte"
+                    ></textarea>
+                </div>
+
+                <div class="anbieter-feld">
+                    <label for="webseite">Webseite</label>
+                    <input
+                        type="url"
+                        name="webseite"
+                        id="webseite"
+                        placeholder="https://www.beispiel.de"
+                    >
+                </div>
+            </div>
+
+            <div class="anbieter-aktionen">
+                <button type="submit">Anbieter speichern</button>
+
+                {% if ist_modal %}
+                    <a href="#" onclick="window.parent.postMessage('anbieter_modal_schliessen', '*'); return false;">
+                        Abbrechen
+                    </a>
+                {% else %}
+                    <a href="{% url 'anbieter_liste' %}">Abbrechen</a>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

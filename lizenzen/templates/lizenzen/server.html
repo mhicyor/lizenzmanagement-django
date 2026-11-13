@@ -1,0 +1,67 @@
+{% extends "lizenzen/base.html" %}
+
+{% block title %}Server verwalten{% endblock %}
+
+{% block content %}
+<div class="karte">
+    <div class="bereich-kopf">
+        <div>
+            <h1>Server verwalten</h1>
+            <p>Grundlage für Serverlizenz-Zuweisungen. Server können angelegt, bearbeitet oder gelöscht werden.</p>
+        </div>
+
+        <div class="formular-aktionen">
+            <a class="button-primary" href="{% url 'server_hinzufuegen' %}">Server hinzufügen</a>
+        </div>
+    </div>
+
+    {% if server %}
+    <div class="table-container">
+        <table>
+            <tr>
+                <th class="id-spalte">ID</th>
+                <th>Name</th>
+                <th>Hostname</th>
+                <th>IP-Adresse</th>
+                <th>Betriebssystem</th>
+                <th>Status</th>
+                <th>Aktion</th>
+            </tr>
+
+            {% for eintrag in server %}
+            <tr>
+                <td class="id-spalte">{{ eintrag.0 }}</td>
+                <td>{{ eintrag.1 }}</td>
+                <td>{{ eintrag.2 }}</td>
+                <td>{{ eintrag.3 }}</td>
+                <td>{{ eintrag.4 }}</td>
+                <td>{{ eintrag.5 }}</td>
+                <td>
+                    <div class="formular-aktionen" style="margin-top: 0;">
+                        <a class="button-edit klein-button" href="/server/{{ eintrag.0 }}/bearbeiten/">
+                            Bearbeiten
+                        </a>
+
+                        <form
+                            method="post"
+                            action="/server/{{ eintrag.0 }}/loeschen/"
+                            onsubmit="return confirm('Diesen Server wirklich löschen? Bestehende Server-Lizenzzuweisungen werden ebenfalls entfernt.');"
+                        >
+                            {% csrf_token %}
+                            <button type="submit" class="danger-button klein-button">
+                                Löschen
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% else %}
+    <div class="leer-hinweis">
+        Noch keine Server erfasst.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

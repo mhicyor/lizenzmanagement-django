@@ -1,0 +1,344 @@
+{% extends template_basis|default:"lizenzen/base.html" %}
+
+{% block title %}
+    Automatische Synchronisation
+{% endblock %}
+
+{% block content %}
+<style>
+    .automatik-formular {
+        width: 100%;
+        max-width: 560px;
+        margin: 0 auto;
+    }
+
+    .automatik-kopf {
+        margin-bottom: 24px;
+    }
+
+    .automatik-kopf h1 {
+        margin: 0 0 7px;
+        color: #222222;
+        font-size: 25px;
+    }
+
+    .automatik-kopf p {
+        margin: 0;
+        color: #68717b;
+        font-size: 14px;
+        line-height: 1.55;
+    }
+
+    .automatik-bereich {
+        padding: 20px;
+        border: 1px solid #e2e5e8;
+        border-radius: 15px;
+        background: #fafafa;
+    }
+
+    .automatik-schalter-zeile {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+    }
+
+    .automatik-schalter-text strong {
+        display: block;
+        color: #252a30;
+        font-size: 15px;
+    }
+
+    .automatik-schalter-text span {
+        display: block;
+        margin-top: 4px;
+        color: #737c86;
+        font-size: 13px;
+        line-height: 1.45;
+    }
+
+    .automatik-schalter {
+        position: relative;
+        display: inline-flex;
+        flex: 0 0 auto;
+        width: 48px;
+        height: 27px;
+    }
+
+    .automatik-schalter input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .automatik-schalter-anzeige {
+        width: 100%;
+        height: 100%;
+        border-radius: 999px;
+        background: #cfd4d9;
+        cursor: pointer;
+        transition: background 0.18s ease;
+    }
+
+    .automatik-schalter-anzeige::after {
+        content: "";
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        width: 19px;
+        height: 19px;
+        border-radius: 50%;
+        background: #ffffff;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+        transition: transform 0.18s ease;
+    }
+
+    .automatik-schalter input:checked
+    + .automatik-schalter-anzeige {
+        background: var(--dpz-green);
+    }
+
+    .automatik-schalter input:checked
+    + .automatik-schalter-anzeige::after {
+        transform: translateX(21px);
+    }
+
+    .automatik-intervall {
+        margin-top: 22px;
+        padding-top: 20px;
+        border-top: 1px solid #e4e6e9;
+    }
+
+    .automatik-intervall.versteckt {
+        display: none;
+    }
+
+    .automatik-intervall label {
+        display: block;
+        margin-bottom: 8px;
+        color: #333a42;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .automatik-intervall select {
+        width: 100%;
+        min-height: 44px;
+        padding: 0 13px;
+        border: 1px solid #d7dbe0;
+        border-radius: 10px;
+        background: #ffffff;
+        color: #252a30;
+        font-size: 14px;
+    }
+
+    .automatik-hinweis {
+        margin: 9px 0 0;
+        color: #7b848d;
+        font-size: 12.5px;
+        line-height: 1.5;
+    }
+
+    .automatik-fehler {
+        margin-bottom: 16px;
+        padding: 11px 13px;
+        border-radius: 10px;
+        background: #fff1f1;
+        color: #9a3232;
+        font-size: 13px;
+    }
+
+    .automatik-aktionen {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 22px;
+    }
+
+    .automatik-button {
+        min-height: 42px;
+        padding: 0 17px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 750;
+        cursor: pointer;
+    }
+
+    .automatik-abbrechen {
+        border: 1px solid #d8dce0;
+        background: #ffffff;
+        color: #4f5862;
+    }
+
+    .automatik-speichern {
+        border: 1px solid var(--dpz-green);
+        background: var(--dpz-green);
+        color: #ffffff;
+    }
+</style>
+
+<div class="automatik-formular">
+    <div class="automatik-kopf">
+        <h1>Automatische Synchronisation</h1>
+
+        <p>
+            Lege fest, ob {{ datenquelle.name }}
+            regelmäßig automatisch aktualisiert wird.
+        </p>
+    </div>
+
+    {% if fehlermeldung %}
+        <div class="automatik-fehler">
+            {{ fehlermeldung }}
+        </div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="automatik-bereich">
+            <div class="automatik-schalter-zeile">
+                <div class="automatik-schalter-text">
+                    <strong>Automatisch aktualisieren</strong>
+
+                    <span>
+                        Neue Daten werden regelmäßig
+                        im Hintergrund abgerufen.
+                    </span>
+                </div>
+
+                <label class="automatik-schalter">
+                    <input
+                        type="checkbox"
+                        name="aktiviert"
+                        value="1"
+                        id="automatik-aktiviert"
+                        {% if datenquelle.automatische_synchronisation %}
+                            checked
+                        {% endif %}
+                    >
+
+                    <span class="automatik-schalter-anzeige"></span>
+                </label>
+            </div>
+
+            <div
+                class="
+                    automatik-intervall
+                    {% if not datenquelle.automatische_synchronisation %}
+                        versteckt
+                    {% endif %}
+                "
+                id="automatik-intervall"
+            >
+                <label for="intervall">
+                    Häufigkeit
+                </label>
+
+                <select name="intervall" id="intervall">
+                    <option
+                        value="1440"
+                        {% if datenquelle.sync_intervall_minuten == 1440 or not datenquelle.sync_intervall_minuten %}
+                            selected
+                        {% endif %}
+                    >
+                        Täglich
+                    </option>
+
+                    <option
+                        value="10080"
+                        {% if datenquelle.sync_intervall_minuten == 10080 %}
+                            selected
+                        {% endif %}
+                    >
+                        Wöchentlich
+                    </option>
+                </select>
+
+                <p class="automatik-hinweis">
+                    Die nächste Aktualisierung wird nach
+                    dem Speichern automatisch eingeplant.
+                </p>
+            </div>
+        </div>
+
+        <div class="automatik-aktionen">
+            <button
+                type="button"
+                class="
+                    automatik-button
+                    automatik-abbrechen
+                "
+                id="automatik-abbrechen"
+            >
+                Abbrechen
+            </button>
+
+            <button
+                type="submit"
+                class="
+                    automatik-button
+                    automatik-speichern
+                "
+            >
+                Speichern
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    const aktiviert = document.getElementById(
+        "automatik-aktiviert"
+    );
+
+    const intervall = document.getElementById(
+        "automatik-intervall"
+    );
+
+    const abbrechen = document.getElementById(
+        "automatik-abbrechen"
+    );
+
+    function sichtbarkeitAktualisieren() {
+        intervall.classList.toggle(
+            "versteckt",
+            !aktiviert.checked
+        );
+    }
+
+    aktiviert.addEventListener(
+        "change",
+        sichtbarkeitAktualisieren
+    );
+
+    abbrechen.addEventListener(
+        "click",
+        function () {
+            {% if ist_modal %}
+                window.parent.postMessage(
+                    "datenquelle_modal_schliessen",
+                    window.location.origin
+                );
+            {% else %}
+                window.location.href =
+                    "{% url 'synchronisation_uebersicht' %}";
+            {% endif %}
+        }
+    );
+
+    {% if gespeichert %}
+        {% if ist_modal %}
+            window.parent.postMessage(
+                {
+                    type: "datenquelle_gespeichert"
+                },
+                window.location.origin
+            );
+        {% else %}
+            window.location.href =
+                "{% url 'synchronisation_uebersicht' %}";
+        {% endif %}
+    {% endif %}
+</script>
+{% endblock %}

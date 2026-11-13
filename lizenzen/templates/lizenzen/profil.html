@@ -1,0 +1,224 @@
+{% extends template_basis|default:"lizenzen/base.html" %}
+
+{% block title %}Mein Profil{% endblock %}
+
+{% block content %}
+<style>
+    .profil-seite {
+        width: min(720px, 100%);
+        margin: 0 auto;
+    }
+
+    .profil-kopf {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 26px;
+    }
+
+    .profil-avatar {
+        display: grid;
+        width: 52px;
+        height: 52px;
+        flex: 0 0 auto;
+        place-items: center;
+        border-radius: 16px;
+        background: linear-gradient(145deg, #438e39, #2f6728);
+        color: white;
+        font-size: 18px;
+        font-weight: 850;
+        box-shadow: 0 10px 24px rgba(58, 127, 49, 0.22);
+    }
+
+    .profil-kopf h1 {
+        margin: 0 0 5px;
+        font-size: 27px;
+        letter-spacing: -0.035em;
+    }
+
+    .profil-kopf p {
+        margin: 0;
+        color: #6e726e;
+        font-size: 13px;
+    }
+
+    .profil-abschnitt {
+        margin-top: 18px;
+        padding: 21px;
+        border: 1px solid #e2e6e2;
+        border-radius: 17px;
+        background: #fafbfa;
+    }
+
+    .profil-abschnitt h2 {
+        margin: 0 0 5px;
+        font-size: 17px;
+    }
+
+    .profil-abschnitt > p {
+        margin: 0 0 18px;
+        color: #777b77;
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    .profil-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 15px;
+    }
+
+    .profil-feld {
+        display: grid;
+        gap: 7px;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    .profil-feld.breit {
+        grid-column: 1 / -1;
+    }
+
+    .profil-feld input {
+        width: 100%;
+        min-height: 43px;
+        padding: 0 13px;
+        border: 1px solid #cfd4cf;
+        border-radius: 10px;
+        background: white;
+        color: #222222;
+        font: inherit;
+        font-weight: 500;
+    }
+
+    .profil-feld input:focus {
+        border-color: var(--dpz-green);
+        outline: 3px solid rgba(58, 127, 49, 0.10);
+    }
+
+    .profil-aktionen {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 20px;
+    }
+
+    .profil-hinweis {
+        margin-bottom: 18px;
+        padding: 13px 15px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .profil-hinweis.fehler {
+        border: 1px solid #ecc5c5;
+        background: #fff4f4;
+        color: #8b2222;
+    }
+
+    .profil-hinweis.erfolg {
+        border: 1px solid rgba(58, 127, 49, 0.28);
+        background: rgba(58, 127, 49, 0.08);
+        color: var(--dpz-green-dark);
+    }
+
+    @media (max-width: 640px) {
+        .profil-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .profil-feld.breit {
+            grid-column: auto;
+        }
+    }
+</style>
+
+<div class="profil-seite">
+    <div class="profil-kopf">
+        <div class="profil-avatar" aria-hidden="true">
+            {% if request.user.first_name %}
+                {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+            {% else %}
+                {{ request.user.username|first|upper }}
+            {% endif %}
+        </div>
+        <div>
+            <h1>Mein Profil</h1>
+            <p>Persönliche Angaben und Passwort sicher verwalten.</p>
+        </div>
+    </div>
+
+    {% if fehler %}
+        <div class="profil-hinweis fehler">{{ fehler }}</div>
+    {% endif %}
+
+    {% if erfolg %}
+        <div class="profil-hinweis erfolg">{{ erfolg }}</div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        {% if ist_modal %}<input type="hidden" name="modal" value="1">{% endif %}
+
+        <section class="profil-abschnitt">
+            <h2>Persönliche Angaben</h2>
+            {% if loginname_folgt_email %}
+                <p>
+                    Deine E-Mail-Adresse ist zugleich dein Anmeldename. Ihre
+                    Groß- und Kleinschreibung wird exakt übernommen.
+                </p>
+            {% else %}
+                <p>Der Benutzername bleibt unverändert: <strong>{{ request.user.username }}</strong></p>
+            {% endif %}
+
+            <div class="profil-grid">
+                <label class="profil-feld">
+                    Vorname
+                    <input name="first_name" value="{{ formular_daten.first_name }}" autocomplete="given-name">
+                </label>
+                <label class="profil-feld">
+                    Nachname
+                    <input name="last_name" value="{{ formular_daten.last_name }}" autocomplete="family-name">
+                </label>
+                <label class="profil-feld breit">
+                    E-Mail-Adresse
+                    <input
+                        type="email"
+                        name="email"
+                        value="{{ formular_daten.email }}"
+                        autocomplete="email"
+                        {% if loginname_folgt_email %}required{% endif %}
+                    >
+                </label>
+            </div>
+        </section>
+
+        <section class="profil-abschnitt">
+            <h2>Passwort ändern</h2>
+            <p>
+                Lass diese Felder leer, wenn das Passwort unverändert bleiben soll.
+                Für eine Änderung ist dein aktuelles Passwort erforderlich.
+            </p>
+
+            <div class="profil-grid">
+                <label class="profil-feld breit">
+                    Aktuelles Passwort
+                    <input type="password" name="current_password" autocomplete="current-password">
+                </label>
+                <label class="profil-feld">
+                    Neues Passwort
+                    <input type="password" name="new_password" autocomplete="new-password">
+                </label>
+                <label class="profil-feld">
+                    Neues Passwort wiederholen
+                    <input type="password" name="new_password_confirm" autocomplete="new-password">
+                </label>
+            </div>
+        </section>
+
+        <div class="profil-aktionen">
+            <button type="submit" class="button-primary">Änderungen speichern</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

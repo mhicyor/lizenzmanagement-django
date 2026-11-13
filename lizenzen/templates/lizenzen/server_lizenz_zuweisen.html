@@ -1,0 +1,63 @@
+{% extends "lizenzen/base.html" %}
+
+{% block title %}Server zuweisen{% endblock %}
+
+{% block content %}
+{% if lizenz %}
+<div class="karte">
+    <a class="zurueck-link" href="/lizenzen/{{ lizenz.0 }}/">← Zurück zur Lizenz</a>
+
+    <h1>Server zuweisen</h1>
+    <p>
+        Weise die Serverlizenz <strong>{{ lizenz.1 }}</strong> einem vorhandenen Server zu.
+    </p>
+
+    {% if fehler %}
+    <div class="leer-hinweis">{{ fehler }}</div>
+    {% endif %}
+
+    {% if server_liste %}
+    <form method="post" class="formular">
+        {% csrf_token %}
+
+        <label>Server auswählen *</label>
+        <select name="server_id">
+            <option value="">Bitte Server auswählen</option>
+
+            {% for server in server_liste %}
+            <option value="{{ server.0 }}">
+                {{ server.1 }}{% if server.2 %} | {{ server.2 }}{% endif %}{% if server.3 %} | {{ server.3 }}{% endif %}
+            </option>
+            {% endfor %}
+        </select>
+
+        <div class="formular-aktionen">
+            <button type="submit">Server zuweisen</button>
+            <a href="/lizenzen/{{ lizenz.0 }}/">Abbrechen</a>
+        </div>
+    </form>
+    {% else %}
+    <div class="leer-hinweis">
+        Es sind noch keine Server erfasst. Lege zuerst einen Server an.
+    </div>
+
+    <div class="formular-aktionen">
+        <a href="/server/hinzufuegen/">Server hinzufügen</a>
+        <a href="/lizenzen/{{ lizenz.0 }}/">Zurück zur Lizenz</a>
+    </div>
+    {% endif %}
+</div>
+{% else %}
+<div class="karte">
+    <h1>Lizenz nicht gefunden</h1>
+
+    {% if fehler %}
+    <div class="leer-hinweis">{{ fehler }}</div>
+    {% endif %}
+
+    <div class="formular-aktionen">
+        <a href="/lizenzen/">Zurück zur Lizenzübersicht</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

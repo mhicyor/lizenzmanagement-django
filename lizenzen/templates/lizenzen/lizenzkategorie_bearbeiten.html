@@ -1,0 +1,293 @@
+{% extends template_basis|default:"lizenzen/base.html" %}
+
+{% block title %}Kategorie bearbeiten{% endblock %}
+
+{% block content %}
+<style>
+    .kategorie-modal-page {
+        max-width: 560px;
+        margin: 0 auto;
+        padding: 26px;
+        box-sizing: border-box;
+    }
+
+    .kategorie-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 22px;
+    }
+
+    .kategorie-header h1 {
+        margin: 0 0 10px 0;
+        font-size: 30px;
+        line-height: 1.1;
+    }
+
+    .kategorie-header p {
+        margin: 0;
+        color: #666;
+        font-size: 14px;
+        line-height: 1.45;
+        max-width: 400px;
+    }
+
+    .status-pill {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 7px 11px;
+        border-radius: 999px;
+        background: rgba(58, 127, 49, 0.12);
+        color: var(--dpz-green-dark);
+        font-size: 12px;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .status-pill.inaktiv {
+        background: #eeeeee;
+        color: #555;
+    }
+
+    .kategorie-form-block {
+        padding: 22px;
+        border: 1px solid #eeeeee;
+        border-radius: 20px;
+        background: #fbfbfb;
+    }
+
+    .kategorie-form-grid {
+        display: grid;
+        gap: 18px;
+    }
+
+    .kategorie-feld {
+        display: grid;
+        gap: 8px;
+    }
+
+    .kategorie-feld label {
+        font-weight: 800;
+        color: #222;
+        font-size: 14px;
+    }
+
+    .kategorie-feld input,
+    .kategorie-feld textarea,
+    .kategorie-feld select {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid #d2d2d2;
+        border-radius: 12px;
+        background: white;
+        font-size: 14px;
+        font-family: inherit;
+        transition:
+            border-color 0.18s ease,
+            box-shadow 0.18s ease;
+    }
+
+    .kategorie-feld input,
+    .kategorie-feld select {
+        height: 46px;
+        padding: 0 14px;
+    }
+
+    .kategorie-feld textarea {
+        min-height: 96px;
+        padding: 13px 14px;
+        line-height: 1.45;
+        resize: vertical;
+    }
+
+    .kategorie-feld input:focus,
+    .kategorie-feld textarea:focus,
+    .kategorie-feld select:focus {
+        outline: none;
+        border-color: var(--dpz-green);
+        box-shadow: 0 0 0 3px rgba(58, 127, 49, 0.12);
+    }
+
+    .kategorie-feld small {
+        color: #666;
+        font-size: 12px;
+        line-height: 1.35;
+    }
+
+    .kategorie-aktionen {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 22px;
+        padding-top: 20px;
+        border-top: 1px solid #e5e5e5;
+    }
+
+    .kategorie-aktionen button,
+    .kategorie-aktionen a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 44px;
+        padding: 0 18px;
+        border-radius: 12px;
+        border: none;
+        font-size: 14px;
+        font-weight: 800;
+        text-decoration: none;
+        cursor: pointer;
+        font-family: inherit;
+        box-sizing: border-box;
+    }
+
+    .kategorie-aktionen button {
+        background: var(--dpz-green);
+        color: white;
+    }
+
+    .kategorie-aktionen button:hover {
+        background: var(--dpz-green-dark);
+    }
+
+    .kategorie-aktionen a {
+        background: #555;
+        color: white;
+    }
+
+    .kategorie-aktionen a:hover {
+        background: #333;
+        color: white;
+    }
+
+    .kategorie-fehler {
+        margin-bottom: 18px;
+        padding: 13px 15px;
+        border-radius: 14px;
+        background: #fff2f2;
+        border: 1px solid #ffd1d1;
+        color: #a00000;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .zurueck-link {
+        display: inline-flex;
+        margin-bottom: 18px;
+        color: #555;
+        font-size: 13px;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .zurueck-link:hover {
+        color: var(--dpz-green);
+    }
+
+    @media (max-width: 700px) {
+        .kategorie-modal-page {
+            padding: 22px;
+        }
+
+        .kategorie-header {
+            flex-direction: column;
+        }
+
+        .kategorie-aktionen {
+            flex-direction: column;
+        }
+
+        .kategorie-aktionen button,
+        .kategorie-aktionen a {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="kategorie-modal-page">
+    {% if not ist_modal %}
+        <a class="zurueck-link" href="{% url 'lizenzkategorien' %}">
+            ← Zurück zu den Kategorien
+        </a>
+    {% endif %}
+
+    {% if fehler %}
+        <div class="kategorie-fehler">{{ fehler }}</div>
+    {% endif %}
+
+    {% if kategorie %}
+        <div class="kategorie-header">
+            <div>
+                <h1>Kategorie bearbeiten</h1>
+                <p>
+                    Passe Name, Beschreibung oder Status dieser Lizenzkategorie an.
+                </p>
+            </div>
+
+            {% if kategorie.aktiv %}
+                <span class="status-pill">Aktiv</span>
+            {% else %}
+                <span class="status-pill inaktiv">Inaktiv</span>
+            {% endif %}
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="kategorie-form-block">
+                <div class="kategorie-form-grid">
+                    <div class="kategorie-feld">
+                        <label for="name">Name *</label>
+                        <input
+                            type="text"
+                            name="name"
+                            id="name"
+                            value="{{ kategorie.name }}"
+                            required
+                        >
+                        <small>Kurzer, verständlicher Name der Kategorie.</small>
+                    </div>
+
+                    <div class="kategorie-feld">
+                        <label for="beschreibung">Beschreibung</label>
+                        <textarea
+                            name="beschreibung"
+                            id="beschreibung"
+                            placeholder="Kurze Beschreibung der Kategorie"
+                        >{{ kategorie.beschreibung }}</textarea>
+                    </div>
+                    <div class="kategorie-feld">
+                        <label for="aktiv">Status</label>
+                        <select name="aktiv" id="aktiv">
+                            <option value="1" {% if kategorie.aktiv %}selected{% endif %}>Aktiv</option>
+                            <option value="0" {% if not kategorie.aktiv %}selected{% endif %}>Inaktiv</option>
+                        </select>
+                        <small>Inaktive Kategorien bleiben historisch erhalten.</small>
+                    </div>
+
+                    <input type="hidden" name="lizenzlogik" value="{{ kategorie.lizenzlogik }}">
+                    <input type="hidden" name="interne_lizenzklasse" value="{{ kategorie.interne_lizenzklasse|default:'benutzer' }}">
+                    <input type="hidden" name="standard_zuweisungsart" value="{{ kategorie.standard_zuweisungsart|default:'benutzer' }}">
+                    <input type="hidden" name="sortierung" value="{{ kategorie.sortierung|default:'100' }}">
+                </div>
+
+                <div class="kategorie-aktionen">
+                    <button type="submit">Änderungen speichern</button>
+
+                    {% if ist_modal %}
+                        <a href="#" onclick="window.parent.postMessage('kategorie_modal_schliessen', '*'); return false;">
+                            Abbrechen
+                        </a>
+                    {% else %}
+                        <a href="{% url 'lizenzkategorien' %}">Abbrechen</a>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    {% else %}
+        <div class="kategorie-fehler">Die Kategorie wurde nicht gefunden.</div>
+    {% endif %}
+</div>
+{% endblock %}

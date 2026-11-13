@@ -1,0 +1,655 @@
+{% extends template_basis|default:"lizenzen/base.html" %}
+
+{% block title %}Gerät zuweisen{% endblock %}
+
+{% block content %}
+{% url 'geraet_hinzufuegen' as geraet_hinzufuegen_url %}
+
+<style>
+    .geraet-zuweisen-seite {
+        width: 100%;
+        max-width: 720px;
+        margin: 0 auto;
+    }
+
+    .geraet-zuweisen-zurueck {
+        display: inline-flex;
+        align-items: center;
+        margin-bottom: 16px;
+        color: #555555;
+        font-size: 13px;
+        font-weight: 750;
+        text-decoration: none;
+    }
+
+    .geraet-zuweisen-zurueck:hover {
+        color: var(--dpz-green-dark);
+    }
+
+    .geraet-zuweisen-karte {
+        padding: 26px;
+        border: 1px solid #e7e7e7;
+        border-radius: 22px;
+        background: #ffffff;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.055);
+    }
+
+    .geraet-zuweisen-kopf {
+        margin-bottom: 22px;
+    }
+
+    .geraet-zuweisen-kopf h1 {
+        margin: 0 0 8px;
+        color: #111111;
+        font-size: 30px;
+        line-height: 1.1;
+        letter-spacing: -0.035em;
+    }
+
+    .geraet-zuweisen-kopf p {
+        margin: 0;
+        color: #666666;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .geraet-lizenzname {
+        color: #222222;
+        font-weight: 850;
+    }
+
+    .geraet-hinweis,
+    .geraet-fehler,
+    .geraet-erfolg {
+        margin-bottom: 18px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        font-size: 13px;
+        line-height: 1.45;
+    }
+
+    .geraet-fehler {
+        border: 1px solid rgba(170, 0, 0, 0.18);
+        background: rgba(170, 0, 0, 0.06);
+        color: #8d0000;
+    }
+
+    .geraet-erfolg {
+        border: 1px solid rgba(58, 127, 49, 0.20);
+        background: rgba(58, 127, 49, 0.08);
+        color: var(--dpz-green-dark);
+    }
+
+    .geraet-hinweis {
+        border: 1px solid #e5e5e5;
+        background: #f7f7f7;
+        color: #555555;
+    }
+
+    .geraet-formular {
+        display: grid;
+        gap: 20px;
+    }
+
+    .geraet-formular-feld {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+    }
+
+    .geraet-auswahl-kopf {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+    }
+
+    .geraet-auswahl-kopf label {
+        color: #222222;
+        font-size: 13px;
+        font-weight: 850;
+    }
+
+    .geraet-neu-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 36px;
+        padding: 0 12px;
+        border: 1px solid rgba(58, 127, 49, 0.25);
+        border-radius: 10px;
+        background: rgba(58, 127, 49, 0.08);
+        color: var(--dpz-green-dark);
+        font-family: inherit;
+        font-size: 11px;
+        font-weight: 850;
+        cursor: pointer;
+        white-space: nowrap;
+        transition:
+            background-color 0.18s ease,
+            border-color 0.18s ease,
+            color 0.18s ease,
+            transform 0.18s ease;
+    }
+
+    .geraet-neu-button:hover {
+        border-color: var(--dpz-green);
+        background: var(--dpz-green);
+        color: #ffffff;
+        transform: translateY(-1px);
+    }
+
+    .geraet-formular-feld select {
+        width: 100%;
+        height: 50px;
+        box-sizing: border-box;
+        padding: 0 42px 0 14px;
+        border: 1px solid #d4d4d4;
+        border-radius: 12px;
+        background-color: #ffffff;
+        color: #222222;
+        font-family: inherit;
+        font-size: 14px;
+        appearance: none;
+        -webkit-appearance: none;
+        background-image:
+            linear-gradient(45deg, transparent 50%, #555555 50%),
+            linear-gradient(135deg, #555555 50%, transparent 50%);
+        background-position:
+            calc(100% - 18px) 22px,
+            calc(100% - 13px) 22px;
+        background-size:
+            5px 5px,
+            5px 5px;
+        background-repeat: no-repeat;
+    }
+
+    .geraet-formular-feld select:focus {
+        outline: none;
+        border-color: var(--dpz-green);
+        box-shadow: 0 0 0 3px rgba(58, 127, 49, 0.12);
+    }
+
+    .geraet-formular-feld small {
+        color: #777777;
+        font-size: 12px;
+        line-height: 1.4;
+    }
+
+    .geraet-aktionen {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding-top: 18px;
+        border-top: 1px solid #ededed;
+    }
+
+    .geraet-button-speichern,
+    .geraet-button-abbrechen {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        box-sizing: border-box;
+        padding: 0 17px;
+        border: 1px solid transparent;
+        border-radius: 12px;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 850;
+        text-decoration: none;
+        cursor: pointer;
+        transition:
+            background-color 0.18s ease,
+            border-color 0.18s ease,
+            color 0.18s ease,
+            transform 0.18s ease;
+    }
+
+    .geraet-button-speichern {
+        border-color: var(--dpz-green);
+        background: var(--dpz-green);
+        color: #ffffff;
+    }
+
+    .geraet-button-speichern:hover {
+        border-color: var(--dpz-green-dark);
+        background: var(--dpz-green-dark);
+        transform: translateY(-1px);
+    }
+
+    .geraet-button-abbrechen {
+        border-color: #dddddd;
+        background: #f1f1f1;
+        color: #333333;
+    }
+
+    .geraet-button-abbrechen:hover {
+        border-color: #cccccc;
+        background: #e5e5e5;
+        color: #111111;
+        transform: translateY(-1px);
+    }
+
+    .geraet-leer {
+        padding: 17px;
+        border: 1px dashed #d5d5d5;
+        border-radius: 14px;
+        background: #fafafa;
+        color: #777777;
+        font-size: 13px;
+        line-height: 1.45;
+        text-align: center;
+    }
+
+    .geraet-neu-overlay {
+        position: fixed;
+        z-index: 100001;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 22px;
+        background: rgba(0, 0, 0, 0.46);
+    }
+
+    .geraet-neu-modal {
+        position: relative;
+        width: min(640px, 95vw);
+        height: min(680px, 90vh);
+        overflow: hidden;
+        border-radius: 20px;
+        background: #ffffff;
+        box-shadow: 0 28px 80px rgba(0, 0, 0, 0.36);
+    }
+
+    .geraet-neu-modal iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        background: #ffffff;
+    }
+
+    .geraet-neu-schliessen {
+        position: absolute;
+        z-index: 3;
+        top: 13px;
+        right: 13px;
+        width: 36px;
+        height: 36px;
+        border: 1px solid #e2e2e2;
+        border-radius: 999px;
+        background: #ffffff;
+        color: #222222;
+        font-size: 22px;
+        font-weight: 900;
+        cursor: pointer;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.14);
+    }
+
+    .geraet-neu-schliessen:hover {
+        background: #eeeeee;
+    }
+
+    .versteckt {
+        display: none !important;
+    }
+
+    @media (max-width: 650px) {
+        .geraet-zuweisen-karte {
+            padding: 20px;
+        }
+
+        .geraet-zuweisen-kopf h1 {
+            font-size: 26px;
+        }
+
+        .geraet-auswahl-kopf {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .geraet-neu-button {
+            width: 100%;
+        }
+
+        .geraet-aktionen {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .geraet-button-speichern,
+        .geraet-button-abbrechen {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="geraet-zuweisen-seite">
+    {% if lizenz %}
+        <a
+            href="{% url 'lizenz_detail' lizenz.0 %}{% if ist_modal %}?modal=1{% endif %}"
+            class="geraet-zuweisen-zurueck"
+        >
+            ← Zurück zur Lizenz
+        </a>
+    {% endif %}
+
+    <section class="geraet-zuweisen-karte">
+        {% if lizenz %}
+            <div class="geraet-zuweisen-kopf">
+                <h1>Gerät zuweisen</h1>
+
+                <p>
+                    Weise die Lizenz
+                    <span class="geraet-lizenzname">
+                        {{ lizenz.1 }}
+                    </span>
+                    einem vorhandenen Gerät zu. Bereits aktiv zugewiesene
+                    Geräte werden nicht erneut angeboten.
+                </p>
+            </div>
+        {% else %}
+            <div class="geraet-zuweisen-kopf">
+                <h1>Lizenz nicht gefunden</h1>
+
+                <p>
+                    Die ausgewählte Lizenz konnte nicht geladen werden.
+                </p>
+            </div>
+        {% endif %}
+
+        {% if fehler %}
+            <div class="geraet-fehler">
+                {{ fehler }}
+            </div>
+        {% endif %}
+
+        {% if erfolg %}
+            <div class="geraet-erfolg">
+                {{ erfolg }}
+            </div>
+        {% endif %}
+
+        {% if lizenz and ziel_typ == "geraet" and not ist_datenquellen_lizenz %}
+            {% if geraete_liste %}
+                <form
+                    method="post"
+                    class="geraet-formular"
+                >
+                    {% csrf_token %}
+
+                    <div class="geraet-formular-feld">
+                        <div class="geraet-auswahl-kopf">
+                            <label for="geraet-id">
+                                Gerät auswählen *
+                            </label>
+
+                            <button
+                                type="button"
+                                class="geraet-neu-button"
+                                id="geraet-neu-button"
+                            >
+                                + Neues Gerät
+                            </button>
+                        </div>
+
+                        <select
+                            name="geraet_id"
+                            id="geraet-id"
+                            required
+                        >
+                            <option value="">
+                                Bitte Gerät auswählen
+                            </option>
+
+                            {% for geraet in geraete_liste %}
+                                <option value="{{ geraet.0 }}">
+                                    {{ geraet.1 }}
+
+                                    {% if geraet.2 %}
+                                        · {{ geraet.2 }}
+                                    {% endif %}
+
+                                    {% if geraet.4 %}
+                                        · {{ geraet.4 }}
+                                    {% endif %}
+                                </option>
+                            {% endfor %}
+                        </select>
+
+                        <small>
+                            Angezeigt werden nur aktive Geräte, denen diese
+                            Lizenz noch nicht zugewiesen wurde.
+                        </small>
+                    </div>
+
+                    <div class="geraet-aktionen">
+                        <button
+                            type="submit"
+                            class="geraet-button-speichern"
+                        >
+                            Gerät zuweisen
+                        </button>
+
+                        <a
+                            href="{% url 'lizenz_detail' lizenz.0 %}{% if ist_modal %}?modal=1{% endif %}"
+                            class="geraet-button-abbrechen"
+                        >
+                            Abbrechen
+                        </a>
+                    </div>
+                </form>
+            {% else %}
+                <div class="geraet-leer">
+                    Es sind keine freien Geräte verfügbar. Entweder wurden
+                    noch keine Geräte angelegt oder alle vorhandenen Geräte
+                    sind dieser Lizenz bereits zugewiesen.
+                </div>
+
+                <div class="geraet-aktionen">
+                    <button
+                        type="button"
+                        class="geraet-neu-button"
+                        id="geraet-neu-button"
+                    >
+                        + Neues Gerät
+                    </button>
+
+                    <a
+                        href="{% url 'lizenz_detail' lizenz.0 %}{% if ist_modal %}?modal=1{% endif %}"
+                        class="geraet-button-abbrechen"
+                    >
+                        Zurück zur Lizenz
+                    </a>
+                </div>
+            {% endif %}
+
+        {% elif lizenz and ist_datenquellen_lizenz %}
+            <div class="geraet-hinweis">
+                Diese Lizenz wird über eine Datenquelle verwaltet.
+                Gerätezuweisungen werden durch die Synchronisation übernommen
+                und können hier nicht manuell geändert werden.
+            </div>
+
+            <div class="geraet-aktionen">
+                <a
+                    href="{% url 'lizenz_detail' lizenz.0 %}{% if ist_modal %}?modal=1{% endif %}"
+                    class="geraet-button-abbrechen"
+                >
+                    Zurück zur Lizenz
+                </a>
+            </div>
+
+        {% elif lizenz %}
+            <div class="geraet-hinweis">
+                Diese Lizenz ist keine Gerätelizenz und kann keinem Gerät
+                zugewiesen werden.
+            </div>
+
+            <div class="geraet-aktionen">
+                <a
+                    href="{% url 'lizenz_detail' lizenz.0 %}{% if ist_modal %}?modal=1{% endif %}"
+                    class="geraet-button-abbrechen"
+                >
+                    Zurück zur Lizenz
+                </a>
+            </div>
+        {% endif %}
+    </section>
+</div>
+
+<div
+    id="geraet-neu-overlay"
+    class="geraet-neu-overlay versteckt"
+>
+    <div class="geraet-neu-modal">
+        <button
+            type="button"
+            class="geraet-neu-schliessen"
+            id="geraet-neu-schliessen"
+            aria-label="Geräteformular schließen"
+        >
+            ×
+        </button>
+
+        <iframe
+            id="geraet-neu-frame"
+            src=""
+            title="Neues Gerät hinzufügen"
+        ></iframe>
+    </div>
+</div>
+
+<script>
+    const geraetNeuButtons =
+        document.querySelectorAll(
+            "#geraet-neu-button"
+        );
+
+    const geraetNeuOverlay =
+        document.getElementById(
+            "geraet-neu-overlay"
+        );
+
+    const geraetNeuFrame =
+        document.getElementById(
+            "geraet-neu-frame"
+        );
+
+    const geraetNeuSchliessenButton =
+        document.getElementById(
+            "geraet-neu-schliessen"
+        );
+
+
+    function geraetNeuModalOeffnen() {
+        if (!geraetNeuOverlay || !geraetNeuFrame) {
+            return;
+        }
+
+        geraetNeuFrame.src =
+            "{{ geraet_hinzufuegen_url }}?modal=1";
+
+        geraetNeuOverlay.classList.remove(
+            "versteckt"
+        );
+    }
+
+
+    function geraetNeuModalSchliessen() {
+        if (!geraetNeuOverlay || !geraetNeuFrame) {
+            return;
+        }
+
+        geraetNeuFrame.src = "";
+
+        geraetNeuOverlay.classList.add(
+            "versteckt"
+        );
+    }
+
+
+    geraetNeuButtons.forEach(function (button) {
+        button.addEventListener(
+            "click",
+            function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                geraetNeuModalOeffnen();
+            }
+        );
+    });
+
+
+    if (geraetNeuSchliessenButton) {
+        geraetNeuSchliessenButton.addEventListener(
+            "click",
+            geraetNeuModalSchliessen
+        );
+    }
+
+
+    if (geraetNeuOverlay) {
+        geraetNeuOverlay.addEventListener(
+            "click",
+            function (event) {
+                if (event.target === geraetNeuOverlay) {
+                    geraetNeuModalSchliessen();
+                }
+            }
+        );
+    }
+
+
+    window.addEventListener(
+        "message",
+        function (event) {
+            if (event.origin !== window.location.origin) {
+                return;
+            }
+
+            if (
+                event.data === "geraet_modal_schliessen"
+            ) {
+                geraetNeuModalSchliessen();
+                return;
+            }
+
+            if (
+                event.data === "geraet_gespeichert"
+            ) {
+                geraetNeuModalSchliessen();
+
+                const aktuelleUrl =
+                    new URL(window.location.href);
+
+                aktuelleUrl.searchParams.set(
+                    "modal",
+                    "1"
+                );
+
+                window.location.href =
+                    aktuelleUrl.toString();
+            }
+        }
+    );
+
+
+    document.addEventListener(
+        "keydown",
+        function (event) {
+            if (
+                event.key === "Escape"
+                && geraetNeuOverlay
+                && !geraetNeuOverlay.classList.contains(
+                    "versteckt"
+                )
+            ) {
+                geraetNeuModalSchliessen();
+            }
+        }
+    );
+</script>
+{% endblock %}

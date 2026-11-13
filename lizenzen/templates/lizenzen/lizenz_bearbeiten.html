@@ -1,0 +1,1628 @@
+{% extends template_basis|default:"lizenzen/base.html" %}
+
+{% block title %}Lizenz bearbeiten{% endblock %}
+
+{% block content %}
+<style>
+    .lizenz-bearbeiten-page {
+        width: min(1180px, 100%);
+        max-width: 1180px;
+    }
+
+    .seitenkopf {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 24px;
+        margin-bottom: 22px;
+    }
+
+    .seitenkopf h1 {
+        margin: 0 0 10px 0;
+        font-size: 32px;
+        letter-spacing: -0.03em;
+    }
+
+    .seitenkopf p {
+        max-width: 760px;
+        margin: 0;
+        color: #555555;
+        font-size: 15px;
+        line-height: 1.45;
+    }
+
+    .formular-fehler-hinweis {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        margin: 0 0 20px;
+        padding: 12px 15px;
+
+        border: 1px solid rgba(176, 0, 0, 0.22);
+        border-left: 4px solid #b00000;
+        border-radius: 13px;
+
+        background: rgba(176, 0, 0, 0.055);
+
+        box-shadow:
+            0 8px 20px rgba(176, 0, 0, 0.07),
+            inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    }
+
+    .formular-fehler-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        flex: 0 0 28px;
+        width: 28px;
+        height: 28px;
+
+        border-radius: 999px;
+
+        background: #b00000;
+        color: #ffffff;
+
+        font-size: 14px;
+        font-weight: 900;
+        line-height: 1;
+    }
+
+    .formular-fehler-text {
+        display: grid;
+        gap: 2px;
+        min-width: 0;
+    }
+
+    .formular-fehler-text strong {
+        color: #7f0000;
+        font-size: 13px;
+        font-weight: 900;
+    }
+
+    .formular-fehler-text span {
+        color: #6b2d2d;
+        font-size: 12px;
+        line-height: 1.4;
+    }
+
+    @media (max-width: 600px) {
+        .formular-fehler-hinweis {
+            align-items: flex-start;
+            padding: 12px;
+        }
+    }
+
+    .formular-fehler-hinweis {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    margin: 0 0 20px;
+    padding: 12px 15px;
+
+    border: 1px solid rgba(176, 0, 0, 0.22);
+    border-left: 4px solid #b00000;
+    border-radius: 13px;
+
+    background: rgba(176, 0, 0, 0.055);
+
+    box-shadow:
+        0 8px 20px rgba(176, 0, 0, 0.07),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+    .formular-fehler-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        flex: 0 0 28px;
+        width: 28px;
+        height: 28px;
+
+        border-radius: 999px;
+
+        background: #b00000;
+        color: #ffffff;
+
+        font-size: 14px;
+        font-weight: 900;
+        line-height: 1;
+    }
+
+    .formular-fehler-text {
+        display: grid;
+        gap: 2px;
+        min-width: 0;
+    }
+
+    .formular-fehler-text strong {
+        color: #7f0000;
+        font-size: 13px;
+        font-weight: 900;
+    }
+
+    .formular-fehler-text span {
+        color: #6b2d2d;
+        font-size: 12px;
+        line-height: 1.4;
+    }
+
+    @media (max-width: 600px) {
+        .formular-fehler-hinweis {
+            align-items: flex-start;
+            padding: 12px;
+        }
+    }
+
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 30px;
+        padding: 0 12px;
+        border: 1px solid rgba(58, 127, 49, 0.22);
+        border-radius: 999px;
+        background: rgba(58, 127, 49, 0.12);
+        color: var(--dpz-green-dark);
+        font-size: 12px;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    .status-pill-inaktiv {
+        border-color: #dddddd;
+        background: #eeeeee;
+        color: #666666;
+    }
+
+    /*
+     * Auffälliger Sicherheitshinweis zum Wechsel
+     * der Zielart Benutzer/Gerät.
+     */
+
+    .formular-block {
+        margin-top: 22px;
+        padding: 24px;
+        border: 1px solid #eeeeee;
+        border-radius: 20px;
+        background: #fbfbfb;
+    }
+
+    .formular-block-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 18px;
+        margin-bottom: 20px;
+    }
+
+    .formular-block-header h2 {
+        margin: 0 0 6px 0;
+        font-size: 22px;
+        letter-spacing: -0.02em;
+    }
+
+    .formular-block-header p {
+        max-width: 760px;
+        margin: 0;
+        color: #666666;
+        font-size: 14px;
+        line-height: 1.4;
+    }
+
+    .formular-badge {
+        flex: 0 0 auto;
+        padding: 7px 11px;
+        border-radius: 12px;
+        background: rgba(58, 127, 49, 0.10);
+        color: var(--dpz-green-dark);
+        font-size: 12px;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .formular-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+    }
+
+    .formular-grid-einspaltig {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    .formular-feld {
+        display: grid;
+        gap: 8px;
+        min-width: 0;
+    }
+
+    .formular-feld-volle-breite {
+        grid-column: 1 / -1;
+    }
+
+    .formular-feld label {
+        margin: 0;
+        color: #222222;
+        font-weight: 800;
+    }
+
+    .formular-feld small {
+        color: #666666;
+        font-size: 12px;
+        line-height: 1.35;
+    }
+
+    .formular-feld input,
+    .formular-feld select,
+    .formular-feld textarea {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid #d2d2d2;
+        border-radius: 12px;
+        background: #ffffff;
+        color: #222222;
+        font-family: inherit;
+        font-size: 14px;
+        transition:
+            border-color 0.18s ease,
+            box-shadow 0.18s ease,
+            background-color 0.18s ease;
+    }
+
+    .formular-feld input,
+    .formular-feld select {
+        height: 45px;
+        min-height: 45px;
+        padding: 0 14px;
+    }
+
+    .formular-feld textarea {
+        min-height: 105px;
+        padding: 13px 14px;
+        line-height: 1.45;
+        resize: vertical;
+    }
+
+    .formular-feld select {
+        padding-right: 42px;
+        appearance: none;
+        -webkit-appearance: none;
+        background-image:
+            linear-gradient(45deg, transparent 50%, #555555 50%),
+            linear-gradient(135deg, #555555 50%, transparent 50%);
+        background-position:
+            calc(100% - 18px) 19px,
+            calc(100% - 13px) 19px;
+        background-size:
+            5px 5px,
+            5px 5px;
+        background-repeat: no-repeat;
+    }
+
+    .formular-feld input:focus,
+    .formular-feld select:focus,
+    .formular-feld textarea:focus {
+        outline: none;
+        border-color: var(--dpz-green);
+        background-color: #ffffff;
+        box-shadow: 0 0 0 3px rgba(58, 127, 49, 0.12);
+    }
+
+    .auswahl-zeile {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        align-items: stretch;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .auswahl-zeile select,
+    .auswahl-zeile input {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .auswahl-zeile .inline-aktion,
+    .auswahl-zeile .inline-aktion-plus {
+        flex: 0 0 auto;
+    }
+
+    .inline-aktion,
+    .inline-aktion-plus {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 45px;
+        min-height: 45px;
+        box-sizing: border-box;
+        border-radius: 12px;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 800;
+        text-decoration: none !important;
+        white-space: nowrap;
+        cursor: pointer;
+        transition:
+            background-color 0.18s ease,
+            color 0.18s ease,
+            border-color 0.18s ease,
+            transform 0.18s ease,
+            box-shadow 0.18s ease;
+    }
+
+    .inline-aktion {
+        padding: 0 15px;
+        border: 1px solid rgba(58, 127, 49, 0.25);
+        background: rgba(58, 127, 49, 0.10);
+        color: var(--dpz-green-dark) !important;
+    }
+
+    .inline-aktion-plus {
+        width: 45px;
+        padding: 0;
+        border: 1px solid var(--dpz-green);
+        background: var(--dpz-green);
+        color: #ffffff !important;
+        font-size: 20px;
+        line-height: 1;
+    }
+
+    .inline-aktion:hover,
+    .inline-aktion-plus:hover {
+        border-color: var(--dpz-green-dark);
+        background: var(--dpz-green-dark);
+        color: #ffffff !important;
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px rgba(58, 127, 49, 0.16);
+    }
+
+    .kategorie-info-kompakt {
+        display: block;
+        margin-top: 14px;
+        width: 100%;
+    }
+
+    .kategorie-info-box {
+        width: min(560px, 100%);
+        min-height: 78px;
+        padding: 14px 15px;
+        border: 1px solid #e8e8e8;
+        border-radius: 15px;
+        background: #ffffff;
+        box-sizing: border-box;
+    }
+
+    .kategorie-info-box span {
+        display: block;
+        margin-bottom: 6px;
+        color: #666666;
+        font-size: 11px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .kategorie-info-box strong {
+        display: block;
+        color: #222222;
+        font-size: 14px;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
+    }
+
+    .verwaltungs-hinweis {
+        grid-column: 1 / -1;
+        padding: 14px 16px;
+        border: 1px solid rgba(58, 127, 49, 0.20);
+        border-radius: 14px;
+        background: rgba(58, 127, 49, 0.08);
+        color: #244f20;
+        font-size: 14px;
+        line-height: 1.45;
+    }
+
+    .verwaltungs-hinweis.neutral {
+        border-color: #e5e5e5;
+        background: #f7f7f7;
+        color: #555555;
+    }
+
+    .formular-aktionen-modern {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 26px;
+        padding-top: 22px;
+        border-top: 1px solid #e5e5e5;
+    }
+
+    .formular-aktionen-modern button,
+    .formular-aktionen-modern a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 45px;
+        min-height: 45px;
+        box-sizing: border-box;
+        padding: 0 18px;
+        border: none;
+        border-radius: 12px;
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 800;
+        text-decoration: none;
+        cursor: pointer;
+        transition:
+            background-color 0.18s ease,
+            transform 0.18s ease,
+            box-shadow 0.18s ease;
+    }
+
+    .speichern-button {
+        background: var(--dpz-green);
+        color: #ffffff;
+    }
+
+    .speichern-button:hover {
+        background: var(--dpz-green-dark);
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px rgba(58, 127, 49, 0.18);
+    }
+
+    .abbrechen-button {
+        background: #555555;
+        color: #ffffff !important;
+    }
+
+    .abbrechen-button:hover {
+        background: #333333;
+        color: #ffffff !important;
+        transform: translateY(-1px);
+    }
+
+    .gefahrenbereich {
+        margin-top: 28px;
+        padding: 22px 24px;
+        border: 1px solid rgba(176, 0, 0, 0.16);
+        border-radius: 20px;
+        background: rgba(176, 0, 0, 0.045);
+    }
+
+    .gefahrenbereich-kopf {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 18px;
+    }
+
+    .gefahrenbereich h2 {
+        margin: 0 0 6px 0;
+        color: #7f0000;
+        font-size: 20px;
+    }
+
+    .gefahrenbereich p {
+        max-width: 760px;
+        margin: 0;
+        color: #6a3333;
+        font-size: 14px;
+        line-height: 1.45;
+    }
+
+    .gefahrenbereich form {
+        flex: 0 0 auto;
+        margin: 0;
+    }
+
+    .button-gefahr {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 40px;
+        min-height: 40px;
+        padding: 0 16px;
+        border: 1px solid rgba(176, 0, 0, 0.25);
+        border-radius: 11px;
+        background: rgba(176, 0, 0, 0.08);
+        color: #9b0000;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 900;
+        cursor: pointer;
+        transition:
+            background-color 0.18s ease,
+            color 0.18s ease,
+            transform 0.18s ease,
+            box-shadow 0.18s ease;
+    }
+
+    .button-gefahr:hover {
+        background: #b00000;
+        color: #ffffff;
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px rgba(176, 0, 0, 0.14);
+    }
+
+    .stammdaten-modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: rgba(0, 0, 0, 0.22);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+    }
+
+    .stammdaten-modal-overlay.aktiv {
+        display: flex;
+    }
+
+    .stammdaten-modal {
+        width: min(820px, 100%);
+        height: min(84vh, 760px);
+        overflow: hidden;
+        border-radius: 24px;
+        background: #ffffff;
+        box-shadow: 0 28px 70px rgba(0, 0, 0, 0.22);
+    }
+
+    .stammdaten-modal-kopf {
+        height: 54px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 18px;
+        border-bottom: 1px solid #eeeeee;
+        background: #fbfbfb;
+    }
+
+    .stammdaten-modal-kopf strong {
+        color: #222222;
+        font-size: 15px;
+    }
+
+    .stammdaten-modal-schliessen {
+        width: 34px;
+        height: 34px;
+        border: 1px solid #dddddd;
+        border-radius: 999px;
+        background: #ffffff;
+        color: #333333;
+        font-size: 19px;
+        font-weight: 900;
+        cursor: pointer;
+    }
+
+    .stammdaten-modal-schliessen:hover {
+        background: #f2f2f2;
+    }
+
+    .stammdaten-modal iframe {
+        width: 100%;
+        height: calc(100% - 54px);
+        border: none;
+        background: #ffffff;
+    }
+
+    .zurueck-pill-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 34px;
+        margin-bottom: 10px;
+        padding: 0 12px;
+        border: 1px solid #dddddd;
+        border-radius: 999px;
+        background: #ffffff;
+        color: #333333;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 800;
+        cursor: pointer;
+        transition:
+            background-color 0.18s ease,
+            border-color 0.18s ease,
+            color 0.18s ease,
+            transform 0.18s ease;
+    }
+
+    .zurueck-pill-button:hover {
+        border-color: rgba(58, 127, 49, 0.30);
+        background: rgba(58, 127, 49, 0.06);
+        color: var(--dpz-green-dark);
+        transform: translateY(-1px);
+    }
+
+    @media (max-width: 900px) {
+        .seitenkopf,
+        .formular-block-header,
+        .gefahrenbereich-kopf {
+            flex-direction: column;
+        }
+
+        .formular-grid,
+        .kategorie-info-kompakt {
+            grid-template-columns: 1fr;
+        }
+
+        .formular-feld-volle-breite,
+        .verwaltungs-hinweis {
+            grid-column: 1;
+        }
+
+        .auswahl-zeile {
+            grid-template-columns: 1fr;
+        }
+
+        .inline-aktion,
+        .inline-aktion-plus {
+            width: 100%;
+        }
+
+        .formular-aktionen-modern {
+            flex-direction: column;
+        }
+
+        .formular-aktionen-modern button,
+        .formular-aktionen-modern a,
+        .gefahrenbereich form,
+        .button-gefahr {
+            width: 100%;
+        }
+
+        .stammdaten-modal-overlay {
+            padding: 12px;
+        }
+
+        .stammdaten-modal {
+            height: 90vh;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .zielart-hinweis {
+            gap: 13px;
+            padding: 16px;
+        }
+
+        .zielart-hinweis-icon {
+            flex-basis: 32px;
+            width: 32px;
+            height: 32px;
+            font-size: 17px;
+        }
+
+        .zielart-hinweis-kopf {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 5px;
+        }
+    }
+</style>
+
+{% if lizenz %}
+<div class="karte seiten-karte lizenz-bearbeiten-page">
+    {% if ist_modal %}
+        <button
+            type="button"
+            class="zurueck-pill-button"
+            id="zurueck-zur-lizenz-button"
+        >
+            ← Zurück zur Lizenz
+        </button>
+    {% else %}
+        <a
+            class="zurueck-link"
+            href="{% url 'lizenz_detail' lizenz.0 %}"
+        >
+            ← Zurück zur Lizenz
+        </a>
+    {% endif %}
+
+    <div class="seitenkopf">
+        <div>
+            <h1>Lizenz bearbeiten</h1>
+
+            <p>
+                Stammdaten, Kategorie, Kosten, Laufzeit und Verwaltungsart
+                dieser Lizenz anpassen.
+            </p>
+        </div>
+
+        {% if lizenz.21 == "aktiv" or not lizenz.21 %}
+            <span class="status-pill">Aktiv</span>
+        {% else %}
+            <span class="status-pill status-pill-inaktiv">
+                {{ lizenz.21|default:"Inaktiv" }}
+            </span>
+        {% endif %}
+    </div>
+
+
+    {% if fehler %}
+        <div class="formular-fehler-hinweis">
+            <div class="formular-fehler-icon">!</div>
+
+            <div class="formular-fehler-text">
+                <strong>Änderung nicht möglich</strong>
+                <span>{{ fehler }}</span>
+            </div>
+        </div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+
+        <input
+            type="hidden"
+            name="lizenzklasse"
+            id="lizenzklasse-wert"
+            value="{{ lizenz.8|default:'benutzer' }}"
+        >
+
+        <input
+            type="hidden"
+            name="lizenztyp"
+            value="{{ lizenz.1 }}"
+        >
+
+        <input
+            type="hidden"
+            name="zuweisungsart"
+            value="{{ lizenz.9|default:'benutzer' }}"
+        >
+
+        <input
+            type="hidden"
+            name="technologiebereich"
+            value="{{ lizenz.11|default:'allgemein' }}"
+        >
+
+        <div class="formular-block">
+            <div class="formular-block-header">
+                <div>
+                    <h2>Grunddaten</h2>
+                    <p>
+                        Name, Anbieter und Beschreibung der Lizenz.
+                    </p>
+                </div>
+
+                <span class="formular-badge">
+                    Stammdaten
+                </span>
+            </div>
+
+            <div class="formular-grid">
+                <div class="formular-feld">
+                    <label for="lizenz-name">
+                        Lizenzname *
+                    </label>
+
+                    <input
+                        type="text"
+                        name="name"
+                        id="lizenz-name"
+                        value="{{ lizenz.1 }}"
+                        required
+                    >
+                </div>
+
+                <div class="formular-feld">
+                    <label for="lizenz-anbieter">
+                        Anbieter *
+                    </label>
+
+                    {% if anbieter_liste %}
+                        <div class="auswahl-zeile">
+                            <select
+                                name="anbieter"
+                                id="lizenz-anbieter"
+                                required
+                            >
+                                {% for anbieter in anbieter_liste %}
+                                    <option
+                                        value="{{ anbieter.1 }}"
+                                        data-id="{{ anbieter.0 }}"
+                                        {% if lizenz.2 == anbieter.1 %}
+                                            selected
+                                        {% endif %}
+                                    >
+                                        {{ anbieter.1 }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+
+                            <button
+                                type="button"
+                                class="inline-aktion-plus"
+                                id="anbieter-hinzufuegen-button"
+                                title="Anbieter hinzufügen"
+                            >
+                                +
+                            </button>
+                        </div>
+                    {% else %}
+                        <input
+                            type="text"
+                            name="anbieter"
+                            id="lizenz-anbieter"
+                            value="{{ lizenz.2 }}"
+                            required
+                        >
+                    {% endif %}
+                </div>
+
+                <div class="formular-feld formular-feld-volle-breite">
+                    <label for="beschreibung">
+                        Lizenzbeschreibung
+                    </label>
+
+                    <textarea
+                        name="beschreibung"
+                        id="beschreibung"
+                        placeholder="Kurze Beschreibung, wofür diese Lizenz eingesetzt wird."
+                    >{% if lizenz.17 %}{{ lizenz.17 }}{% endif %}</textarea>
+
+                    <small>
+                        Die Beschreibung gilt für diese konkrete Lizenz.
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <div class="formular-block">
+            <div class="formular-block-header">
+                <div>
+                    <h2>Kategorie</h2>
+
+                    <p>
+                        Die Kategorie beschreibt die fachliche Art der Lizenz.
+                    </p>
+                </div>
+
+                <span class="formular-badge">
+                    Kategorie
+                </span>
+            </div>
+
+            <div class="formular-grid-einspaltig">
+                <div class="formular-feld">
+                    <label for="lizenzkategorie">
+                        Lizenzkategorie
+                    </label>
+
+                    <div class="auswahl-zeile">
+                        <select
+                            name="kategorie_id"
+                            id="lizenzkategorie"
+                        >
+                            <option
+                                value=""
+                                data-beschreibung="Keine lokale Kategorie zugeordnet."
+                                data-typische-zuordnung="Die vorhandene Zielart bleibt unverändert."
+                                data-interne-lizenzklasse="{{ lizenz.8|default:'benutzer' }}"
+                                data-standard-zuweisungsart="{{ lizenz.9|default:'benutzer' }}"
+                                {% if not lizenz.12 %}
+                                    selected
+                                {% endif %}
+                            >
+                                Keine Kategorie zugeordnet
+                            </option>
+
+                            {% for kategorie in kategorien %}
+                                <option
+                                    value="{{ kategorie.id }}"
+                                    data-beschreibung="{{ kategorie.beschreibung }}"
+                                    data-typische-zuordnung="{{ kategorie.typische_zuordnung }}"
+                                    data-interne-lizenzklasse="{{ kategorie.interne_lizenzklasse }}"
+                                    data-standard-zuweisungsart="{{ kategorie.standard_zuweisungsart }}"
+                                    {% if lizenz.12 == kategorie.id %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    {{ kategorie.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+
+                        <button
+                            type="button"
+                            class="inline-aktion"
+                            id="kategorie-bearbeiten-button"
+                        >
+                            Bearbeiten
+                        </button>
+
+                        <button
+                            type="button"
+                            class="inline-aktion-plus"
+                            id="kategorie-hinzufuegen-button"
+                            title="Kategorie hinzufügen"
+                        >
+                            +
+                        </button>
+                    </div>
+
+                    <small>
+                        Es werden nur aktive Kategorien angeboten.
+                    </small>
+                </div>
+
+                <div class="kategorie-info-kompakt">
+                    <div class="kategorie-info-box">
+                        <span>Beschreibung</span>
+                        <strong id="vorschau-beschreibung">—</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="formular-block">
+            <div class="formular-block-header">
+                <div>
+                    <h2>Kosten & Laufzeit</h2>
+
+                    <p>
+                        Bestand, Abrechnungsintervall und relevante Datumsangaben.
+                    </p>
+                </div>
+
+                <span class="formular-badge">
+                    Kosten
+                </span>
+            </div>
+
+            <div class="formular-grid">
+                <div class="formular-feld">
+                    <label for="anzahl">
+                        Anzahl *
+                    </label>
+
+                    <input
+                        type="number"
+                        name="anzahl"
+                        id="anzahl"
+                        min="1"
+                        value="{{ lizenz.3 }}"
+                        required
+                    >
+                </div>
+
+                <div class="formular-feld">
+                    <label for="kosten">
+                        Kosten pro Lizenz *
+                    </label>
+
+                    <input
+                        type="text"
+                        name="kosten"
+                        id="kosten"
+                        value="{{ lizenz.5 }}"
+                        required
+                    >
+                </div>
+
+                <div class="formular-feld">
+                    <label for="kostenmodell">
+                        Abrechnungsintervall / Kostenmodell *
+                    </label>
+
+                    <select
+                        name="kostenmodell"
+                        id="kostenmodell"
+                        required
+                    >
+                        <option
+                            value="fortlaufend"
+                            {% if lizenz.10 == "fortlaufend" %}
+                                selected
+                            {% endif %}
+                        >
+                            Monatlich
+                        </option>
+
+                        <option
+                            value="jaehrlich"
+                            {% if lizenz.10 == "jaehrlich" %}
+                                selected
+                            {% endif %}
+                        >
+                            Jährlich
+                        </option>
+
+                        <option
+                            value="einmalig"
+                            {% if lizenz.10 == "einmalig" %}
+                                selected
+                            {% endif %}
+                        >
+                            Einmalig
+                        </option>
+                    </select>
+                </div>
+
+                <div class="formular-feld">
+                    <label for="status">
+                        Status
+                    </label>
+
+                    <select name="status" id="status">
+                        <option
+                            value="aktiv"
+                            {% if lizenz.21 == "aktiv" or not lizenz.21 %}
+                                selected
+                            {% endif %}
+                        >
+                            Aktiv
+                        </option>
+
+                        <option
+                            value="inaktiv"
+                            {% if lizenz.21 == "inaktiv" %}
+                                selected
+                            {% endif %}
+                        >
+                            Inaktiv
+                        </option>
+                    </select>
+                </div>
+
+                <div class="formular-feld">
+                    <label for="ablaufdatum">
+                        Ablaufdatum
+                    </label>
+
+                    <input
+                        type="date"
+                        name="ablaufdatum"
+                        id="ablaufdatum"
+                        value="{{ lizenz.6 }}"
+                    >
+                </div>
+
+                <div class="formular-feld">
+                    <label for="verlaengerungsdatum">
+                        Verlängerungsdatum
+                    </label>
+
+                    <input
+                        type="date"
+                        name="verlaengerungsdatum"
+                        id="verlaengerungsdatum"
+                        value="{{ lizenz.7 }}"
+                    >
+                </div>
+            </div>
+        </div>
+
+        <div class="formular-block">
+            <div class="formular-block-header">
+                <div>
+                    <h2>Verwaltungsart</h2>
+
+                    <p>
+                        Wähle, ob die Lizenz in der App oder über eine
+                        eingerichtete Datenquelle verwaltet wird.
+                    </p>
+                </div>
+
+                <span class="formular-badge">
+                    Verwaltung
+                </span>
+            </div>
+
+            <div class="formular-grid">
+                <div class="formular-feld formular-feld-volle-breite">
+                    <label for="datenquelle">
+                        Verwaltung über
+                    </label>
+
+                    <select name="datenquelle" id="datenquelle">
+                        <option
+                            value="manuell"
+                            {% if not lizenz.18 or lizenz.18 == "manuell" %}
+                                selected
+                            {% endif %}
+                        >
+                            Manuell in der App
+                        </option>
+
+                        {% for datenquelle in datenquellen_liste %}
+                            <option
+                                value="{{ datenquelle.id }}"
+                                {% if lizenz.22|stringformat:"s" == datenquelle.id|stringformat:"s" %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ datenquelle.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div
+                    class="verwaltungs-hinweis"
+                    id="verwaltungs-hinweis"
+                >
+                    —
+                </div>
+            </div>
+        </div>
+
+        <div class="formular-aktionen-modern">
+            <button
+                type="submit"
+                class="speichern-button"
+            >
+                Änderungen speichern
+            </button>
+
+            {% if ist_modal %}
+                <button
+                    type="button"
+                    class="abbrechen-button"
+                    id="bearbeiten-abbrechen-button"
+                >
+                    Abbrechen
+                </button>
+            {% else %}
+                <a
+                    href="{% url 'lizenz_detail' lizenz.0 %}"
+                    class="abbrechen-button"
+                >
+                    Abbrechen
+                </a>
+            {% endif %}
+        </div>
+    </form>
+
+    <div class="gefahrenbereich">
+        <div class="gefahrenbereich-kopf">
+            <div>
+                <h2>Lizenz löschen</h2>
+
+                <p>
+                    Die Lizenz und ihre zugehörigen Zuweisungen werden
+                    dauerhaft aus dem System entfernt.
+                </p>
+            </div>
+
+            <form
+                method="post"
+                action="{% url 'lizenz_loeschen' lizenz.0 %}{% if ist_modal %}?modal=1{% endif %}"
+                onsubmit="
+                    return confirm(
+                        'Diese Lizenz wirklich löschen? Alle zugehörigen Zuweisungen werden ebenfalls entfernt.'
+                    );
+                "
+            >
+                {% csrf_token %}
+
+                <button
+                    type="submit"
+                    class="button-gefahr"
+                >
+                    Lizenz löschen
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div
+    class="stammdaten-modal-overlay"
+    id="stammdaten-modal-overlay"
+>
+    <div class="stammdaten-modal">
+        <div class="stammdaten-modal-kopf">
+            <strong id="stammdaten-modal-titel">
+                Stammdaten verwalten
+            </strong>
+
+            <button
+                type="button"
+                class="stammdaten-modal-schliessen"
+                id="stammdaten-modal-schliessen"
+            >
+                ×
+            </button>
+        </div>
+
+        <iframe
+            src=""
+            id="stammdaten-modal-frame"
+            title="Stammdaten verwalten"
+        ></iframe>
+    </div>
+</div>
+
+{% else %}
+<div class="karte">
+    <h1>Lizenz nicht gefunden</h1>
+
+    {% if fehler %}
+        <div class="leer-hinweis">
+            {{ fehler }}
+        </div>
+    {% endif %}
+
+    <div class="formular-aktionen">
+        <a href="{% url 'lizenzen_liste' %}">
+            Zurück zur Lizenzübersicht
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<script>
+    const kategorieSelect =
+        document.getElementById("lizenzkategorie");
+
+    const lizenzklasseHidden =
+        document.getElementById("lizenzklasse-wert");
+
+    const vorschauBeschreibung =
+        document.getElementById("vorschau-beschreibung");
+
+    const vorschauNutzung =
+        document.getElementById("vorschau-nutzung");
+
+    const datenquelleSelect =
+        document.getElementById("datenquelle");
+
+    const verwaltungsHinweis =
+        document.getElementById("verwaltungs-hinweis");
+
+    const zurueckButton =
+        document.getElementById("zurueck-zur-lizenz-button");
+
+    const abbrechenButton =
+        document.getElementById("bearbeiten-abbrechen-button");
+
+    const modalOverlay =
+        document.getElementById("stammdaten-modal-overlay");
+
+    const modalFrame =
+        document.getElementById("stammdaten-modal-frame");
+
+    const modalSchliessen =
+        document.getElementById("stammdaten-modal-schliessen");
+
+    const modalTitel =
+        document.getElementById("stammdaten-modal-titel");
+
+    const anbieterHinzufuegenButton =
+        document.getElementById("anbieter-hinzufuegen-button");
+
+    const kategorieHinzufuegenButton =
+        document.getElementById("kategorie-hinzufuegen-button");
+
+    const kategorieBearbeitenButton =
+        document.getElementById("kategorie-bearbeiten-button");
+
+
+    function lizenzdetailImHauptmodalOeffnen() {
+        window.parent.postMessage(
+            {
+                typ: "modal_oeffnen",
+                url: "/lizenzen/{{ lizenz.0 }}/?modal=1",
+                titel: "{{ lizenz.1|escapejs }}"
+            },
+            window.location.origin
+        );
+    }
+
+
+    function kategorieVorschauAktualisieren() {
+        if (
+            !kategorieSelect
+            || !kategorieSelect.selectedOptions.length
+        ) {
+            return;
+        }
+
+        const option =
+            kategorieSelect.selectedOptions[0];
+
+        const beschreibung =
+            option.dataset.beschreibung
+            || "Keine Beschreibung hinterlegt.";
+
+        const typischeNutzung =
+            option.dataset.typischeZuordnung
+            || "Keine typische Nutzung hinterlegt.";
+
+        const interneLizenzklasse =
+            option.dataset.interneLizenzklasse
+            || "benutzer";
+
+        if (vorschauBeschreibung) {
+            vorschauBeschreibung.textContent =
+                beschreibung;
+        }
+
+        if (vorschauNutzung) {
+            vorschauNutzung.textContent =
+                typischeNutzung;
+        }
+
+        if (lizenzklasseHidden) {
+            lizenzklasseHidden.value =
+                interneLizenzklasse;
+        }
+    }
+
+
+    function verwaltungsartAktualisieren() {
+        if (
+            !datenquelleSelect
+            || !verwaltungsHinweis
+        ) {
+            return;
+        }
+
+        const datenquelle =
+            datenquelleSelect.value || "manuell";
+
+        const option =
+            datenquelleSelect.selectedOptions.length
+                ? datenquelleSelect.selectedOptions[0]
+                : null;
+
+        const anzeigename =
+            option
+                ? option.textContent.trim()
+                : "Datenquelle";
+
+        if (datenquelle === "manuell") {
+            verwaltungsHinweis.classList.add(
+                "neutral"
+            );
+
+            verwaltungsHinweis.textContent =
+                "Diese Lizenz wird direkt in der App verwaltet. "
+                + "Änderungen und Zuweisungen können lokal vorgenommen werden.";
+
+
+            return;
+        }
+
+        verwaltungsHinweis.classList.remove(
+            "neutral"
+        );
+
+        verwaltungsHinweis.textContent =
+            "Diese Lizenz wird über „"
+            + anzeigename
+            + "“ verwaltet. Der synchronisierte Stand wird "
+            + "für Auswertungen und Prüfungen übernommen.";
+
+    }
+
+
+    function modalOeffnen(url, titel) {
+        if (
+            !modalOverlay
+            || !modalFrame
+            || !url
+        ) {
+            return;
+        }
+
+        if (modalTitel) {
+            modalTitel.textContent =
+                titel || "Stammdaten verwalten";
+        }
+
+        modalFrame.src = url;
+        modalOverlay.classList.add("aktiv");
+        document.body.style.overflow = "hidden";
+    }
+
+
+    function modalSchliessenFunktion(neuLaden) {
+        if (!modalOverlay || !modalFrame) {
+            return;
+        }
+
+        modalOverlay.classList.remove("aktiv");
+
+        window.setTimeout(function () {
+            modalFrame.src = "";
+            document.body.style.overflow = "";
+
+            if (neuLaden) {
+                window.location.reload();
+            }
+        }, 160);
+    }
+
+
+    if (zurueckButton) {
+        zurueckButton.addEventListener(
+            "click",
+            lizenzdetailImHauptmodalOeffnen
+        );
+    }
+
+
+    if (abbrechenButton) {
+        abbrechenButton.addEventListener(
+            "click",
+            lizenzdetailImHauptmodalOeffnen
+        );
+    }
+
+
+    if (kategorieSelect) {
+        kategorieSelect.addEventListener(
+            "change",
+            kategorieVorschauAktualisieren
+        );
+    }
+
+
+    if (datenquelleSelect) {
+        datenquelleSelect.addEventListener(
+            "change",
+            verwaltungsartAktualisieren
+        );
+    }
+
+
+    if (anbieterHinzufuegenButton) {
+        anbieterHinzufuegenButton.addEventListener(
+            "click",
+            function () {
+                modalOeffnen(
+                    "/anbieter/hinzufuegen/?modal=1",
+                    "Anbieter hinzufügen"
+                );
+            }
+        );
+    }
+
+
+    if (kategorieHinzufuegenButton) {
+        kategorieHinzufuegenButton.addEventListener(
+            "click",
+            function () {
+                modalOeffnen(
+                    "/lizenzkategorien/hinzufuegen/?modal=1",
+                    "Kategorie hinzufügen"
+                );
+            }
+        );
+    }
+
+
+    if (kategorieBearbeitenButton) {
+        kategorieBearbeitenButton.addEventListener(
+            "click",
+            function () {
+                if (
+                    !kategorieSelect
+                    || !kategorieSelect.value
+                ) {
+                    return;
+                }
+
+                modalOeffnen(
+                    "/lizenzkategorien/"
+                    + kategorieSelect.value
+                    + "/bearbeiten/?modal=1",
+                    "Kategorie bearbeiten"
+                );
+            }
+        );
+    }
+
+
+    if (modalSchliessen) {
+        modalSchliessen.addEventListener(
+            "click",
+            function () {
+                modalSchliessenFunktion(false);
+            }
+        );
+    }
+
+
+    if (modalOverlay) {
+        modalOverlay.addEventListener(
+            "click",
+            function (event) {
+                if (event.target === modalOverlay) {
+                    modalSchliessenFunktion(false);
+                }
+            }
+        );
+    }
+
+
+    document.addEventListener(
+        "keydown",
+        function (event) {
+            if (
+                event.key === "Escape"
+                && modalOverlay
+                && modalOverlay.classList.contains("aktiv")
+            ) {
+                modalSchliessenFunktion(false);
+            }
+        }
+    );
+
+
+    window.addEventListener(
+        "message",
+        function (event) {
+            if (event.origin !== window.location.origin) {
+                return;
+            }
+
+            if (
+                event.data
+                && event.data.type === "anbieter_gespeichert"
+                && event.data.anbieter
+                && modalFrame
+                && event.source === modalFrame.contentWindow
+            ) {
+                const auswahl = document.getElementById("lizenz-anbieter");
+                if (!auswahl || auswahl.tagName !== "SELECT") {
+                    return;
+                }
+                const anbieter = event.data.anbieter;
+                let option = Array.from(auswahl.options).find(
+                    eintrag => eintrag.dataset.id === String(anbieter.id)
+                );
+                if (!option) {
+                    option = new Option(anbieter.name, anbieter.name);
+                    option.dataset.id = String(anbieter.id);
+                    auswahl.add(option);
+                }
+                option.textContent = anbieter.name;
+                option.value = anbieter.name;
+                auswahl.value = anbieter.name;
+                auswahl.dispatchEvent(new Event("change", {bubbles: true}));
+                modalSchliessenFunktion(false);
+                auswahl.focus();
+                return;
+            }
+
+            if (
+                event.data === "anbieter_gespeichert"
+                || event.data === "kategorie_gespeichert"
+            ) {
+                modalSchliessenFunktion(true);
+                return;
+            }
+
+            if (
+                event.data === "anbieter_modal_schliessen"
+                || event.data === "kategorie_modal_schliessen"
+            ) {
+                modalSchliessenFunktion(false);
+            }
+        }
+    );
+
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+            kategorieVorschauAktualisieren();
+            verwaltungsartAktualisieren();
+        }
+    );
+</script>
+{% endblock %}

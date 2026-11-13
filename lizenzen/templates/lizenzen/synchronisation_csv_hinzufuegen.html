@@ -1,0 +1,691 @@
+{% extends template_basis|default:"lizenzen/base.html" %}
+
+{% block title %}
+    Benutzer-CSV importieren
+{% endblock %}
+
+{% block content %}
+<style>
+    .csv-import {
+        width: 100%;
+        max-width: 940px;
+        margin: 0 auto;
+    }
+
+    .csv-kopf h1 {
+        margin: 0 0 7px;
+        color: #222222;
+        font-size: 27px;
+    }
+
+    .csv-kopf p {
+        margin: 0;
+        color: #667069;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .csv-bereich {
+        margin-top: 22px;
+        padding: 24px;
+        border: 1px solid #e0e7e1;
+        border-radius: 18px;
+        background: #ffffff;
+        box-shadow: 0 8px 24px rgba(35, 48, 39, 0.05);
+    }
+
+    .csv-bereich h2 {
+        margin: 0 0 8px;
+        color: #222222;
+        font-size: 18px;
+    }
+
+    .csv-bereich p {
+        margin: 0 0 18px;
+        color: #6b756e;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .csv-datei {
+        width: 100%;
+        padding: 16px;
+        border: 1px dashed #b8c5ba;
+        border-radius: 12px;
+        background: #f9fbf9;
+        box-sizing: border-box;
+        color: #3c4740;
+        font-family: inherit;
+    }
+
+    .csv-datei::file-selector-button {
+        margin-right: 12px;
+        padding: 9px 13px;
+        border: 1px solid #d5ded6;
+        border-radius: 9px;
+        background: #ffffff;
+        color: #3d4941;
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .csv-aktionen {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 20px;
+    }
+
+    .csv-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 42px;
+        padding: 0 17px;
+        border: 0;
+        border-radius: 10px;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 750;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .csv-zurueck {
+        background: #eef1ef;
+        color: #465149;
+    }
+
+    .csv-weiter {
+        background: var(--dpz-green);
+        color: #ffffff;
+    }
+
+    .csv-fehler {
+        margin-top: 16px;
+        padding: 13px 15px;
+        border: 1px solid #f2c5c1;
+        border-radius: 11px;
+        background: #fff3f2;
+        color: #a42b20;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .csv-ergebnis {
+        margin-top: 22px;
+        overflow: hidden;
+        border: 1px solid #e0e7e1;
+        border-radius: 18px;
+        background: #ffffff;
+    }
+
+    .csv-ergebnis-kopf {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 18px 20px;
+        border-bottom: 1px solid #e8ece9;
+        background: #f7faf7;
+    }
+
+    .csv-ergebnis-kopf h2 {
+        margin: 0 0 5px;
+        color: #253029;
+        font-size: 18px;
+    }
+
+    .csv-ergebnis-kopf p {
+        margin: 0;
+        color: #6c766f;
+        font-size: 12px;
+    }
+
+    .csv-anzahl {
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #e8f5eb;
+        color: #287744;
+        font-size: 12px;
+        font-weight: 750;
+        white-space: nowrap;
+    }
+
+    .csv-metadaten {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 14px 20px;
+        border-bottom: 1px solid #edf0ee;
+    }
+
+    .csv-metadaten span {
+        padding: 6px 9px;
+        border-radius: 8px;
+        background: #f0f3f1;
+        color: #536057;
+        font-size: 11px;
+    }
+
+    .csv-tabelle-rahmen {
+        overflow-x: auto;
+    }
+
+    .csv-tabelle {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+    }
+
+    .csv-tabelle th,
+    .csv-tabelle td {
+        padding: 11px 13px;
+        border-bottom: 1px solid #edf0ee;
+        color: #445047;
+        text-align: left;
+        white-space: nowrap;
+    }
+
+    .csv-tabelle th {
+        background: #fafbfa;
+        color: #6a746d;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.035em;
+    }
+
+    .csv-tabelle tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    .csv-mapping {
+        padding: 20px;
+        border-top: 1px solid #e8ece9;
+    }
+
+    .csv-mapping h3 {
+        margin: 0 0 5px;
+        color: #29342d;
+        font-size: 16px;
+    }
+
+    .csv-mapping > p {
+        margin: 0 0 16px;
+        color: #6c766f;
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    .csv-mapping > .csv-mapping-hinweis {
+        margin-top: 14px;
+        margin-bottom: 0;
+    }
+
+    .csv-mapping-raster {
+        display: grid;
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+        gap: 13px;
+    }
+
+    .csv-mapping-feld {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .csv-mapping-feld span {
+        color: #657068;
+        font-size: 11px;
+        font-weight: 750;
+        text-transform: uppercase;
+        letter-spacing: 0.035em;
+    }
+
+    .csv-name-feld {
+        margin-bottom: 20px;
+    }
+
+    .csv-mapping-feld input {
+        width: 100%;
+        min-height: 41px;
+        padding: 0 12px;
+        border: 1px solid #d9e0da;
+        border-radius: 10px;
+        background: #ffffff;
+        color: #354039;
+        font-family: inherit;
+        font-size: 13px;
+        box-sizing: border-box;
+    }
+
+    .csv-mapping-feld input:focus {
+        outline: none;
+        border-color: var(--dpz-green);
+        box-shadow: 0 0 0 3px var(--dpz-green-soft);
+    }
+
+    .csv-mapping-untertitel {
+        margin-top: 4px !important;
+        margin-bottom: 12px !important;
+        font-size: 14px !important;
+    }
+
+    .csv-speichern-bereich {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 15px 20px;
+        border-top: 1px solid #e8ece9;
+        background: #fbfcfb;
+    }
+
+    .csv-speichern-bereich span {
+        color: #68736b;
+        font-size: 12px;
+        line-height: 1.45;
+    }
+
+    .csv-mapping-feld select {
+        width: 100%;
+        min-height: 43px;
+        padding: 0 40px 0 13px;
+        border: 1px solid #d9e0da;
+        border-radius: 11px;
+        background-color: #ffffff;
+        background-image:
+            linear-gradient(
+                45deg,
+                transparent 50%,
+                #68746c 50%
+            ),
+            linear-gradient(
+                135deg,
+                #68746c 50%,
+                transparent 50%
+            );
+        background-position:
+            calc(100% - 16px) 19px,
+            calc(100% - 11px) 19px;
+        background-size: 5px 5px, 5px 5px;
+        background-repeat: no-repeat;
+        color: #2f3b33;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 650;
+        box-sizing: border-box;
+        appearance: none;
+        -webkit-appearance: none;
+        cursor: pointer;
+        box-shadow:
+            0 1px 2px rgba(35, 48, 39, 0.03);
+        transition:
+            border-color 0.18s ease,
+            background-color 0.18s ease,
+            box-shadow 0.18s ease,
+            transform 0.18s ease;
+    }
+
+    .csv-mapping-feld select:hover {
+        border-color: #becbc0;
+        background-color: #fbfdfb;
+        box-shadow:
+            0 4px 12px rgba(35, 48, 39, 0.07);
+    }
+
+    .csv-mapping-feld select:focus {
+        outline: none;
+        border-color: var(--dpz-green);
+        background-color: #ffffff;
+        box-shadow:
+            0 0 0 3px var(--dpz-green-soft),
+            0 4px 12px rgba(35, 48, 39, 0.07);
+    }
+
+    .csv-mapping-feld select:focus-visible {
+        outline: none;
+    }
+
+    .csv-naechster-schritt {
+        padding: 15px 20px;
+        border-top: 1px solid #e8ece9;
+        background: #fbfcfb;
+        color: #68736b;
+        font-size: 12px;
+    }
+
+    @media (max-width: 620px) {
+        .csv-bereich {
+            padding: 18px;
+        }
+
+        .csv-aktionen,
+        .csv-ergebnis-kopf,
+        .csv-speichern-bereich {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .csv-mapping-raster {
+            grid-template-columns: 1fr;
+        }
+
+        .csv-button {
+            width: 100%;
+            box-sizing: border-box;
+        }
+    }
+</style>
+
+<div class="csv-import">
+    <div class="csv-kopf">
+        <h1>Benutzer aus CSV importieren</h1>
+
+        <p>
+            Lade eine Benutzerliste hoch und prüfe,
+            ob Namen, Kontaktdaten und Abteilungen korrekt erkannt werden.
+            Lizenzbestände werden dabei nicht verändert.
+        </p>
+    </div>
+
+    <form
+        method="post"
+        enctype="multipart/form-data"
+        class="csv-bereich"
+    >
+        {% csrf_token %}
+
+        {% if ist_modal %}
+            <input type="hidden" name="modal" value="1">
+        {% endif %}
+
+        <h2>Datei auswählen</h2>
+
+        <p>
+            Unterstützt werden CSV-Dateien bis 5 MB
+            mit UTF-8-Kodierung.
+        </p>
+
+        <input
+            class="csv-datei"
+            type="file"
+            name="csv_datei"
+            accept=".csv,text/csv"
+            required
+        >
+
+        {% if csv_fehler %}
+            <div class="csv-fehler">
+                {{ csv_fehler }}
+            </div>
+        {% endif %}
+
+        <div class="csv-aktionen">
+            <a
+                class="csv-button csv-zurueck"
+                href="{% url 'synchronisation_hinzufuegen' %}{% if ist_modal %}?modal=1{% endif %}"
+            >
+                Zurück
+            </a>
+
+            <button
+                class="csv-button csv-weiter"
+                type="submit"
+            >
+                Datei prüfen
+            </button>
+        </div>
+    </form>
+
+    {% if csv_spalten %}
+        <form
+            method="post"
+            class="csv-ergebnis"
+        >
+            {% csrf_token %}
+
+            <input
+                type="hidden"
+                name="aktion"
+                value="speichern"
+            >
+
+            <input
+                type="hidden"
+                name="csv_temp_datei"
+                value="{{ csv_temp_datei }}"
+            >
+
+            <input
+                type="hidden"
+                name="csv_dateiname"
+                value="{{ csv_dateiname }}"
+            >
+
+            <input
+                type="hidden"
+                name="csv_trennzeichen"
+                value="{{ csv_trennzeichen }}"
+            >
+
+            <input
+                type="hidden"
+                name="csv_trennzeichen_roh"
+                value="{{ csv_trennzeichen_roh }}"
+            >
+
+            <input
+                type="hidden"
+                name="csv_datensatzanzahl"
+                value="{{ csv_datensatzanzahl }}"
+            >
+
+            {% if ist_modal %}
+                <input
+                    type="hidden"
+                    name="modal"
+                    value="1"
+                >
+            {% endif %}
+            <div class="csv-ergebnis-kopf">
+                <div>
+                    <h2>Benutzerliste erkannt</h2>
+
+                    <p>
+                        Die ersten fünf Benutzer werden
+                        als Vorschau angezeigt.
+                    </p>
+                </div>
+
+                <span class="csv-anzahl">
+                    {{ csv_datensatzanzahl }} Datensätze
+                </span>
+            </div>
+
+            <div class="csv-metadaten">
+                <span>
+                    Datei: {{ csv_dateiname }}
+                </span>
+
+                <span>
+                    {{ csv_spalten|length }} Spalten
+                </span>
+
+                <span>
+                    Trennzeichen: {{ csv_trennzeichen }}
+                </span>
+            </div>
+
+            <div class="csv-tabelle-rahmen">
+                <table class="csv-tabelle">
+                    <thead>
+                        <tr>
+                            {% for spalte in csv_spalten %}
+                                <th>{{ spalte }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for datensatz in csv_vorschau %}
+                            <tr>
+                                {% for spalte, wert in datensatz.items %}
+                                    <td>{{ wert|default:"–" }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="{{ csv_spalten|length }}">
+                                    Keine Datensätze gefunden.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="csv-mapping">
+                <h3>Datenquelle einrichten</h3>
+
+                <p>
+                    Vergib einen Namen und prüfe die automatisch
+                    vorgeschlagene Zuordnung der Benutzerfelder.
+                </p>
+
+                <label class="csv-mapping-feld csv-name-feld">
+                    <span>Name der Datenquelle</span>
+
+                    <input
+                        type="text"
+                        name="csv_name"
+                        value="{{ csv_dateiname|default:'' }}"
+                        placeholder="Zum Beispiel Benutzerstammdaten CSV"
+                        required
+                    >
+                </label>
+
+                <h3 class="csv-mapping-untertitel">
+                    Spalten zuordnen
+                </h3>
+
+                <div class="csv-mapping-raster">
+                    <label class="csv-mapping-feld">
+                        <span>Vorname</span>
+
+                        <select name="mapping_vorname">
+                            <option value="">
+                                Keine Zuordnung
+                            </option>
+
+                            {% for spalte in csv_spalten %}
+                                <option
+                                    value="{{ spalte }}"
+                                    {% if spalte == csv_mapping.vorname %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    {{ spalte }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </label>
+
+                    <label class="csv-mapping-feld">
+                        <span>Nachname</span>
+
+                        <select name="mapping_nachname">
+                            <option value="">
+                                Keine Zuordnung
+                            </option>
+
+                            {% for spalte in csv_spalten %}
+                                <option
+                                    value="{{ spalte }}"
+                                    {% if spalte == csv_mapping.nachname %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    {{ spalte }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </label>
+
+                    <label class="csv-mapping-feld">
+                        <span>Benutzername / Login</span>
+
+                        <select name="mapping_benutzername">
+                            <option value="">
+                                Keine Zuordnung
+                            </option>
+
+                            {% for spalte in csv_spalten %}
+                                <option
+                                    value="{{ spalte }}"
+                                    {% if spalte == csv_mapping.benutzername %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    {{ spalte }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </label>
+
+                    <label class="csv-mapping-feld">
+                        <span>E-Mail-Adresse</span>
+
+                        <select name="mapping_email">
+                            <option value="">Keine Zuordnung</option>
+                            {% for spalte in csv_spalten %}
+                                <option value="{{ spalte }}" {% if spalte == csv_mapping.email %}selected{% endif %}>
+                                    {{ spalte }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </label>
+
+                    <label class="csv-mapping-feld">
+                        <span>Abteilung</span>
+
+                        <select name="mapping_abteilung">
+                            <option value="">Keine Zuordnung</option>
+                            {% for spalte in csv_spalten %}
+                                <option value="{{ spalte }}" {% if spalte == csv_mapping.abteilung %}selected{% endif %}>
+                                    {{ spalte }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </label>
+
+                </div>
+
+                <p class="csv-mapping-hinweis">
+                    Vorname und Nachname bilden gemeinsam den Namen.
+                    Eine E-Mail-Adresse oder ein Benutzername verbessert
+                    den Abgleich, ist aber nicht zwingend erforderlich.
+                    Vorhandene AD-Benutzer werden nicht überschrieben.
+                </p>
+            </div>
+
+            <div class="csv-speichern-bereich">
+                <span>
+                    Die Benutzerliste wird als lesende CSV-Datenquelle
+                    gespeichert. Bestehende Lizenzdaten bleiben unverändert.
+                </span>
+
+                <button
+                    type="submit"
+                    class="csv-button csv-weiter"
+                >
+                    Datenquelle speichern
+                </button>
+            </div>
+        </form>
+    {% endif %}
+</div>
+{% endblock %}

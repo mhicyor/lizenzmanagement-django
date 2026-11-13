@@ -1,0 +1,78 @@
+{% extends "lizenzen/base.html" %}
+
+{% block title %}Server bearbeiten{% endblock %}
+
+{% block content %}
+{% if server %}
+<div class="karte">
+    <a class="zurueck-link" href="/server/">← Zurück zur Serverübersicht</a>
+
+    <h1>Server bearbeiten</h1>
+    <p>Bearbeite Stammdaten des ausgewählten Servers.</p>
+
+    {% if fehler %}
+    <div class="leer-hinweis">
+        {{ fehler }}
+    </div>
+    {% endif %}
+
+    <form method="post" class="formular">
+        {% csrf_token %}
+
+        <label>Name *</label>
+        <input
+            type="text"
+            name="name"
+            value="{{ server.1 }}"
+        >
+
+        <label>Hostname</label>
+        <input
+            type="text"
+            name="hostname"
+            value="{{ server.2 }}"
+        >
+
+        <label>IP-Adresse</label>
+        <input
+            type="text"
+            name="ip_adresse"
+            value="{{ server.3 }}"
+        >
+
+        <label>Betriebssystem</label>
+        <input
+            type="text"
+            name="betriebssystem"
+            value="{{ server.4 }}"
+        >
+
+        <label>Status</label>
+        <select name="status">
+            <option value="aktiv" {% if server.5 == "aktiv" %}selected{% endif %}>aktiv</option>
+            <option value="inaktiv" {% if server.5 == "inaktiv" %}selected{% endif %}>inaktiv</option>
+            <option value="archiviert" {% if server.5 == "archiviert" %}selected{% endif %}>archiviert</option>
+        </select>
+
+        <div class="formular-aktionen">
+            <button type="submit">Änderungen speichern</button>
+            <a class="button-secondary" href="/server/">Abbrechen</a>
+        </div>
+    </form>
+</div>
+{% else %}
+<div class="karte">
+    <h1>Server nicht gefunden</h1>
+
+    {% if fehler %}
+    <div class="leer-hinweis">
+        {{ fehler }}
+    </div>
+    {% endif %}
+
+    <div class="formular-aktionen">
+        <a class="button-secondary" href="/server/">Zurück zur Serverübersicht</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

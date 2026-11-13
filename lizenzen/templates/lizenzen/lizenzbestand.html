@@ -1,0 +1,42 @@
+{% extends "lizenzen/base.html" %}
+
+{% block title %}Lizenzbestand{% endblock %}
+
+{% block content %}
+<div class="karte">
+    <h1>Lizenzbestand</h1>
+    <p>Übersicht über Gesamtbestand, vergebene und freie Lizenzen.</p>
+
+    {% if daten %}
+    <div class="table-container">
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Lizenz</th>
+                <th>Anbieter</th>
+                <th>Gesamt</th>
+                <th>Vergeben</th>
+                <th>Frei</th>
+                <th>Status</th>
+                <th>Kosten</th>
+            </tr>
+
+            {% for eintrag in daten %}
+            <tr>
+                <td>{{ eintrag.0 }}</td>
+                <td>{{ eintrag.1 }}</td>
+                <td>{{ eintrag.2 }}</td>
+                <td>{{ eintrag.3 }}</td>
+                <td>{{ eintrag.4 }}</td>
+                <td>{{ eintrag.5 }}</td>
+                <td>{{ eintrag.6 }}</td>
+                <td>{{ eintrag.7 }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% else %}
+    <div class="leer-hinweis">Keine Lizenzdaten gefunden.</div>
+    {% endif %}
+</div>
+{% endblock %}

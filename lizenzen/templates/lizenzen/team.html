@@ -1,0 +1,477 @@
+{% extends template_basis|default:"lizenzen/base.html" %}
+
+{% block title %}Team verwalten{% endblock %}
+
+{% block content %}
+<style>
+    .team-seite {
+        display: grid;
+        gap: 20px;
+        width: min(100%, 980px);
+        margin: 0 auto;
+    }
+
+    .team-kopf h1 {
+        margin: 0 0 7px;
+        font-size: 30px;
+        letter-spacing: -0.04em;
+    }
+
+    .team-kopf p {
+        max-width: 720px;
+        margin: 0;
+        color: #6f746f;
+        font-size: 14px;
+        line-height: 1.55;
+    }
+
+    .team-hinweis {
+        padding: 12px 14px;
+        border: 1px solid #dfe7df;
+        border-radius: 12px;
+        background: #f7faf7;
+        color: #365d31;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .team-hinweis.fehler {
+        border-color: #edcaca;
+        background: #fff4f4;
+        color: #8a2525;
+    }
+
+    .team-karte {
+        border: 1px solid #e2e7e2;
+        border-radius: 18px;
+        background: #ffffff;
+        box-shadow: 0 10px 30px rgba(24, 34, 24, 0.055);
+    }
+
+    .team-einladung {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 28px;
+        padding: 20px 22px;
+        background: linear-gradient(135deg, #f8fbf8, #ffffff);
+    }
+
+    .team-einladung h2,
+    .team-liste-kopf h2 {
+        margin: 0;
+        font-size: 18px;
+        letter-spacing: -0.025em;
+    }
+
+    .team-einladung p {
+        margin: 6px 0 0;
+        color: #777c77;
+        font-size: 12px;
+        line-height: 1.45;
+    }
+
+    .team-einladung form {
+        flex: 0 0 auto;
+        margin: 0;
+    }
+
+    .team-link-box {
+        display: grid;
+        gap: 9px;
+        padding: 17px 20px;
+        border: 1px solid rgba(58, 127, 49, 0.24);
+        border-radius: 16px;
+        background: rgba(58, 127, 49, 0.055);
+    }
+
+    .team-link-box label {
+        color: #42653e;
+        font-size: 11px;
+        font-weight: 850;
+        letter-spacing: 0.055em;
+        text-transform: uppercase;
+    }
+
+    .team-link-zeile {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 9px;
+    }
+
+    .team-link-zeile input {
+        min-width: 0;
+        height: 42px;
+        padding: 0 12px;
+        border: 1px solid #cfdacf;
+        border-radius: 10px;
+        background: white;
+        color: #414641;
+        font: inherit;
+        font-size: 12px;
+    }
+
+    .team-copy-button {
+        min-width: 112px;
+        height: 42px;
+        padding: 0 15px;
+        border: 0;
+        border-radius: 10px;
+        background: #202420;
+        color: white;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: background 0.18s ease, transform 0.18s ease;
+    }
+
+    .team-copy-button:hover {
+        background: #303630;
+        transform: translateY(-1px);
+    }
+
+    .team-liste-kopf {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 18px 20px 12px;
+    }
+
+    .team-anzahl {
+        padding: 5px 9px;
+        border-radius: 999px;
+        background: #f0f3f0;
+        color: #737873;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    .team-liste {
+        display: grid;
+        gap: 8px;
+        padding: 0 12px 12px;
+    }
+
+    .team-eintrag {
+        position: relative;
+        display: grid;
+        grid-template-columns: 38px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 12px;
+        min-height: 62px;
+        padding: 10px 12px;
+        border: 1px solid #e8ece8;
+        border-radius: 13px;
+        background: #fafbfa;
+    }
+
+    .team-avatar {
+        position: relative;
+        display: grid;
+        width: 38px;
+        height: 38px;
+        place-items: center;
+        border-radius: 11px;
+        background: #e9f2e7;
+        color: #36702f;
+        font-size: 12px;
+        font-weight: 900;
+    }
+
+    .team-avatar::after {
+        position: absolute;
+        right: -2px;
+        bottom: -2px;
+        width: 8px;
+        height: 8px;
+        border: 2px solid #fafbfa;
+        border-radius: 50%;
+        background: #4b9642;
+        content: "";
+    }
+
+    .team-avatar.inaktiv::after { background: #a4a9a4; }
+
+    .team-identitaet { min-width: 0; }
+
+    .team-identitaet strong,
+    .team-identitaet small {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .team-identitaet strong { color: #252825; font-size: 13px; }
+
+    .team-identitaet small {
+        margin-top: 4px;
+        color: #7b807b;
+        font-size: 11px;
+    }
+
+    .team-aktionen {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+    }
+
+    .team-mehr {
+        position: relative;
+    }
+
+    .team-mehr > summary {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        place-items: center;
+        border: 1px solid #dde2dd;
+        border-radius: 9px;
+        background: white;
+        color: #686d68;
+        font-size: 15px;
+        font-weight: 900;
+        letter-spacing: 1px;
+        list-style: none;
+        cursor: pointer;
+        transition: border-color 0.18s ease, background 0.18s ease;
+    }
+
+    .team-mehr > summary::-webkit-details-marker { display: none; }
+
+    .team-mehr > summary:hover,
+    .team-mehr[open] > summary {
+        border-color: rgba(58, 127, 49, 0.35);
+        background: #f4f8f3;
+        color: #326d2b;
+    }
+
+    .team-mehr-menue {
+        position: absolute;
+        top: calc(100% + 6px);
+        right: 0;
+        z-index: 20;
+        width: 190px;
+        padding: 6px;
+        border: 1px solid #e0e4e0;
+        border-radius: 12px;
+        background: white;
+        box-shadow: 0 14px 34px rgba(24, 34, 24, 0.16);
+    }
+
+    .team-mehr-menue form { margin: 0; }
+
+    .team-mehr-aktion {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        min-height: 38px;
+        padding: 0 10px;
+        border: 0;
+        border-radius: 8px;
+        background: transparent;
+        color: #343834;
+        font: inherit;
+        font-size: 11px;
+        font-weight: 780;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .team-mehr-aktion:hover {
+        background: #f1f6f0;
+        color: #326d2b;
+    }
+
+    .team-mehr-aktion.gefahr { color: #9a4444; }
+
+    .team-mehr-aktion.gefahr:hover {
+        background: #fff1f1;
+        color: #8a2525;
+    }
+
+    .team-eigenes-konto {
+        min-width: 34px;
+        color: #a0a4a0;
+        font-size: 9px;
+        font-weight: 800;
+        text-align: center;
+        text-transform: uppercase;
+    }
+
+    @media (max-width: 700px) {
+        .team-einladung {
+            align-items: stretch;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .team-einladung .button-primary { width: 100%; }
+        .team-link-zeile { grid-template-columns: 1fr; }
+        .team-eintrag { grid-template-columns: 38px minmax(0, 1fr) auto; }
+    }
+</style>
+
+<div class="team-seite">
+    <header class="team-kopf">
+        <h1>Team verwalten</h1>
+        <p>
+            Behalte alle registrierten Benutzer im Blick oder erstelle einen
+            persönlichen Einladungslink für ein neues Teammitglied.
+        </p>
+    </header>
+
+    {% if fehler %}<div class="team-hinweis fehler">{{ fehler }}</div>{% endif %}
+    {% for message in messages %}
+        <div class="team-hinweis {% if message.tags == 'error' %}fehler{% endif %}">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    <section class="team-karte team-einladung">
+        <div>
+            <h2>Neues Teammitglied einladen</h2>
+            <p>Der Link ist sieben Tage gültig und kann genau einmal verwendet werden.</p>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            {% if ist_modal %}<input type="hidden" name="modal" value="1">{% endif %}
+            <button type="submit" class="button-primary">+ Einladungslink generieren</button>
+        </form>
+    </section>
+
+    {% if einladungslink %}
+        <section class="team-link-box" aria-live="polite">
+            <label for="einladungslink">Dein neuer Einladungslink</label>
+            <div class="team-link-zeile">
+                <input id="einladungslink" type="text" value="{{ einladungslink }}" readonly>
+                <button type="button" class="team-copy-button" id="team-copy-button">
+                    Link kopieren
+                </button>
+            </div>
+            {% if erfolg %}<span class="team-hinweis">{{ erfolg }}</span>{% endif %}
+        </section>
+    {% endif %}
+
+    <section class="team-karte">
+        <div class="team-liste-kopf">
+            <h2>Registrierte Benutzer</h2>
+            <span class="team-anzahl">{{ benutzer_liste|length }} Konten</span>
+        </div>
+
+        <div class="team-liste">
+            {% for benutzer in benutzer_liste %}
+                <article class="team-eintrag">
+                    <span class="team-avatar {% if not benutzer.is_active %}inaktiv{% endif %}" aria-hidden="true">
+                        {% if benutzer.first_name %}
+                            {{ benutzer.first_name|first|upper }}{{ benutzer.last_name|first|upper }}
+                        {% else %}
+                            {{ benutzer.username|first|upper }}
+                        {% endif %}
+                    </span>
+                    <div class="team-identitaet">
+                        <strong>{{ benutzer.get_full_name|default:benutzer.username }}</strong>
+                        <small>
+                            {% if benutzer.email %}{{ benutzer.email }}{% else %}{{ benutzer.username }}{% endif %}
+                            · {% if benutzer.is_superuser %}Admin{% elif benutzer.is_staff %}Team-Administrator{% else %}Benutzer{% endif %}
+                        </small>
+                    </div>
+                    <div class="team-aktionen">
+                        {% if benutzer.pk == request.user.pk %}
+                            <span class="team-eigenes-konto">Du</span>
+                        {% elif benutzer.is_superuser and not request.user.is_superuser %}
+                            <span class="team-eigenes-konto" title="Nur durch Admins verwaltbar">Geschützt</span>
+                        {% else %}
+                            <details class="team-mehr">
+                                <summary aria-label="Aktionen für {{ benutzer.get_full_name|default:benutzer.username }}">
+                                    •••
+                                </summary>
+                                <div class="team-mehr-menue">
+                                    {% if request.user.is_superuser and not benutzer.is_superuser and benutzer.is_active %}
+                                        <form
+                                            method="post"
+                                            action="{% url 'team_benutzer_zum_superuser_machen' benutzer.pk %}"
+                                            onsubmit="return confirm('Dieses Konto erhält vollständige Admin-Rechte. Wirklich zum Admin machen?');"
+                                        >
+                                            {% csrf_token %}
+                                            {% if ist_modal %}<input type="hidden" name="modal" value="1">{% endif %}
+                                            <button
+                                                type="submit"
+                                                class="team-mehr-aktion"
+                                            >
+                                                Zum Admin machen
+                                            </button>
+                                        </form>
+                                    {% endif %}
+
+                                    <form
+                                        method="post"
+                                        action="{% url 'team_benutzer_loeschen' benutzer.pk %}"
+                                        onsubmit="return confirm('Soll dieses Benutzerkonto wirklich gelöscht werden?');"
+                                    >
+                                        {% csrf_token %}
+                                        {% if ist_modal %}<input type="hidden" name="modal" value="1">{% endif %}
+                                        <button
+                                            type="submit"
+                                            class="team-mehr-aktion gefahr"
+                                        >
+                                            Benutzer löschen
+                                        </button>
+                                    </form>
+                                </div>
+                            </details>
+                        {% endif %}
+                    </div>
+                </article>
+            {% empty %}
+                <div class="team-hinweis">Noch keine Benutzer vorhanden.</div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+
+<script>
+    (function () {
+        const button = document.getElementById("team-copy-button");
+        const feld = document.getElementById("einladungslink");
+        if (!button || !feld) return;
+
+        button.addEventListener("click", async function () {
+            try {
+                await navigator.clipboard.writeText(feld.value);
+            } catch (fehler) {
+                feld.select();
+                document.execCommand("copy");
+            }
+            button.textContent = "✓ Kopiert";
+            window.setTimeout(function () {
+                button.textContent = "Link kopieren";
+            }, 1800);
+        });
+    }());
+
+    (function () {
+        const menues = Array.from(document.querySelectorAll(".team-mehr"));
+
+        menues.forEach(function (menue) {
+            menue.addEventListener("toggle", function () {
+                if (!menue.open) return;
+                menues.forEach(function (anderesMenue) {
+                    if (anderesMenue !== menue) anderesMenue.open = false;
+                });
+            });
+        });
+
+        document.addEventListener("click", function (event) {
+            if (event.target.closest(".team-mehr")) return;
+            menues.forEach(function (menue) { menue.open = false; });
+        });
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key !== "Escape") return;
+            menues.forEach(function (menue) { menue.open = false; });
+        });
+    }());
+</script>
+{% endblock %}

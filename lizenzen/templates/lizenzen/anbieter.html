@@ -1,0 +1,973 @@
+{% extends template_basis|default:"lizenzen/base.html" %}
+{% block title %}Anbieter verwalten{% endblock %}
+
+{% block content %}
+<style>
+    .anbieter-page {
+        max-width: 1180px;
+    }
+
+    .anbieter-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 24px;
+        margin-bottom: 24px;
+    }
+
+    .anbieter-header h1 {
+        margin: 0 0 8px 0;
+        font-size: 32px;
+        line-height: 1.1;
+        letter-spacing: -0.03em;
+    }
+
+    .anbieter-header p {
+        max-width: 760px;
+        margin: 0;
+        color: #555;
+        font-size: 15px;
+        line-height: 1.45;
+    }
+
+    .anbieter-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        flex: 0 0 auto;
+    }
+
+    .anbieter-actions a,
+    .anbieter-actions button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 42px;
+        padding: 0 15px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 800;
+        text-decoration: none;
+        box-sizing: border-box;
+        border: none;
+        cursor: pointer;
+    }
+
+    .anbieter-tabs {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+    }
+
+    .anbieter-tab {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 38px;
+        padding: 0 14px;
+        border-radius: 999px;
+        background: #f3f3f3;
+        border: 1px solid #e2e2e2;
+        color: #333;
+        font-size: 13px;
+        font-weight: 800;
+        cursor: pointer;
+        font-family: inherit;
+    }
+
+    .anbieter-tab.aktiv {
+        background: rgba(58, 127, 49, 0.12);
+        border-color: rgba(58, 127, 49, 0.26);
+        color: var(--dpz-green-dark);
+    }
+
+    .anbieter-section {
+        border: 1px solid #eeeeee;
+        border-radius: 22px;
+        background: #fbfbfb;
+        padding: 20px;
+        margin-top: 18px;
+    }
+
+    .anbieter-section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 18px;
+        margin-bottom: 16px;
+    }
+
+    .anbieter-section-header h2 {
+        margin: 0 0 5px 0;
+        font-size: 23px;
+        letter-spacing: -0.02em;
+    }
+
+    .anbieter-section-header p {
+        margin: 0;
+        color: #666;
+        font-size: 14px;
+        line-height: 1.45;
+    }
+
+    .anzahl-hinweis {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 30px;
+        padding: 0 11px;
+        border-radius: 999px;
+        background: #eeeeee;
+        color: #555;
+        font-size: 12px;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    .anbieter-listen-header {
+        display: grid;
+        grid-template-columns: 1.15fr 1.45fr 1.15fr 0.7fr 0.65fr 1.25fr;
+        gap: 14px;
+        padding: 0 16px 10px 16px;
+        color: #666;
+        font-size: 11px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .anbieter-liste-modern {
+        display: grid;
+        gap: 10px;
+    }
+
+    .anbieter-row {
+        display: grid;
+        grid-template-columns: 1.15fr 1.45fr 1.15fr 0.7fr 0.65fr 1.25fr;
+        gap: 14px;
+        align-items: center;
+        padding: 16px;
+        border-radius: 18px;
+        background: white;
+        border: 1px solid #eeeeee;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.035);
+        transition:
+            background-color 0.18s ease,
+            border-color 0.18s ease,
+            transform 0.18s ease,
+            box-shadow 0.18s ease;
+    }
+
+    .anbieter-row:hover {
+        background: #fcfcfc;
+        border-color: rgba(58, 127, 49, 0.24);
+        transform: translateY(-1px);
+        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.055);
+    }
+
+    .anbieter-row.inaktiv {
+        opacity: 0.74;
+        background: #f7f7f7;
+    }
+
+    .anbieter-name {
+        display: grid;
+        gap: 4px;
+        font-weight: 900;
+        color: #111;
+        font-size: 14px;
+        line-height: 1.35;
+    }
+
+    .anbieter-id {
+        color: #777;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .anbieter-text {
+        color: #333;
+        font-size: 14px;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
+    }
+
+    .anbieter-webseite a {
+        color: var(--dpz-green-dark);
+        font-size: 13px;
+        font-weight: 800;
+        text-decoration: none;
+        overflow-wrap: anywhere;
+    }
+
+    .anbieter-webseite a:hover {
+        text-decoration: underline;
+    }
+
+    .lizenzen-zelle {
+        white-space: nowrap;
+        font-weight: 900;
+        color: #111;
+        font-size: 14px;
+    }
+
+    .status-chip {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: fit-content;
+        min-height: 26px;
+        padding: 0 9px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    .status-aktiv {
+        background: rgba(58, 127, 49, 0.12);
+        color: var(--dpz-green-dark);
+    }
+
+    .status-inaktiv {
+        background: #eeeeee;
+        color: #555;
+    }
+
+    .aktionen {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
+
+    .aktionen form {
+        margin: 0;
+    }
+
+    .aktionen a,
+    .aktionen button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 34px;
+        padding: 0 11px;
+        border-radius: 10px;
+        border: none;
+        font-size: 13px;
+        font-weight: 800;
+        cursor: pointer;
+        font-family: inherit;
+        text-decoration: none;
+        transition:
+            background-color 0.18s ease,
+            color 0.18s ease,
+            transform 0.18s ease,
+            box-shadow 0.18s ease;
+    }
+
+    .aktionen a:hover,
+    .aktionen button:hover {
+        transform: translateY(-1px);
+    }
+
+    .aktion-bearbeiten {
+        background: #111;
+        color: white !important;
+    }
+
+    .aktion-bearbeiten:hover {
+        background: #000;
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
+    }
+
+    .aktion-deaktivieren {
+        background: #f2f2f2;
+        color: #333;
+        border: 1px solid #dddddd !important;
+    }
+
+    .aktion-deaktivieren:hover {
+        background: #e7e7e7;
+    }
+
+    .aktion-reaktivieren {
+        background: rgba(58, 127, 49, 0.12);
+        color: var(--dpz-green-dark);
+        border: 1px solid rgba(58, 127, 49, 0.25) !important;
+    }
+
+    .aktion-reaktivieren:hover {
+        background: rgba(58, 127, 49, 0.18);
+    }
+
+    .aktion-loeschen {
+        background: #fff1f1;
+        color: #b42318;
+        border: 1px solid #f3c7c3 !important;
+    }
+
+    .aktion-loeschen:hover {
+        background: #ffe3e0;
+    }
+
+    .text-muted {
+        color: #777;
+    }
+
+    .leer-hinweis-klein {
+        padding: 16px;
+        border-radius: 14px;
+        background: #f7f7f7;
+        border: 1px solid #e3e3e3;
+        color: #555;
+        font-size: 14px;
+    }
+
+    .inaktive-container {
+        display: none;
+    }
+
+    .inaktive-container.sichtbar {
+        display: block;
+    }
+
+    .modal-anbieter-page {
+        max-width: 920px;
+    }
+
+    .modal-anbieter-page .anbieter-header {
+        margin-bottom: 14px;
+    }
+
+    .modal-anbieter-page .anbieter-header h1 {
+        display: none;
+    }
+
+    .modal-anbieter-page .anbieter-header p {
+        display: none;
+    }
+
+    .modal-toolbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 260px;
+        gap: 16px;
+        align-items: center;
+        margin-bottom: 14px;
+        padding: 13px 14px;
+        border-radius: 16px;
+        background: #fafafa;
+        border: 1px solid #eeeeee;
+    }
+
+    .modal-toolbar h2 {
+        margin: 0 0 3px 0;
+        font-size: 18px;
+        letter-spacing: -0.01em;
+    }
+
+    .modal-toolbar p {
+        margin: 0;
+        color: #666;
+        font-size: 13px;
+        line-height: 1.35;
+    }
+
+    .modal-toolbar input {
+        height: 42px;
+        border-radius: 12px;
+        border: 1px solid #d8d8d8;
+        padding: 0 13px;
+        font-family: inherit;
+        font-size: 14px;
+        background: white;
+        box-sizing: border-box;
+    }
+
+    .modal-toolbar input:focus {
+        outline: none;
+        border-color: var(--dpz-green);
+        box-shadow: 0 0 0 3px rgba(58, 127, 49, 0.12);
+    }
+
+    .modal-anbieter-tabelle {
+        display: grid;
+        gap: 8px;
+    }
+
+    .modal-anbieter-kompakt-row {
+        display: grid;
+        grid-template-columns: minmax(180px, 1fr) 110px 80px auto;
+        gap: 12px;
+        align-items: center;
+        padding: 10px 12px;
+        border: 1px solid #eeeeee;
+        border-radius: 14px;
+        background: white;
+    }
+
+    .modal-anbieter-kompakt-row:hover {
+        border-color: rgba(58, 127, 49, 0.22);
+        background: #fcfcfc;
+    }
+
+    .modal-anbieter-kompakt-row.inaktiv {
+        background: #f7f7f7;
+        opacity: 0.88;
+    }
+
+    .modal-anbieter-name strong {
+        display: block;
+        font-size: 14px;
+        color: #111;
+        line-height: 1.2;
+    }
+
+    .modal-anbieter-name span {
+        display: block;
+        margin-top: 2px;
+        font-size: 11px;
+        color: #777;
+        font-weight: 700;
+    }
+
+    .modal-anbieter-lizenzen {
+        font-size: 13px;
+        font-weight: 900;
+        color: #111;
+        white-space: nowrap;
+    }
+
+    .modal-aktionen-rechts {
+        justify-content: flex-end;
+    }
+
+    .modal-archiv-bereich {
+        margin-top: 16px;
+        padding-top: 14px;
+        border-top: 1px solid #eeeeee;
+    }
+
+    .modal-archiv-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: #f6f6f6;
+        border: 1px solid #e6e6e6;
+        cursor: pointer;
+        list-style: none;
+    }
+
+    .modal-archiv-header::-webkit-details-marker {
+        display: none;
+    }
+
+    .modal-archiv-header::before {
+        content: "▸";
+        font-size: 14px;
+        font-weight: 900;
+        color: #555;
+        transition: transform 0.18s ease;
+    }
+
+    .modal-archiv-bereich[open] .modal-archiv-header::before {
+        transform: rotate(90deg);
+    }
+
+    .modal-archiv-header div {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .modal-archiv-header h3 {
+        margin: 0 0 3px 0;
+        font-size: 15px;
+        color: #333;
+    }
+
+    .modal-archiv-header p {
+        margin: 0;
+        color: #777;
+        font-size: 12px;
+        line-height: 1.35;
+    }
+
+    .modal-archiv-header span {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 26px;
+        padding: 0 9px;
+        border-radius: 999px;
+        background: #eeeeee;
+        color: #555;
+        font-size: 12px;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    .modal-archiv-liste {
+        display: grid;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .loeschen-hinweis {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 34px;
+        padding: 0 10px;
+        border-radius: 10px;
+        background: #eeeeee;
+        color: #777;
+        font-size: 12px;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    @media (max-width: 1100px) {
+        .anbieter-listen-header {
+            display: none;
+        }
+
+        .anbieter-row {
+            grid-template-columns: 1fr;
+            gap: 10px;
+            align-items: start;
+        }
+
+        .anbieter-row > div::before {
+            display: block;
+            margin-bottom: 4px;
+            color: #777;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .anbieter-row > div:nth-child(1)::before {
+            content: "Anbieter";
+        }
+
+        .anbieter-row > div:nth-child(2)::before {
+            content: "Beschreibung";
+        }
+
+        .anbieter-row > div:nth-child(3)::before {
+            content: "Webseite";
+        }
+
+        .anbieter-row > div:nth-child(4)::before {
+            content: "Lizenzen";
+        }
+
+        .anbieter-row > div:nth-child(5)::before {
+            content: "Status";
+        }
+
+        .anbieter-row > div:nth-child(6)::before {
+            content: "Aktionen";
+        }
+    }
+
+    @media (max-width: 900px) {
+        .anbieter-header,
+        .anbieter-section-header {
+            flex-direction: column;
+        }
+
+        .anbieter-actions {
+            width: 100%;
+            justify-content: flex-start;
+        }
+
+        .anbieter-actions a,
+        .anbieter-actions button {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 760px) {
+        .modal-toolbar {
+            grid-template-columns: 1fr;
+        }
+
+        .modal-anbieter-kompakt-row {
+            grid-template-columns: 1fr;
+            align-items: start;
+        }
+
+        .modal-aktionen-rechts {
+            justify-content: flex-start;
+        }
+    }
+</style>
+
+<div class="karte seiten-karte anbieter-page {% if ist_modal %}modal-anbieter-page{% endif %}">
+    <div class="anbieter-header">
+        <div>
+            <h1>Anbieter verwalten</h1>
+            <p>
+                Verwalte zentrale Softwareanbieter wie Adobe, Microsoft, Sophos oder Jamf.
+                Anbieter werden bei Lizenzen ausgewählt und sorgen für saubere Filter,
+                Auswertungen und API-Zuordnungen.
+            </p>
+        </div>
+
+        {% if not ist_modal %}
+            <div class="anbieter-actions">
+                <a class="button-primary" href="{% url 'anbieter_hinzufuegen' %}">
+                    + Anbieter hinzufügen
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if ist_modal %}
+        <div class="modal-toolbar">
+            <div>
+                <h2>Bestehende Anbieter</h2>
+                <p>Bearbeiten oder deaktivieren. Deaktivierte Anbieter bleiben historisch erhalten.</p>
+            </div>
+
+            <input
+                type="text"
+                id="anbieter-modal-suche"
+                placeholder="Anbieter suchen..."
+                autocomplete="off"
+            >
+        </div>
+
+        <div class="modal-anbieter-tabelle">
+            {% for eintrag in aktive_anbieter %}
+                <div class="modal-anbieter-kompakt-row" data-suche="{{ eintrag.name|lower }}">
+                    <div class="modal-anbieter-name">
+                        <strong>{{ eintrag.name }}</strong>
+                        <span>ID {{ eintrag.id }}</span>
+                    </div>
+
+                    <div class="modal-anbieter-lizenzen">
+                        {{ eintrag.anzahl_lizenzen }} Lizenz(en)
+                    </div>
+
+                    <div>
+                        <span class="status-chip status-aktiv">Aktiv</span>
+                    </div>
+
+                    <div class="aktionen modal-aktionen-rechts">
+                        <a class="aktion-bearbeiten" href="{% url 'anbieter_bearbeiten' eintrag.id %}?modal=1">
+                            Bearbeiten
+                        </a>
+
+                        <form method="post" action="{% url 'anbieter_deaktivieren' eintrag.id %}?modal=1">
+                            {% csrf_token %}
+                            <button type="submit" class="aktion-deaktivieren">
+                                Deaktivieren
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% empty %}
+                {% if not inaktive_anbieter %}
+                    <div class="leer-hinweis-klein">Keine Anbieter vorhanden.</div>
+                {% endif %}
+            {% endfor %}
+
+            {% if inaktive_anbieter %}
+                <details class="modal-archiv-bereich" id="deaktivierte-anbieter-details">
+                    <summary class="modal-archiv-header">
+                        <div>
+                            <h3>Deaktivierte Anbieter</h3>
+                            <p>Ausgeblendet, aber historisch erhalten. Reaktivieren oder endgültig löschen, wenn unbenutzt.</p>
+                        </div>
+
+                        <span>{{ inaktive_anbieter|length }} deaktiviert</span>
+                    </summary>
+
+                    <div class="modal-archiv-liste">
+                        {% for eintrag in inaktive_anbieter %}
+                            <div class="modal-anbieter-kompakt-row inaktiv" data-suche="{{ eintrag.name|lower }}">
+                                <div class="modal-anbieter-name">
+                                    <strong>{{ eintrag.name }}</strong>
+                                    <span>ID {{ eintrag.id }}</span>
+                                </div>
+
+                                <div class="modal-anbieter-lizenzen">
+                                    {{ eintrag.anzahl_lizenzen }} Lizenz(en)
+                                </div>
+
+                                <div>
+                                    <span class="status-chip status-inaktiv">Inaktiv</span>
+                                </div>
+
+                                <div class="aktionen modal-aktionen-rechts">
+                                    <a class="aktion-bearbeiten" href="{% url 'anbieter_bearbeiten' eintrag.id %}?modal=1">
+                                        Bearbeiten
+                                    </a>
+
+                                    <form method="post" action="{% url 'anbieter_reaktivieren' eintrag.id %}?modal=1">
+                                        {% csrf_token %}
+                                        <button type="submit" class="aktion-reaktivieren">
+                                            Reaktivieren
+                                        </button>
+                                    </form>
+
+                                    {% if eintrag.anzahl_lizenzen == 0 %}
+                                        <form
+                                            method="post"
+                                            action="{% url 'anbieter_loeschen' eintrag.id %}?modal=1"
+                                            onsubmit="return confirm('Diesen Anbieter endgültig löschen?');"
+                                        >
+                                            {% csrf_token %}
+                                            <button type="submit" class="aktion-loeschen">
+                                                Löschen
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <span class="loeschen-hinweis">
+                                            Löschen gesperrt
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </details>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="anbieter-tabs">
+            <button type="button" class="anbieter-tab aktiv" id="tab-aktive-anbieter">
+                Aktive Anbieter ({{ aktive_anbieter|length }})
+            </button>
+
+            <button type="button" class="anbieter-tab" id="tab-inaktive-anbieter">
+                Deaktivierte Anbieter ({{ inaktive_anbieter|length }})
+            </button>
+        </div>
+
+        <div class="anbieter-section" id="aktive-anbieter-container">
+            <div class="anbieter-section-header">
+                <div>
+                    <h2>Aktive Anbieter</h2>
+                    <p>Diese Anbieter stehen beim Erfassen und Bearbeiten von Lizenzen zur Auswahl.</p>
+                </div>
+
+                <span class="anzahl-hinweis">{{ aktive_anbieter|length }} aktiv</span>
+            </div>
+
+            {% if aktive_anbieter %}
+                <div class="anbieter-listen-header">
+                    <div>Anbieter</div>
+                    <div>Beschreibung</div>
+                    <div>Webseite</div>
+                    <div>Lizenzen</div>
+                    <div>Status</div>
+                    <div>Aktionen</div>
+                </div>
+
+                <div class="anbieter-liste-modern">
+                    {% for eintrag in aktive_anbieter %}
+                        <div class="anbieter-row">
+                            <div class="anbieter-name">
+                                <span>{{ eintrag.name }}</span>
+                                <span class="anbieter-id">ID {{ eintrag.id }}</span>
+                            </div>
+
+                            <div class="anbieter-text">
+                                {% if eintrag.beschreibung %}
+                                    {{ eintrag.beschreibung }}
+                                {% else %}
+                                    <span class="text-muted">Keine Beschreibung hinterlegt.</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="anbieter-webseite">
+                                {% if eintrag.webseite %}
+                                    <a href="{{ eintrag.webseite }}" target="_blank" rel="noopener noreferrer">
+                                        {{ eintrag.webseite }}
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="lizenzen-zelle">
+                                {{ eintrag.anzahl_lizenzen }} Lizenz(en)
+                            </div>
+
+                            <div>
+                                <span class="status-chip status-aktiv">Aktiv</span>
+                            </div>
+
+                            <div class="aktionen">
+                                <a class="aktion-bearbeiten" href="{% url 'anbieter_bearbeiten' eintrag.id %}">
+                                    Bearbeiten
+                                </a>
+
+                                <form method="post" action="{% url 'anbieter_deaktivieren' eintrag.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="aktion-deaktivieren">
+                                        Deaktivieren
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="leer-hinweis-klein">Keine aktiven Anbieter vorhanden.</div>
+            {% endif %}
+        </div>
+
+        <div class="anbieter-section inaktive-container" id="inaktive-anbieter-container">
+            <div class="anbieter-section-header">
+                <div>
+                    <h2>Deaktivierte Anbieter</h2>
+                    <p>Deaktivierte Anbieter bleiben historisch erhalten und können bei Bedarf reaktiviert werden.</p>
+                </div>
+
+                <span class="anzahl-hinweis">{{ inaktive_anbieter|length }} deaktiviert</span>
+            </div>
+
+            {% if inaktive_anbieter %}
+                <div class="anbieter-listen-header">
+                    <div>Anbieter</div>
+                    <div>Beschreibung</div>
+                    <div>Webseite</div>
+                    <div>Lizenzen</div>
+                    <div>Status</div>
+                    <div>Aktionen</div>
+                </div>
+
+                <div class="anbieter-liste-modern">
+                    {% for eintrag in inaktive_anbieter %}
+                        <div class="anbieter-row inaktiv">
+                            <div class="anbieter-name">
+                                <span>{{ eintrag.name }}</span>
+                                <span class="anbieter-id">ID {{ eintrag.id }}</span>
+                            </div>
+
+                            <div class="anbieter-text">
+                                {% if eintrag.beschreibung %}
+                                    {{ eintrag.beschreibung }}
+                                {% else %}
+                                    <span class="text-muted">Keine Beschreibung hinterlegt.</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="anbieter-webseite">
+                                {% if eintrag.webseite %}
+                                    <a href="{{ eintrag.webseite }}" target="_blank" rel="noopener noreferrer">
+                                        {{ eintrag.webseite }}
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="lizenzen-zelle">
+                                {{ eintrag.anzahl_lizenzen }} Lizenz(en)
+                            </div>
+
+                            <div>
+                                <span class="status-chip status-inaktiv">Deaktiviert</span>
+                            </div>
+
+                            <div class="aktionen">
+                                <a class="aktion-bearbeiten" href="{% url 'anbieter_bearbeiten' eintrag.id %}">
+                                    Bearbeiten
+                                </a>
+
+                                <form method="post" action="{% url 'anbieter_reaktivieren' eintrag.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="aktion-reaktivieren">
+                                        Reaktivieren
+                                    </button>
+                                </form>
+
+                                {% if eintrag.anzahl_lizenzen == 0 %}
+                                    <form
+                                        method="post"
+                                        action="{% url 'anbieter_loeschen' eintrag.id %}"
+                                        onsubmit="return confirm('Diesen deaktivierten Anbieter endgültig löschen? Dieser Vorgang kann nicht rückgängig gemacht werden.');"
+                                    >
+                                        {% csrf_token %}
+                                        <button type="submit" class="aktion-loeschen">
+                                            Löschen
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="leer-hinweis-klein">Keine deaktivierten Anbieter vorhanden.</div>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+{% if not ist_modal %}
+<script>
+    const aktiveAnbieterTab = document.getElementById("tab-aktive-anbieter");
+    const inaktiveAnbieterTab = document.getElementById("tab-inaktive-anbieter");
+    const aktiveAnbieterContainer = document.getElementById("aktive-anbieter-container");
+    const inaktiveAnbieterContainer = document.getElementById("inaktive-anbieter-container");
+
+    function aktiveAnbieterAnzeigen() {
+        aktiveAnbieterTab.classList.add("aktiv");
+        inaktiveAnbieterTab.classList.remove("aktiv");
+        aktiveAnbieterContainer.classList.remove("inaktive-container");
+        inaktiveAnbieterContainer.classList.add("inaktive-container");
+        inaktiveAnbieterContainer.classList.remove("sichtbar");
+    }
+
+    function inaktiveAnbieterAnzeigen() {
+        inaktiveAnbieterTab.classList.add("aktiv");
+        aktiveAnbieterTab.classList.remove("aktiv");
+        inaktiveAnbieterContainer.classList.add("sichtbar");
+        inaktiveAnbieterContainer.classList.remove("inaktive-container");
+        aktiveAnbieterContainer.classList.add("inaktive-container");
+    }
+
+    if (aktiveAnbieterTab) {
+        aktiveAnbieterTab.addEventListener("click", aktiveAnbieterAnzeigen);
+    }
+
+    if (inaktiveAnbieterTab) {
+        inaktiveAnbieterTab.addEventListener("click", inaktiveAnbieterAnzeigen);
+    }
+</script>
+{% else %}
+<script>
+    const anbieterModalSuche = document.getElementById("anbieter-modal-suche");
+
+    if (anbieterModalSuche) {
+        anbieterModalSuche.addEventListener("input", function () {
+            const suchwert = anbieterModalSuche.value.toLowerCase().trim();
+            const zeilen = document.querySelectorAll(".modal-anbieter-kompakt-row");
+
+            zeilen.forEach(function (zeile) {
+                const text = zeile.dataset.suche || "";
+
+                if (text.includes(suchwert)) {
+                    zeile.style.display = "grid";
+                } else {
+                    zeile.style.display = "none";
+                }
+            });
+        });
+    }
+</script>
+{% endif %}
+{% endblock %}

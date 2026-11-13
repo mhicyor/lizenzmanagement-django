@@ -1,0 +1,521 @@
+{% extends template_basis|default:"lizenzen/base.html" %}
+
+{% block title %}Benutzerdetails{% endblock %}
+
+{% block content %}
+{% include "lizenzen/partials/bestand_uebersicht_styles.html" %}
+<style>
+    .benutzer-detail-seite {
+        max-width: 920px;
+        margin: 0 auto;
+    }
+
+    .benutzer-detail-hero {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 22px;
+        margin-bottom: 20px;
+    }
+
+    .benutzer-detail-identitaet {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        min-width: 0;
+    }
+
+    .benutzer-detail-avatar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        width: 52px;
+        height: 52px;
+        border-radius: 15px;
+        background: rgba(58, 127, 49, 0.11);
+        color: var(--dpz-green-dark);
+        font-size: 16px;
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    .benutzer-detail-hero h1 {
+        margin: 0 0 5px;
+        color: #222222;
+        font-size: 27px;
+        line-height: 1.15;
+        letter-spacing: -0.03em;
+    }
+
+    .benutzer-detail-untertitel {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        flex-wrap: wrap;
+        color: #777777;
+        font-size: 12px;
+    }
+
+    .benutzer-detail-chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: 25px;
+        padding: 0 9px;
+        border-radius: 999px;
+        background: #eeeeee;
+        color: #555555;
+        font-size: 10px;
+        font-weight: 850;
+    }
+
+    .benutzer-detail-chip.aktiv {
+        background: rgba(58, 127, 49, 0.12);
+        color: var(--dpz-green-dark);
+    }
+
+    .benutzer-detail-aktion {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 42px;
+        padding: 0 15px;
+        border-radius: 13px;
+        background: var(--dpz-green);
+        color: #ffffff;
+        font-size: 12px;
+        font-weight: 850;
+        text-decoration: none;
+        white-space: nowrap;
+        box-shadow: 0 9px 22px rgba(58, 127, 49, 0.18);
+    }
+
+    .benutzer-detail-aktion:hover {
+        background: var(--dpz-green-dark);
+        color: #ffffff;
+    }
+
+    .benutzer-info-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .benutzer-info-karte {
+        min-width: 0;
+        padding: 13px 14px;
+        border: 1px solid #e7e9e7;
+        border-radius: 14px;
+        background: #fafbfa;
+    }
+
+    .benutzer-info-karte span {
+        display: block;
+        margin-bottom: 5px;
+        color: #888888;
+        font-size: 9px;
+        font-weight: 850;
+        text-transform: uppercase;
+        letter-spacing: 0.055em;
+    }
+
+    .benutzer-info-karte strong {
+        display: block;
+        overflow: hidden;
+        color: #333333;
+        font-size: 12px;
+        line-height: 1.4;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .benutzer-detail-bereich {
+        padding: 17px;
+        border: 1px solid #e8eae8;
+        border-radius: 18px;
+        background: #fbfcfb;
+    }
+
+    .benutzer-detail-bereich + .benutzer-detail-bereich {
+        margin-top: 14px;
+    }
+
+    .benutzer-bereich-kopf {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 12px;
+    }
+
+    .benutzer-bereich-kopf h2 {
+        margin: 0 0 3px;
+        color: #222222;
+        font-size: 18px;
+        line-height: 1.25;
+    }
+
+    .benutzer-bereich-kopf p {
+        margin: 0;
+        color: #777777;
+        font-size: 11px;
+        line-height: 1.45;
+    }
+
+    .benutzer-bereich-anzahl {
+        display: inline-flex;
+        align-items: center;
+        min-height: 27px;
+        padding: 0 9px;
+        border-radius: 9px;
+        background: rgba(58, 127, 49, 0.10);
+        color: var(--dpz-green-dark);
+        font-size: 10px;
+        font-weight: 850;
+        white-space: nowrap;
+    }
+
+    .benutzer-lizenzliste {
+        display: grid;
+        gap: 8px;
+    }
+
+    .benutzer-lizenzzeile {
+        display: grid;
+        grid-template-columns:
+            minmax(180px, 1.35fr)
+            minmax(135px, 0.9fr)
+            minmax(110px, 0.72fr)
+            minmax(95px, auto);
+        gap: 12px;
+        align-items: center;
+        min-height: 54px;
+        padding: 9px 11px;
+        border: 1px solid #e8e8e8;
+        border-radius: 13px;
+        background: #ffffff;
+        box-sizing: border-box;
+    }
+
+    .benutzer-lizenzname {
+        min-width: 0;
+    }
+
+    .benutzer-lizenzname a,
+    .benutzer-lizenzname strong {
+        display: block;
+        overflow: hidden;
+        margin-bottom: 3px;
+        color: #222222;
+        font-size: 12px;
+        font-weight: 850;
+        text-decoration: none;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .benutzer-lizenzname small,
+    .benutzer-lizenzinfo small {
+        display: block;
+        color: #888888;
+        font-size: 9px;
+        line-height: 1.35;
+    }
+
+    .benutzer-lizenzinfo {
+        min-width: 0;
+        color: #444444;
+        font-size: 11px;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
+    }
+
+    .benutzer-lizenzaktion {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .benutzer-lizenzaktion form {
+        margin: 0;
+    }
+
+    .benutzer-entfernen {
+        min-height: 32px;
+        padding: 0 10px;
+        border: 1px solid rgba(180, 45, 45, 0.24);
+        border-radius: 10px;
+        background: #ffffff;
+        color: #9a3030;
+        font-family: inherit;
+        font-size: 10px;
+        font-weight: 850;
+        cursor: pointer;
+    }
+
+    .benutzer-entfernen:hover {
+        background: rgba(180, 45, 45, 0.07);
+    }
+
+    .benutzer-detail-leer {
+        padding: 22px;
+        border: 1px dashed #d7d7d7;
+        border-radius: 13px;
+        background: #ffffff;
+        color: #777777;
+        font-size: 12px;
+        text-align: center;
+    }
+
+    .benutzer-historie summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        color: #333333;
+        font-size: 12px;
+        font-weight: 850;
+        cursor: pointer;
+        list-style: none;
+    }
+
+    .benutzer-historie summary::after {
+        content: "+";
+        font-size: 18px;
+        font-weight: 500;
+    }
+
+    .benutzer-historie[open] summary::after {
+        content: "–";
+    }
+
+    .benutzer-historie-inhalt {
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px solid #e7e7e7;
+    }
+
+    @media (max-width: 760px) {
+        .benutzer-detail-hero {
+            flex-direction: column;
+        }
+
+        .benutzer-detail-aktion {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .benutzer-info-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .benutzer-lizenzzeile {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .benutzer-lizenzname,
+        .benutzer-lizenzaktion {
+            grid-column: 1 / -1;
+        }
+
+        .benutzer-lizenzaktion {
+            justify-content: flex-start;
+        }
+    }
+
+    @media (max-width: 520px) {
+        .benutzer-info-grid,
+        .benutzer-lizenzzeile {
+            grid-template-columns: 1fr;
+        }
+
+        .benutzer-lizenzname,
+        .benutzer-lizenzaktion {
+            grid-column: auto;
+        }
+    }
+</style>
+
+{% if benutzer %}
+    <div class="karte benutzer-detail-seite">
+        {% if not ist_modal %}
+            <a class="zurueck-link" href="{% url 'benutzer_liste' %}">
+                ← Zurück zur Benutzerübersicht
+            </a>
+        {% endif %}
+
+        <header class="benutzer-detail-hero">
+            <div class="benutzer-detail-identitaet">
+                <div class="benutzer-detail-avatar" aria-hidden="true">
+                    {{ benutzer.1|slice:':2' }}
+                </div>
+
+                <div>
+                    <h1>{{ benutzer.1 }}</h1>
+
+                    <div class="benutzer-detail-untertitel">
+                        <span>@{{ benutzer.2 }}</span>
+
+                        <span class="benutzer-detail-chip {% if benutzer.5 %}aktiv{% endif %}">
+                            {% if benutzer.5 %}Aktiv{% else %}Deaktiviert{% endif %}
+                        </span>
+
+                        <span class="benutzer-detail-chip">
+                            {{ benutzer.6|default:"Lokal" }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <a
+                class="benutzer-detail-aktion bestand-modal-oeffnen"
+                href="{% url 'lizenz_zuweisen' %}?benutzer_id={{ benutzer.0 }}"
+                data-modal-url="{% url 'lizenz_zuweisen' %}?modal=1&amp;benutzer_id={{ benutzer.0 }}"
+                data-modal-titel="Lizenz an {{ benutzer.1 }} zuweisen"
+                data-modal-bereich="Benutzer"
+                data-modal-groesse="breit"
+            >
+                + Lizenz zuweisen
+            </a>
+        </header>
+
+        <section class="benutzer-info-grid" aria-label="Benutzerinformationen">
+            <div class="benutzer-info-karte">
+                <span>E-Mail</span>
+                <strong title="{{ benutzer.3 }}">{{ benutzer.3|default:"Nicht hinterlegt" }}</strong>
+            </div>
+
+            <div class="benutzer-info-karte">
+                <span>Abteilung</span>
+                <strong title="{{ benutzer.4 }}">{{ benutzer.4|default:"Nicht zugeordnet" }}</strong>
+            </div>
+
+            <div class="benutzer-info-karte">
+                <span>Benutzername</span>
+                <strong>{{ benutzer.2|default:"Nicht hinterlegt" }}</strong>
+            </div>
+
+            <div class="benutzer-info-karte">
+                <span>Benutzer-ID</span>
+                <strong>{{ benutzer.0 }}</strong>
+            </div>
+        </section>
+
+        <section class="benutzer-detail-bereich">
+            <div class="benutzer-bereich-kopf">
+                <div>
+                    <h2>Aktive Lizenzen</h2>
+                    <p>Aktuelle Zuweisungen dieses Benutzers.</p>
+                </div>
+
+                <span class="benutzer-bereich-anzahl">
+                    {{ lizenzen|length }} aktiv
+                </span>
+            </div>
+
+            {% if lizenzen %}
+                <div class="benutzer-lizenzliste">
+                    {% for lizenz in lizenzen %}
+                        <article class="benutzer-lizenzzeile">
+                            <div class="benutzer-lizenzname">
+                                <a
+                                    href="{% url 'lizenz_detail' lizenz.6 %}"
+                                    {% if ist_modal %}target="_top"{% endif %}
+                                >
+                                    {{ lizenz.0 }}
+                                </a>
+                                <small>{{ lizenz.1|default:"Kein Anbieter" }}</small>
+                            </div>
+
+                            <div class="benutzer-lizenzinfo">
+                                {{ lizenz.2|default:"Kein Typ" }}
+                                <small>Lizenztyp</small>
+                            </div>
+
+                            <div class="benutzer-lizenzinfo">
+                                {{ lizenz.3|floatformat:2 }} €
+                                <small>Zugewiesen: {{ lizenz.4|default:"—" }}</small>
+                            </div>
+
+                            <div class="benutzer-lizenzaktion">
+                                <form
+                                    method="post"
+                                    action="{% url 'lizenzzuweisung_entfernen' benutzer.0 lizenz.6 %}{% if ist_modal %}?modal=1{% endif %}"
+                                    onsubmit="return confirm('Diese Lizenzzuweisung wirklich entfernen?');"
+                                >
+                                    {% csrf_token %}
+
+                                    <button
+                                        type="submit"
+                                        class="benutzer-entfernen"
+                                    >
+                                        Entfernen
+                                    </button>
+                                </form>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="benutzer-detail-leer">
+                    Dieser Benutzer hat aktuell keine aktiven Lizenzen.
+                </div>
+            {% endif %}
+        </section>
+
+        <section class="benutzer-detail-bereich">
+            <details class="benutzer-historie">
+                <summary>
+                    Zuweisungshistorie
+                </summary>
+
+                <div class="benutzer-historie-inhalt">
+                    {% if entfernte_lizenzen %}
+                        <div class="benutzer-lizenzliste">
+                            {% for lizenz in entfernte_lizenzen %}
+                                <article class="benutzer-lizenzzeile">
+                                    <div class="benutzer-lizenzname">
+                                        <a
+                                            href="{% url 'lizenz_detail' lizenz.6 %}"
+                                            {% if ist_modal %}target="_top"{% endif %}
+                                        >
+                                            {{ lizenz.0 }}
+                                        </a>
+                                        <small>{{ lizenz.1|default:"Kein Anbieter" }}</small>
+                                    </div>
+
+                                    <div class="benutzer-lizenzinfo">
+                                        {{ lizenz.2|default:"Kein Typ" }}
+                                        <small>Lizenztyp</small>
+                                    </div>
+
+                                    <div class="benutzer-lizenzinfo">
+                                        {{ lizenz.3|floatformat:2 }} €
+                                        <small>{{ lizenz.5|default:"Entfernt"|title }}</small>
+                                    </div>
+
+                                    <div class="benutzer-lizenzinfo">
+                                        {{ lizenz.4|default:"—" }}
+                                        <small>Ursprünglich zugewiesen</small>
+                                    </div>
+                                </article>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="benutzer-detail-leer">
+                            Noch keine früheren Zuweisungen vorhanden.
+                        </div>
+                    {% endif %}
+                </div>
+            </details>
+        </section>
+    </div>
+{% else %}
+    <div class="karte benutzer-detail-seite">
+        <div class="benutzer-detail-leer">
+            Der ausgewählte Benutzer existiert nicht.
+        </div>
+    </div>
+{% endif %}
+{% include "lizenzen/partials/bestand_modal.html" %}
+{% endblock %}

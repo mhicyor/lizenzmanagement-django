@@ -1,0 +1,3372 @@
+{% extends template_basis|default:"lizenzen/base.html" %}
+
+{% block title %}Lizenz hinzufügen{% endblock %}
+
+{% block content %}
+{% url 'anbieter_hinzufuegen' as anbieter_hinzufuegen_url %}
+{% url 'lizenzkategorie_hinzufuegen' as lizenzkategorie_hinzufuegen_url %}
+{% url 'lizenzkategorien' as lizenzkategorien_url %}
+{% url 'synchronisation_hinzufuegen' as synchronisation_hinzufuegen_url %}
+{% url 'geraet_hinzufuegen' as geraet_hinzufuegen_url %}
+
+<style>
+    .datenquelle-auswahl-modal {
+        width: min(680px, 95vw);
+    }
+
+    .datenquelle-einrichten-box {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 17px 18px;
+        border: 1px solid rgba(58, 127, 49, 0.18);
+        border-radius: 15px;
+        background: rgba(58, 127, 49, 0.06);
+    }
+
+    .datenquelle-einrichten-box strong {
+        display: block;
+        margin-bottom: 5px;
+        color: #244f20;
+        font-size: 14px;
+    }
+
+    .datenquelle-einrichten-box p {
+        margin: 0;
+        color: #666;
+        font-size: 12px;
+        line-height: 1.4;
+    }
+
+    .datenquelle-einrichten-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        min-height: 44px;
+        padding: 0 16px;
+        border: 1px solid rgba(58, 127, 49, 0.28);
+        border-radius: 12px;
+        background: white;
+        color: var(--dpz-green-dark);
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 800;
+        white-space: nowrap;
+        cursor: pointer;
+    }
+
+    .datenquelle-einrichten-button:hover {
+        background: var(--dpz-green);
+        color: white;
+    }
+
+    .datenquelle-einrichten-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 100002;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 28px;
+        background: rgba(0, 0, 0, 0.48);
+    }
+
+    .datenquelle-einrichten-modal {
+        position: relative;
+        width: min(720px, 94vw);
+        height: min(680px, 88vh);
+        overflow: hidden;
+        border-radius: 22px;
+        background: white;
+        box-shadow: 0 28px 80px rgba(0, 0, 0, 0.40);
+    }
+
+    .datenquelle-einrichten-modal iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+        background: white;
+    }
+
+    .datenquelle-einrichten-schliessen {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        z-index: 3;
+        width: 38px;
+        height: 38px;
+        border: 1px solid #e5e5e5;
+        border-radius: 999px;
+        background: white;
+        color: #222;
+        font-size: 24px;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.14);
+    }
+
+    .datenquelle-einrichten-schliessen:hover {
+        background: #f2f2f2;
+    }
+
+    @media (max-width: 700px) {
+        .datenquelle-einrichten-box {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .datenquelle-einrichten-button {
+            width: 100%;
+        }
+    }
+    .lizenz-form-page {
+        max-width: 1180px;
+    }
+
+    .seitenkopf {
+        margin-bottom: 24px;
+    }
+
+    .seitenkopf h1 {
+        margin-bottom: 10px;
+    }
+
+    .seitenkopf p {
+        max-width: 900px;
+        color: #555;
+        font-size: 15px;
+        line-height: 1.45;
+        margin: 0;
+    }
+
+    .formular-block {
+        padding: 22px 24px;
+        border: 1px solid #eeeeee;
+        border-radius: 20px;
+        background: #fbfbfb;
+        margin-top: 20px;
+    }
+
+    .formular-block-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 18px;
+        margin-bottom: 16px;
+    }
+
+    .formular-block-header h2 {
+        margin: 0 0 5px 0;
+        font-size: 22px;
+    }
+
+    .formular-block-header p {
+        margin: 0;
+        color: #666;
+        font-size: 14px;
+        line-height: 1.4;
+    }
+
+    .formular-badge {
+        flex: 0 0 auto;
+        padding: 7px 11px;
+        border-radius: 999px;
+        background: rgba(58, 127, 49, 0.10);
+        color: var(--dpz-green-dark);
+        font-size: 12px;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .formular-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+    }
+
+    .formular-grid-einspaltig {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .kosten-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+    }
+
+    .kostenmodell-voll {
+        grid-column: 1 / -1;
+    }
+
+    .datums-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+        width: 100%;
+        margin-top: 18px;
+    }
+
+    .formular-feld {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .formular-feld label {
+        min-height: 20px;
+        line-height: 20px;
+        font-weight: 700;
+        margin: 0;
+        color: #222;
+    }
+
+    .formular-feld small {
+        color: #666;
+        font-size: 12px;
+        line-height: 1.35;
+    }
+
+    .formular-feld input,
+    .formular-feld select,
+    .formular-feld textarea {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid #d2d2d2;
+        border-radius: 12px;
+        font-size: 14px;
+        background: white;
+        font-family: inherit;
+        transition:
+            border-color 0.18s ease,
+            box-shadow 0.18s ease,
+            background-color 0.18s ease;
+    }
+
+    .formular-feld input,
+    .formular-feld select {
+        height: 52px;
+        min-height: 52px;
+        padding: 0 14px;
+        line-height: 52px;
+    }
+
+    .formular-feld textarea {
+        min-height: 96px;
+        padding: 13px 14px;
+        line-height: 1.4;
+        resize: vertical;
+    }
+
+    .formular-feld select {
+        padding: 0 42px 0 14px;
+        appearance: none;
+        -webkit-appearance: none;
+        background-color: white;
+        background-image:
+            linear-gradient(45deg, transparent 50%, #555 50%),
+            linear-gradient(135deg, #555 50%, transparent 50%);
+        background-position:
+            calc(100% - 18px) 22px,
+            calc(100% - 13px) 22px;
+        background-size:
+            5px 5px,
+            5px 5px;
+        background-repeat: no-repeat;
+    }
+
+    .formular-feld input:focus,
+    .formular-feld select:focus,
+    .formular-feld textarea:focus {
+        outline: none;
+        border-color: var(--dpz-green);
+        box-shadow: 0 0 0 3px rgba(58, 127, 49, 0.12);
+        background-color: #fff;
+    }
+
+    .grunddaten-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 360px;
+        gap: 18px;
+        align-items: start;
+    }
+
+    .anbieter-auswahl-zeile {
+        display: grid;
+        grid-template-columns: minmax(0, 190px) 52px 112px;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .anbieter-auswahl-zeile select {
+        max-width: 190px;
+    }
+
+    .kategorie-auswahl-zeile {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 52px 112px 116px;
+        gap: 10px;
+        align-items: center;
+        max-width: 860px;
+    }
+
+    .anbieter-auswahl-zeile select,
+    .kategorie-auswahl-zeile select {
+        height: 52px;
+        min-height: 52px;
+        line-height: 52px;
+    }
+
+    .anbieter-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 52px;
+        min-height: 52px;
+        padding: 0 14px;
+        border-radius: 14px;
+        background: rgba(58, 127, 49, 0.10);
+        border: 1px solid rgba(58, 127, 49, 0.25);
+        color: var(--dpz-green-dark) !important;
+        font-size: 13px;
+        font-weight: 800;
+        text-decoration: none !important;
+        white-space: nowrap;
+        box-sizing: border-box;
+        cursor: pointer;
+        font-family: inherit;
+        transition:
+            background-color 0.18s ease,
+            color 0.18s ease,
+            transform 0.18s ease,
+            box-shadow 0.18s ease;
+    }
+
+    .anbieter-button:hover {
+        background: var(--dpz-green);
+        color: white !important;
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px rgba(58, 127, 49, 0.16);
+    }
+
+    .anbieter-plus-button {
+        width: 52px;
+        min-width: 52px;
+        padding: 0;
+        font-size: 18px;
+    }
+
+    .feld-hinweis-kurz {
+        min-height: 22px;
+        max-width: 390px;
+    }
+
+    .lizenzbeschreibung-abstand {
+        margin-top: 14px;
+    }
+
+    .kategorie-kompakt-info {
+        display: grid;
+        grid-template-columns: 1fr;
+        width: 100%;
+        max-width: none;
+        margin-top: 12px;
+    }
+
+    .kategorie-kompakt-info > div {
+        width: 100%;
+        min-height: 0;
+        padding: 9px 14px;
+        border: 1px solid rgba(58, 127, 49, 0.14);
+        border-radius: 12px;
+        background: rgba(58, 127, 49, 0.06);
+        box-sizing: border-box;
+    }
+
+    .kategorie-kompakt-info span {
+        display: block;
+        margin-bottom: 3px;
+        color: #557255;
+        font-size: 10px;
+        font-weight: 800;
+        line-height: 1.2;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .kategorie-kompakt-info strong {
+        display: block;
+        overflow-wrap: anywhere;
+        color: #244f20;
+        font-size: 13px;
+        font-weight: 800;
+        line-height: 1.3;
+    }
+
+    .verwaltungsart-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .verwaltungsart-karte {
+        display: grid;
+        grid-template-columns: 48px minmax(0, 1fr) 26px;
+        align-items: center;
+        gap: 14px;
+        width: 100%;
+        min-height: 126px;
+        padding: 20px;
+        border: 1px solid #dddddd;
+        border-radius: 18px;
+        background: white;
+        color: #222;
+        text-align: left;
+        cursor: pointer;
+        font-family: inherit;
+        transition:
+            border-color 0.18s ease,
+            box-shadow 0.18s ease,
+            transform 0.18s ease,
+            background-color 0.18s ease;
+    }
+
+    .verwaltungsart-karte:hover,
+    .verwaltungsart-karte.aktiv {
+        border-color: var(--dpz-green);
+        background: rgba(58, 127, 49, 0.05);
+        box-shadow: 0 10px 26px rgba(58, 127, 49, 0.12);
+        transform: translateY(-2px);
+    }
+
+    .verwaltungsart-symbol {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        border-radius: 15px;
+        background: rgba(58, 127, 49, 0.10);
+        color: var(--dpz-green-dark);
+        font-size: 22px;
+        font-weight: 900;
+    }
+
+    .verwaltungsart-inhalt {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+    }
+
+    .verwaltungsart-inhalt strong {
+        font-size: 17px;
+        color: #222;
+    }
+
+    .verwaltungsart-inhalt small {
+        color: #666;
+        font-size: 13px;
+        line-height: 1.45;
+    }
+
+    .verwaltungsart-pfeil {
+        color: var(--dpz-green-dark);
+        font-size: 22px;
+        font-weight: 900;
+    }
+
+    .verwaltungsart-zusammenfassung {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(260px, 1fr) auto;
+        align-items: center;
+        gap: 18px;
+        margin-top: 16px;
+        padding: 16px 18px;
+        border: 1px solid rgba(58, 127, 49, 0.18);
+        border-radius: 16px;
+        background: rgba(58, 127, 49, 0.06);
+    }
+
+    .verwaltungsart-zusammenfassung span {
+        display: block;
+        margin-bottom: 4px;
+        color: #617061;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .verwaltungsart-zusammenfassung strong {
+        color: #244f20;
+        font-size: 15px;
+    }
+
+    .verwaltungsart-zusammenfassung p {
+        margin: 0;
+        color: #555;
+        font-size: 13px;
+        line-height: 1.4;
+    }
+
+    .verwaltungsart-aendern-button {
+        min-height: 42px;
+        padding: 0 15px;
+        border: 1px solid rgba(58, 127, 49, 0.30);
+        border-radius: 12px;
+        background: white;
+        color: var(--dpz-green-dark);
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 800;
+        cursor: pointer;
+    }
+
+    .verwaltungsart-aendern-button:hover {
+        background: var(--dpz-green);
+        color: white;
+    }
+
+    .formular-aktionen-modern {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 26px;
+        padding-top: 22px;
+        border-top: 1px solid #e5e5e5;
+    }
+
+    .formular-aktionen-modern button,
+    .formular-aktionen-modern a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 45px;
+        min-height: 45px;
+        padding: 0 18px;
+        border-radius: 12px;
+        border: none;
+        font-size: 14px;
+        font-weight: 800;
+        text-decoration: none;
+        cursor: pointer;
+        box-sizing: border-box;
+        font-family: inherit;
+    }
+
+    .formular-aktionen-modern button {
+        background: var(--dpz-green);
+        color: white;
+    }
+
+    .formular-aktionen-modern button:hover {
+        background: var(--dpz-green-dark);
+    }
+
+    .formular-aktionen-modern a,
+    .formular-aktionen-modern .button-abbrechen {
+        background: #555;
+        color: white;
+    }
+
+    .formular-aktionen-modern a:hover,
+    .formular-aktionen-modern .button-abbrechen:hover {
+        background: #333;
+        color: white;
+    }
+
+    .anbieter-modal-overlay,
+    .verwaltungs-modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        background: rgba(0, 0, 0, 0.42);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 28px;
+    }
+
+    .verwaltungs-modal-overlay {
+        z-index: 100000;
+    }
+
+    .anbieter-modal {
+        position: relative;
+        width: min(900px, 94vw);
+        height: min(700px, 88vh);
+        background: #ffffff;
+        border-radius: 24px;
+        box-shadow: 0 28px 80px rgba(0, 0, 0, 0.34);
+        overflow: hidden;
+    }
+
+    .anbieter-modal.modal-schmal {
+        width: min(760px, 94vw);
+    }
+
+    .anbieter-modal iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+        background: white;
+    }
+
+    .anbieter-modal-schliessen,
+    .verwaltungs-modal-schliessen {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        z-index: 2;
+        width: 38px;
+        height: 38px;
+        border-radius: 999px;
+        border: 1px solid #e6e6e6;
+        background: white;
+        color: #222;
+        font-size: 24px;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.12);
+    }
+
+    .anbieter-modal-schliessen:hover,
+    .verwaltungs-modal-schliessen:hover {
+        background: #f3f3f3;
+    }
+
+    .verwaltungs-modal {
+        position: relative;
+        width: min(760px, 95vw);
+        max-height: 88vh;
+        overflow-y: auto;
+        padding: 28px;
+        border-radius: 24px;
+        background: white;
+        box-shadow: 0 28px 80px rgba(0, 0, 0, 0.34);
+    }
+
+    .verwaltungs-modal h2 {
+        margin: 0 50px 8px 0;
+        font-size: 24px;
+    }
+
+    .verwaltungs-modal-einleitung {
+        margin: 0 0 22px 0;
+        color: #666;
+        font-size: 14px;
+        line-height: 1.45;
+    }
+
+    .verwaltungs-optionen {
+        display: grid;
+        gap: 12px;
+    }
+
+    .verwaltungs-option {
+        display: grid;
+        grid-template-columns: 24px minmax(0, 1fr);
+        gap: 12px;
+        align-items: start;
+        padding: 16px;
+        border: 1px solid #dddddd;
+        border-radius: 15px;
+        background: #fbfbfb;
+        cursor: pointer;
+    }
+
+    .verwaltungs-option:hover {
+        border-color: var(--dpz-green);
+        background: rgba(58, 127, 49, 0.05);
+    }
+
+    .verwaltungs-option input {
+        width: 18px;
+        height: 18px;
+        margin-top: 2px;
+        accent-color: var(--dpz-green);
+    }
+
+    .verwaltungs-option strong {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 15px;
+    }
+
+    .verwaltungs-option small {
+        color: #666;
+        font-size: 12px;
+        line-height: 1.4;
+    }
+
+    .verwaltungs-auswahlbereich {
+        margin-top: 18px;
+        padding: 18px;
+        border: 1px solid #e2e2e2;
+        border-radius: 16px;
+        background: #fafafa;
+    }
+
+    .benutzer-filter-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.5fr) minmax(220px, 0.7fr);
+        gap: 12px;
+    }
+
+    .benutzer-suche-hinweis,
+    .geraet-neuladen-hinweis {
+        display: block;
+        margin-top: 8px;
+        color: #666;
+        font-size: 12px;
+        line-height: 1.4;
+    }
+
+    .ziel-trefferliste {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        max-height: 280px;
+        margin-top: 14px;
+        padding-right: 5px;
+        overflow-y: auto;
+    }
+
+    .ziel-treffer {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+        width: 100%;
+        min-height: 62px;
+        padding: 12px 14px;
+        border: 1px solid #dddddd;
+        border-radius: 13px;
+        background: white;
+        color: #222;
+        text-align: left;
+        cursor: pointer;
+        font-family: inherit;
+        box-sizing: border-box;
+        transition:
+            border-color 0.18s ease,
+            background-color 0.18s ease,
+            transform 0.18s ease,
+            box-shadow 0.18s ease;
+    }
+
+    .ziel-treffer:hover,
+    .ziel-treffer.aktiv {
+        border-color: var(--dpz-green);
+        background: rgba(58, 127, 49, 0.07);
+        box-shadow: 0 6px 16px rgba(58, 127, 49, 0.10);
+        transform: translateY(-1px);
+    }
+
+    .ziel-treffer-haupttext {
+        display: block;
+        color: #222;
+        font-size: 14px;
+        font-weight: 800;
+    }
+
+    .ziel-treffer-details {
+        display: block;
+        color: #666;
+        font-size: 12px;
+        line-height: 1.35;
+    }
+
+    .ziel-keine-treffer {
+        margin-top: 14px;
+        padding: 16px;
+        border: 1px dashed #cccccc;
+        border-radius: 13px;
+        background: white;
+        color: #666;
+        text-align: center;
+        font-size: 13px;
+    }
+
+    .ziel-auswahl-anzeige {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-top: 14px;
+        padding: 14px 16px;
+        border: 1px solid rgba(58, 127, 49, 0.20);
+        border-radius: 14px;
+        background: rgba(58, 127, 49, 0.07);
+    }
+
+    .ziel-auswahl-anzeige span {
+        display: block;
+        margin-bottom: 4px;
+        color: #617061;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .ziel-auswahl-anzeige strong {
+        color: #244f20;
+        font-size: 14px;
+    }
+
+    .ziel-auswahl-anzeige button {
+        min-height: 38px;
+        padding: 0 13px;
+        border: 1px solid #cccccc;
+        border-radius: 10px;
+        background: white;
+        color: #444;
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 800;
+        cursor: pointer;
+    }
+
+    .ziel-auswahl-anzeige button:hover {
+        background: #f0f0f0;
+    }
+
+    .geraete-auswahl-kopf {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .geraete-auswahl-kopf strong {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 15px;
+    }
+
+    .geraete-auswahl-kopf small {
+        display: block;
+        color: #666;
+        font-size: 12px;
+        line-height: 1.35;
+    }
+
+    .geraet-hinzufuegen-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 42px;
+        padding: 0 15px;
+        border: 1px solid rgba(58, 127, 49, 0.25);
+        border-radius: 12px;
+        background: rgba(58, 127, 49, 0.08);
+        color: var(--dpz-green-dark) !important;
+        font-size: 12px;
+        font-weight: 800;
+        text-decoration: none !important;
+        white-space: nowrap;
+        box-sizing: border-box;
+    }
+
+    .geraet-hinzufuegen-button:hover {
+        background: var(--dpz-green);
+        color: white !important;
+    }
+
+    .verwaltungs-modal-aktionen {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 22px;
+        padding-top: 18px;
+        border-top: 1px solid #e5e5e5;
+    }
+
+    .verwaltungs-modal-aktionen button {
+        min-height: 44px;
+        padding: 0 17px;
+        border: none;
+        border-radius: 12px;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 800;
+        cursor: pointer;
+    }
+
+    .verwaltungs-modal-speichern {
+        background: var(--dpz-green);
+        color: white;
+    }
+
+    .verwaltungs-modal-speichern:hover {
+        background: var(--dpz-green-dark);
+    }
+
+    .verwaltungs-modal-abbrechen {
+        background: #555;
+        color: white;
+    }
+
+    .verwaltungs-modal-abbrechen:hover {
+        background: #333;
+    }
+
+    .versteckt {
+        display: none !important;
+    }
+
+    .formular-fehler-hinweis {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+
+        margin: 18px 0 22px;
+        padding: 15px 16px;
+
+        border: 1px solid rgba(190, 40, 40, 0.35);
+        border-left: 5px solid #b42318;
+        border-radius: 14px;
+
+        background: rgba(180, 35, 24, 0.08);
+        color: #7a1c17;
+    }
+
+    .formular-fehler-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        flex: 0 0 28px;
+        width: 28px;
+        height: 28px;
+
+        border-radius: 999px;
+
+        background: #b42318;
+        color: #ffffff;
+
+        font-size: 16px;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .formular-fehler-text {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        min-width: 0;
+    }
+
+    .formular-fehler-text strong {
+        color: #8f1f17;
+        font-size: 14px;
+        font-weight: 800;
+    }
+
+    .formular-fehler-text span {
+        color: #7a1c17;
+        font-size: 14px;
+        line-height: 1.45;
+    }
+
+    @media (max-width: 760px) {
+        .kategorie-kompakt-info,
+        .verwaltungsart-grid,
+        .verwaltungsart-zusammenfassung {
+            grid-template-columns: 1fr;
+        }
+
+        .verwaltungsart-aendern-button {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 700px) {
+        .formular-block {
+            padding: 20px;
+        }
+
+        .formular-block-header {
+            flex-direction: column;
+        }
+
+        .grunddaten-grid,
+        .formular-grid,
+        .kosten-grid,
+        .datums-grid,
+        .benutzer-filter-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .kostenmodell-voll {
+            grid-column: auto;
+        }
+
+        .formular-aktionen-modern {
+            flex-direction: column;
+        }
+
+        .formular-aktionen-modern button,
+        .formular-aktionen-modern a {
+            width: 100%;
+            text-align: center;
+        }
+
+        .verwaltungs-modal-aktionen {
+            flex-direction: column-reverse;
+        }
+
+        .verwaltungs-modal-aktionen button {
+            width: 100%;
+        }
+
+        .geraete-auswahl-kopf {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .geraet-hinzufuegen-button {
+            width: 100%;
+        }
+
+        .ziel-auswahl-anzeige {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .ziel-auswahl-anzeige button {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 620px) {
+        .anbieter-auswahl-zeile,
+        .kategorie-auswahl-zeile {
+            grid-template-columns: 1fr;
+        }
+
+        .anbieter-button,
+        .anbieter-plus-button {
+            width: 100%;
+        }
+
+        .verwaltungsart-karte {
+            grid-template-columns: 42px minmax(0, 1fr);
+        }
+
+        .verwaltungsart-pfeil {
+            display: none;
+        }
+    }
+
+    .geraet-modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 100001;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 28px;
+        background: rgba(0, 0, 0, 0.46);
+    }
+
+    .geraet-modal {
+        position: relative;
+        width: min(620px, 94vw);
+        height: min(650px, 88vh);
+        overflow: hidden;
+        border-radius: 22px;
+        background: white;
+        box-shadow: 0 28px 80px rgba(0, 0, 0, 0.38);
+    }
+
+    .geraet-modal iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+        background: white;
+    }
+
+    .geraet-modal-schliessen {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        z-index: 3;
+        width: 38px;
+        height: 38px;
+        border: 1px solid #e5e5e5;
+        border-radius: 999px;
+        background: white;
+        color: #222;
+        font-size: 24px;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.14);
+    }
+
+    .geraet-modal-schliessen:hover {
+        background: #f2f2f2;
+    }
+
+    button.geraet-hinzufuegen-button {
+        border: 1px solid rgba(58, 127, 49, 0.25);
+        font-family: inherit;
+        cursor: pointer;
+    }
+</style>
+
+<div class="karte seiten-karte lizenz-form-page">
+    {% if not ist_modal %}
+        <a class="zurueck-link" href="/lizenzen/">
+            ← Zurück zur Lizenzverwaltung
+        </a>
+    {% endif %}
+
+    <div class="seitenkopf">
+        <h1>Lizenz hinzufügen</h1>
+
+        <p>
+            Erfasse eine neue Lizenz mit Kategorie, Beschreibung, Kosten und
+            Verwaltungsart. Manuelle Lizenzen können direkt zugewiesen werden.
+            Bei extern geführten Lizenzen werden Zuweisungen später über die
+            Datenquelle synchronisiert.
+        </p>
+    </div>
+
+    {% if fehler %}
+        <div class="formular-fehler-hinweis">
+            <div class="formular-fehler-icon">
+                !
+            </div>
+
+            <div class="formular-fehler-text">
+                <strong>Lizenz konnte nicht angelegt werden</strong>
+                <span>{{ fehler }}</span>
+            </div>
+        </div>
+    {% endif %}
+
+    <form method="post" id="lizenz-hinzufuegen-formular">
+        {% csrf_token %}
+
+        <input
+            type="hidden"
+            name="verwaltungsart"
+            id="verwaltungsart"
+            value="{{ formular_daten.verwaltungsart|default:'' }}"
+        >
+
+        <input
+            type="hidden"
+            name="manuelle_zuweisung_art"
+            id="manuelle-zuweisung-art"
+            value="{{ formular_daten.manuelle_zuweisung_art|default:'keine' }}"
+        >
+
+        <input
+            type="hidden"
+            name="manuelles_ziel_id"
+            id="manuelles-ziel-id"
+            value="{{ formular_daten.manuelles_ziel_id|default:'' }}"
+        >
+
+        <input
+            type="hidden"
+            name="datenquelle"
+            id="datenquelle-hidden"
+            value="{{ formular_daten.datenquelle|default:'' }}"
+        >
+
+
+        <div class="formular-block">
+            <div class="formular-block-header">
+                <div>
+                    <h2>Grunddaten</h2>
+                    <p>Name, Anbieter und Beschreibung der Lizenz.</p>
+                </div>
+
+                <span class="formular-badge">Stammdaten</span>
+            </div>
+
+            <div class="grunddaten-grid">
+                <div class="formular-feld">
+                    <label for="lizenz-name">Lizenzname *</label>
+
+                    <input
+                        type="text"
+                        name="name"
+                        id="lizenz-name"
+                        value="{{ formular_daten.name|default:'' }}"
+                        placeholder="z. B. Adobe Acrobat Pro"
+                        required
+                    >
+
+                    <small class="feld-hinweis-kurz">
+                        Name der konkreten Lizenz oder des Produkts.
+                    </small>
+                </div>
+
+                <div class="formular-feld">
+                    <label for="lizenz-anbieter">Anbieter *</label>
+
+                    <div class="anbieter-auswahl-zeile">
+                        <select name="anbieter" id="lizenz-anbieter" required>
+                            {% for anbieter in anbieter_liste %}
+                                <option
+                                    value="{{ anbieter.1 }}"
+                                    data-id="{{ anbieter.0 }}"
+                                    {% if formular_daten.anbieter == anbieter.1 %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    {{ anbieter.1 }}
+                                </option>
+                            {% endfor %}
+                        </select>
+
+                        <button
+                            type="button"
+                            class="anbieter-button anbieter-plus-button"
+                            id="anbieter-hinzufuegen-button"
+                            title="Anbieter hinzufügen"
+                        >
+                            +
+                        </button>
+
+                        <button
+                            type="button"
+                            class="anbieter-button"
+                            id="anbieter-bearbeiten-button"
+                        >
+                            Bearbeiten
+                        </button>
+                    </div>
+
+                    <small class="feld-hinweis-kurz">
+                        Anbieter pflegen oder direkt ergänzen.
+                    </small>
+                </div>
+            </div>
+
+            <div class="formular-grid-einspaltig lizenzbeschreibung-abstand">
+                <div class="formular-feld">
+                    <label for="beschreibung">Lizenzbeschreibung</label>
+
+                    <textarea
+                        name="beschreibung"
+                        id="beschreibung"
+                        placeholder="z. B. Cloudbasierte Lizenz für Kreativ- und Medienbearbeitung."
+                    >{{ formular_daten.beschreibung|default:'' }}</textarea>
+
+                    <small>
+                        Praxisnahe Beschreibung der konkreten Lizenz.
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <div class="formular-block">
+            <div class="formular-block-header">
+                <div>
+                    <h2>Kategorie</h2>
+                    <p>
+                        Wähle aus, zu welcher fachlichen Lizenzart diese Lizenz
+                        gehört.
+                    </p>
+                </div>
+
+                <span class="formular-badge">Lizenzart</span>
+            </div>
+
+            <div class="formular-feld">
+                <label for="lizenzkategorie">Lizenzkategorie *</label>
+
+                <div class="kategorie-auswahl-zeile">
+                    <select
+                        name="kategorie_id"
+                        id="lizenzkategorie"
+                        required
+                    >
+                        {% for kategorie in kategorien %}
+                            <option
+                                value="{{ kategorie.id }}"
+                                data-name="{{ kategorie.name }}"
+                                data-beschreibung="{{ kategorie.beschreibung }}"
+                                data-typische-nutzung="{{ kategorie.typische_zuordnung|default:'' }}"
+                                {% if formular_daten.kategorie_id|stringformat:"s" == kategorie.id|stringformat:"s" %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ kategorie.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+
+                    <button
+                        type="button"
+                        class="anbieter-button anbieter-plus-button"
+                        id="kategorie-hinzufuegen-button"
+                        title="Kategorie hinzufügen"
+                    >
+                        +
+                    </button>
+
+                    <button
+                        type="button"
+                        class="anbieter-button"
+                        id="kategorie-bearbeiten-button"
+                    >
+                        Bearbeiten
+                    </button>
+
+                    <button
+                        type="button"
+                        class="anbieter-button"
+                        id="kategorie-verwalten-button"
+                    >
+                        Verwalten
+                    </button>
+                </div>
+
+                <div class="kategorie-kompakt-info">
+                    <div>
+                        <span>Beschreibung</span>
+
+                        <strong id="vorschau-beschreibung">
+                            Bitte wähle eine Lizenzkategorie aus.
+                        </strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="formular-block">
+            <div class="formular-block-header">
+                <div>
+                    <h2>Kosten &amp; Laufzeit</h2>
+
+                    <p>
+                        Menge, Abrechnungsintervall und relevante Datumsangaben.
+                    </p>
+                </div>
+
+                <span class="formular-badge">Kosten</span>
+            </div>
+
+            <div class="kosten-grid">
+                <div class="formular-feld">
+                    <label for="anzahl">Anzahl *</label>
+
+                    <input
+                        type="number"
+                        name="anzahl"
+                        id="anzahl"
+                        min="1"
+                        value="{{ formular_daten.anzahl|default:'' }}"
+                        placeholder="z. B. 25"
+                        required
+                    >
+                </div>
+
+                <div class="formular-feld">
+                    <label for="kosten">Kosten pro Lizenz *</label>
+
+                    <input
+                        type="text"
+                        name="kosten"
+                        id="kosten"
+                        value="{{ formular_daten.kosten|default:'' }}"
+                        placeholder="z. B. 19.99"
+                        required
+                    >
+                </div>
+
+                <div class="formular-feld kostenmodell-voll">
+                    <label for="kostenmodell">
+                        Abrechnungsintervall / Kostenmodell *
+                    </label>
+
+                    <select
+                        name="kostenmodell"
+                        id="kostenmodell"
+                        required
+                    >
+                        <option
+                            value="fortlaufend"
+                            {% if formular_daten.kostenmodell != "jaehrlich" and formular_daten.kostenmodell != "einmalig" %}
+                                selected
+                            {% endif %}
+                        >
+                            Monatlich
+                        </option>
+
+                        <option
+                            value="jaehrlich"
+                            {% if formular_daten.kostenmodell == "jaehrlich" %}
+                                selected
+                            {% endif %}
+                        >
+                            Jährlich
+                        </option>
+
+                        <option
+                            value="einmalig"
+                            {% if formular_daten.kostenmodell == "einmalig" %}
+                                selected
+                            {% endif %}
+                        >
+                            Einmalig
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="datums-grid">
+                <div class="formular-feld">
+                    <label for="ablaufdatum">Ablaufdatum</label>
+
+                    <input
+                        type="date"
+                        name="ablaufdatum"
+                        id="ablaufdatum"
+                        value="{{ formular_daten.ablaufdatum|default:'' }}"
+                    >
+                </div>
+
+                <div class="formular-feld">
+                    <label for="verlaengerungsdatum">
+                        Verlängerungsdatum
+                    </label>
+
+                    <input
+                        type="date"
+                        name="verlaengerungsdatum"
+                        id="verlaengerungsdatum"
+                        value="{{ formular_daten.verlaengerungsdatum|default:'' }}"
+                    >
+                </div>
+            </div>
+        </div>
+
+        <div class="formular-block">
+            <div class="formular-block-header">
+                <div>
+                    <h2>Verwaltungsart</h2>
+
+                    <p>
+                        Lege fest, wie Bestand und Zuweisungen dieser Lizenz
+                        verwaltet werden.
+                    </p>
+                </div>
+
+                <span class="formular-badge">Verwaltung</span>
+            </div>
+
+            <div class="verwaltungsart-grid">
+                <button
+                    type="button"
+                    class="verwaltungsart-karte"
+                    id="verwaltungsart-manuell-button"
+                >
+                    <span class="verwaltungsart-symbol">M</span>
+
+                    <span class="verwaltungsart-inhalt">
+                        <strong>Manuell verwalten</strong>
+
+                        <small>
+                            Lizenz lokal erfassen und optional direkt einem
+                            Benutzer oder Gerät zuweisen.
+                        </small>
+                    </span>
+
+                    <span class="verwaltungsart-pfeil">→</span>
+                </button>
+
+                <button
+                    type="button"
+                    class="verwaltungsart-karte"
+                    id="verwaltungsart-datenquelle-button"
+                >
+                    <span class="verwaltungsart-symbol">D</span>
+
+                    <span class="verwaltungsart-inhalt">
+                        <strong>Über Datenquelle verwalten</strong>
+
+                        <small>
+                            Bestand und Zuweisungen werden durch ein externes
+                            System oder eine API geführt.
+                        </small>
+                    </span>
+
+                    <span class="verwaltungsart-pfeil">→</span>
+                </button>
+            </div>
+
+            <div
+                class="verwaltungsart-zusammenfassung versteckt"
+                id="verwaltungsart-zusammenfassung"
+            >
+                <div>
+                    <span>Ausgewählte Verwaltungsart</span>
+
+                    <strong id="verwaltungsart-zusammenfassung-titel">
+                        Manuell verwalten
+                    </strong>
+                </div>
+
+                <p id="verwaltungsart-zusammenfassung-text">
+                    Die Lizenz wird zunächst ohne Zuweisung lokal gespeichert.
+                </p>
+
+                <button
+                    type="button"
+                    class="verwaltungsart-aendern-button"
+                    id="verwaltungsart-aendern-button"
+                >
+                    Auswahl bearbeiten
+                </button>
+            </div>
+        </div>
+
+        <div class="formular-aktionen-modern">
+            <button type="submit">Lizenz speichern</button>
+
+            {% if ist_modal %}
+                <button
+                    type="button"
+                    class="button-abbrechen"
+                    onclick="window.parent.postMessage('lizenz_modal_schliessen', '*')"
+                >
+                    Abbrechen
+                </button>
+            {% else %}
+                <a href="/lizenzen/">Abbrechen</a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<div
+    id="anbieter-modal-overlay"
+    class="anbieter-modal-overlay versteckt"
+>
+    <div class="anbieter-modal" id="anbieter-modal-box">
+        <button
+            type="button"
+            class="anbieter-modal-schliessen"
+            id="anbieter-modal-schliessen"
+        >
+            ×
+        </button>
+
+        <iframe
+            id="anbieter-modal-frame"
+            src=""
+            title="Stammdaten verwalten"
+        ></iframe>
+    </div>
+</div>
+
+<div
+    id="manuell-modal-overlay"
+    class="verwaltungs-modal-overlay versteckt"
+>
+    <div class="verwaltungs-modal">
+        <button
+            type="button"
+            class="verwaltungs-modal-schliessen"
+            data-verwaltungs-modal-schliessen
+        >
+            ×
+        </button>
+
+        <h2>Manuell verwalten</h2>
+
+        <p class="verwaltungs-modal-einleitung">
+            Die Lizenz wird lokal verwaltet. Du kannst sie zunächst ohne
+            Zuweisung speichern oder direkt einem Benutzer beziehungsweise
+            Gerät zuweisen.
+        </p>
+
+        <div class="verwaltungs-optionen">
+            <label class="verwaltungs-option">
+                <input
+                    type="radio"
+                    name="manuelle-option"
+                    value="keine"
+                    checked
+                >
+
+                <span>
+                    <strong>
+                        Zunächst ohne Zuweisung speichern
+                    </strong>
+
+                    <small>
+                        Die Lizenz wird angelegt und kann später über
+                        „Lizenz zuweisen“ vergeben werden.
+                    </small>
+                </span>
+            </label>
+
+            <label class="verwaltungs-option">
+                <input
+                    type="radio"
+                    name="manuelle-option"
+                    value="benutzer"
+                >
+
+                <span>
+                    <strong>Direkt einem Benutzer zuweisen</strong>
+
+                    <small>
+                        Wähle einen vorhandenen Benutzer aus dem Bestand aus.
+                    </small>
+                </span>
+            </label>
+
+            <label class="verwaltungs-option">
+                <input
+                    type="radio"
+                    name="manuelle-option"
+                    value="geraet"
+                >
+
+                <span>
+                    <strong>Direkt einem Gerät zuweisen</strong>
+
+                    <small>
+                        Wähle ein vorhandenes Gerät aus dem Bestand aus.
+                    </small>
+                </span>
+            </label>
+        </div>
+
+        <div
+            id="manuell-benutzer-bereich"
+            class="verwaltungs-auswahlbereich versteckt"
+        >
+            <div class="benutzer-filter-grid">
+                <div class="formular-feld">
+                    <label for="manuell-benutzer-suche">
+                        Benutzer suchen
+                    </label>
+
+                    <input
+                        type="search"
+                        id="manuell-benutzer-suche"
+                        placeholder="Name oder Benutzername eingeben"
+                        autocomplete="off"
+                    >
+                </div>
+
+                <div class="formular-feld">
+                    <label for="manuell-abteilung-filter">
+                        Abteilung
+                    </label>
+
+                    <select id="manuell-abteilung-filter">
+                        <option value="">Alle Abteilungen</option>
+                    </select>
+                </div>
+            </div>
+
+            <small class="benutzer-suche-hinweis">
+                Gib mindestens zwei Zeichen ein oder wähle eine Abteilung.
+            </small>
+
+            <div
+                id="manuell-benutzer-start-hinweis"
+                class="ziel-keine-treffer"
+            >
+                Noch keine Suche gestartet.
+            </div>
+
+            <div
+                id="manuell-benutzer-keine-treffer"
+                class="ziel-keine-treffer versteckt"
+            >
+                Keine passenden Benutzer gefunden.
+            </div>
+
+            <div
+                id="manuell-benutzer-trefferliste"
+                class="ziel-trefferliste versteckt"
+            >
+                {% for benutzer in benutzer_liste %}
+                    <button
+                        type="button"
+                        class="ziel-treffer benutzer-treffer versteckt"
+                        data-id="{{ benutzer.0 }}"
+                        data-suchtext="{{ benutzer.1|lower }} {{ benutzer.2|lower }} {{ benutzer.3|lower }} {{ benutzer.4|lower }}"
+                        data-anzeigename="{{ benutzer.1 }}"
+                        data-abteilung="{{ benutzer.4|default:'' }}"
+                    >
+                        <span class="ziel-treffer-haupttext">
+                            {{ benutzer.1 }}
+                        </span>
+
+                        <span class="ziel-treffer-details">
+                            {% if benutzer.2 %}
+                                {{ benutzer.2 }}
+                            {% endif %}
+
+                            {% if benutzer.4 %}
+                                · {{ benutzer.4 }}
+                            {% endif %}
+                        </span>
+                    </button>
+                {% empty %}
+                    <div class="ziel-keine-treffer">
+                        Keine Benutzer vorhanden.
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div
+                id="manuell-benutzer-auswahl"
+                class="ziel-auswahl-anzeige versteckt"
+            >
+                <div>
+                    <span>Ausgewählter Benutzer</span>
+                    <strong id="manuell-benutzer-auswahl-name">—</strong>
+                </div>
+
+                <button
+                    type="button"
+                    id="manuell-benutzer-auswahl-entfernen"
+                >
+                    Auswahl entfernen
+                </button>
+            </div>
+        </div>
+        <div
+            id="manuell-geraet-bereich"
+            class="verwaltungs-auswahlbereich versteckt"
+        >
+            <div class="geraete-auswahl-kopf">
+                <div>
+                    <strong>Gerät auswählen</strong>
+                    <small>
+                        Wähle ein vorhandenes Gerät aus dem Bestand.
+                    </small>
+                </div>
+
+                <button
+                    type="button"
+                    class="geraet-hinzufuegen-button"
+                    id="geraet-modal-oeffnen-button"
+                >
+                    + Neues Gerät hinzufügen
+                </button>
+            </div>
+
+            <div class="formular-feld">
+                <label for="manuell-geraet-select">
+                    Vorhandenes Gerät
+                </label>
+
+                <select id="manuell-geraet-select">
+                    <option value="">
+                        Bitte Gerät auswählen
+                    </option>
+
+                    {% for geraet in geraete_liste %}
+                        <option
+                            value="{{ geraet.0 }}"
+                            {% if formular_daten.manuelle_zuweisung_art == "geraet" and formular_daten.manuelles_ziel_id|stringformat:"s" == geraet.0|stringformat:"s" %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ geraet.1 }}
+
+                            {% if geraet.2 %}
+                                · {{ geraet.2 }}
+                            {% endif %}
+
+                            {% if geraet.4 %}
+                                · {{ geraet.4 }}
+                            {% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <small class="geraet-neuladen-hinweis">
+                Nach dem Hinzufügen eines neuen Geräts dieses Formular neu laden,
+                damit das Gerät in der Liste erscheint.
+            </small>
+        </div>
+
+        <div class="verwaltungs-modal-aktionen">
+            <button
+                type="button"
+                class="verwaltungs-modal-abbrechen"
+                data-verwaltungs-modal-schliessen
+            >
+                Abbrechen
+            </button>
+
+            <button
+                type="button"
+                class="verwaltungs-modal-speichern"
+                id="manuell-auswahl-uebernehmen"
+            >
+                Auswahl übernehmen
+            </button>
+        </div>
+    </div>
+</div>
+
+<div
+    id="datenquelle-modal-overlay"
+    class="verwaltungs-modal-overlay versteckt"
+>
+    <div class="verwaltungs-modal datenquelle-auswahl-modal">
+        <button
+            type="button"
+            class="verwaltungs-modal-schliessen"
+            data-verwaltungs-modal-schliessen
+            aria-label="Fenster schließen"
+        >
+            ×
+        </button>
+
+        <h2>Über Datenquelle verwalten</h2>
+
+        <p class="verwaltungs-modal-einleitung">
+            Wähle das System aus, aus dem die Lizenzdaten übernommen
+            werden sollen.
+        </p>
+
+        <div class="formular-grid-einspaltig">
+            <div class="formular-feld">
+                <label for="datenquelle-modal-select">
+                    Eingerichtete Datenquelle
+                </label>
+
+                <select id="datenquelle-modal-select">
+                    <option value="">
+                        Bitte Datenquelle auswählen
+                    </option>
+
+                    {% for datenquelle in datenquellen_liste %}
+                        <option
+                            value="{{ datenquelle.id }}"
+                            data-typ="{{ datenquelle.typ }}"
+                            data-status="{{ datenquelle.status }}"
+                            {% if formular_daten.datenquelle|stringformat:"s" == datenquelle.id|stringformat:"s" %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ datenquelle.name }}
+                        </option>
+                    {% empty %}
+                        <option value="" disabled>
+                            Noch keine Datenquelle eingerichtet
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <small>
+                Angezeigt werden nur erfolgreich eingerichtete und aktive
+                Datenquellen.
+            </small>
+            </div>
+
+            <div class="datenquelle-einrichten-box">
+                <div>
+                    <strong>Noch keine passende Datenquelle vorhanden?</strong>
+
+                    <p>
+                        Richte eine neue API-Verbindung ein und teste sie,
+                        bevor sie hier zur Auswahl steht.
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    class="datenquelle-einrichten-button"
+                    id="datenquelle-einrichten-button"
+                >
+                    + Datenquelle einrichten
+                </button>
+            </div>
+        </div>
+
+        <div class="verwaltungs-modal-aktionen">
+            <button
+                type="button"
+                class="verwaltungs-modal-abbrechen"
+                data-verwaltungs-modal-schliessen
+            >
+                Abbrechen
+            </button>
+
+            <button
+                type="button"
+                class="verwaltungs-modal-speichern"
+                id="datenquelle-auswahl-uebernehmen"
+            >
+                Auswahl übernehmen
+            </button>
+        </div>
+    </div>
+</div>
+
+<div
+    id="datenquelle-einrichten-overlay"
+    class="datenquelle-einrichten-overlay versteckt"
+>
+    <div class="datenquelle-einrichten-modal">
+        <button
+            type="button"
+            class="datenquelle-einrichten-schliessen"
+            id="datenquelle-einrichten-schliessen"
+            aria-label="Datenquellen-Einrichtung schließen"
+        >
+            ×
+        </button>
+
+        <iframe
+            id="datenquelle-einrichten-frame"
+            src=""
+            title="Datenquelle einrichten"
+        ></iframe>
+    </div>
+</div>
+
+<div
+    id="geraet-modal-overlay"
+    class="geraet-modal-overlay versteckt"
+>
+    <div class="geraet-modal">
+        <button
+            type="button"
+            class="geraet-modal-schliessen"
+            id="geraet-modal-schliessen"
+            aria-label="Geräteformular schließen"
+        >
+            ×
+        </button>
+
+        <iframe
+            id="geraet-modal-frame"
+            src=""
+            title="Neues Gerät hinzufügen"
+        ></iframe>
+    </div>
+</div>
+
+<script>
+    const manuellAbteilungFilter =
+        document.getElementById("manuell-abteilung-filter");
+
+    const manuellBenutzerStartHinweis =
+        document.getElementById("manuell-benutzer-start-hinweis");
+
+    const manuellBenutzerKeineTreffer =
+        document.getElementById("manuell-benutzer-keine-treffer");
+
+    const kategorieSelect =
+        document.getElementById("lizenzkategorie");
+
+    const kategorieHinzufuegenButton =
+        document.getElementById("kategorie-hinzufuegen-button");
+
+    const kategorieBearbeitenButton =
+        document.getElementById("kategorie-bearbeiten-button");
+
+    const kategorieVerwaltenButton =
+        document.getElementById("kategorie-verwalten-button");
+
+    const anbieterSelect =
+        document.getElementById("lizenz-anbieter");
+
+    const anbieterHinzufuegenButton =
+        document.getElementById("anbieter-hinzufuegen-button");
+
+    const anbieterBearbeitenButton =
+        document.getElementById("anbieter-bearbeiten-button");
+
+    const modalOverlay =
+        document.getElementById("anbieter-modal-overlay");
+
+    const modalFrame =
+        document.getElementById("anbieter-modal-frame");
+
+    const modalSchliessenButton =
+        document.getElementById("anbieter-modal-schliessen");
+
+    const modalBox =
+        document.getElementById("anbieter-modal-box");
+
+    const vorschauBeschreibung =
+        document.getElementById("vorschau-beschreibung");
+
+    const vorschauNutzung =
+        document.getElementById("vorschau-nutzung");
+
+    const verwaltungsartInput =
+        document.getElementById("verwaltungsart");
+
+    const manuelleZuweisungArtInput =
+        document.getElementById("manuelle-zuweisung-art");
+
+    const manuellesZielIdInput =
+        document.getElementById("manuelles-ziel-id");
+
+    const datenquelleHidden =
+        document.getElementById("datenquelle-hidden");
+
+    const manuellButton =
+        document.getElementById("verwaltungsart-manuell-button");
+
+    const datenquelleButton =
+        document.getElementById("verwaltungsart-datenquelle-button");
+
+    const verwaltungsartAendernButton =
+        document.getElementById("verwaltungsart-aendern-button");
+
+    const verwaltungsartZusammenfassung =
+        document.getElementById("verwaltungsart-zusammenfassung");
+
+    const zusammenfassungTitel =
+        document.getElementById(
+            "verwaltungsart-zusammenfassung-titel"
+        );
+
+    const zusammenfassungText =
+        document.getElementById(
+            "verwaltungsart-zusammenfassung-text"
+        );
+
+    const manuellModal =
+        document.getElementById("manuell-modal-overlay");
+
+    const datenquelleModal =
+        document.getElementById("datenquelle-modal-overlay");
+
+    const manuellBenutzerBereich =
+        document.getElementById("manuell-benutzer-bereich");
+
+    const manuellGeraetBereich =
+        document.getElementById("manuell-geraet-bereich");
+
+    const manuellBenutzerSuche =
+        document.getElementById("manuell-benutzer-suche");
+
+    const manuellBenutzerTrefferliste =
+        document.getElementById("manuell-benutzer-trefferliste");
+
+    const manuellBenutzerAuswahl =
+        document.getElementById("manuell-benutzer-auswahl");
+
+    const manuellBenutzerAuswahlName =
+        document.getElementById("manuell-benutzer-auswahl-name");
+
+    const manuellBenutzerAuswahlEntfernen =
+        document.getElementById(
+            "manuell-benutzer-auswahl-entfernen"
+        );
+
+    const benutzerTreffer =
+        document.querySelectorAll(".benutzer-treffer");
+
+    const manuellGeraetSelect =
+        document.getElementById("manuell-geraet-select");
+
+    const manuellAuswahlUebernehmen =
+        document.getElementById("manuell-auswahl-uebernehmen");
+
+    const geraetModalOeffnenButton =
+        document.getElementById("geraet-modal-oeffnen-button");
+
+    const geraetModalOverlay =
+        document.getElementById("geraet-modal-overlay");
+
+    const geraetModalFrame =
+        document.getElementById("geraet-modal-frame");
+
+    const geraetModalSchliessenButton =
+        document.getElementById("geraet-modal-schliessen");
+
+    const datenquelleModalSelect =
+        document.getElementById("datenquelle-modal-select");
+
+    const datenquelleAuswahlUebernehmen =
+        document.getElementById("datenquelle-auswahl-uebernehmen");
+
+    const datenquelleEinrichtenButton =
+        document.getElementById("datenquelle-einrichten-button");
+
+    const datenquelleEinrichtenOverlay =
+        document.getElementById("datenquelle-einrichten-overlay");
+
+    const datenquelleEinrichtenFrame =
+        document.getElementById("datenquelle-einrichten-frame");
+
+    const datenquelleEinrichtenSchliessenButton =
+        document.getElementById("datenquelle-einrichten-schliessen");
+
+
+    function modalOeffnen(url) {
+        if (!modalOverlay || !modalFrame || !url) {
+            return;
+        }
+
+        if (modalBox) {
+            modalBox.classList.toggle(
+                "modal-schmal",
+                url.includes("/bearbeiten/")
+            );
+        }
+
+        modalFrame.src = url;
+        modalOverlay.classList.remove("versteckt");
+    }
+
+
+    function modalSchliessen() {
+        if (!modalOverlay || !modalFrame) {
+            return;
+        }
+
+        modalFrame.src = "";
+        modalOverlay.classList.add("versteckt");
+
+        if (modalBox) {
+            modalBox.classList.remove("modal-schmal");
+        }
+    }
+
+
+    function verwaltungsModalOeffnen(modal) {
+        if (modal) {
+            modal.classList.remove("versteckt");
+        }
+    }
+
+
+    function verwaltungsModalSchliessen(modal) {
+        if (modal) {
+            modal.classList.add("versteckt");
+        }
+    }
+
+
+    function geraetModalOeffnen() {
+        if (!geraetModalOverlay || !geraetModalFrame) {
+            return;
+        }
+
+        geraetModalFrame.src =
+            "{{ geraet_hinzufuegen_url }}?modal=1";
+
+        geraetModalOverlay.classList.remove("versteckt");
+    }
+
+
+    function geraetModalSchliessen() {
+        if (!geraetModalOverlay || !geraetModalFrame) {
+            return;
+        }
+
+        geraetModalFrame.src = "";
+        geraetModalOverlay.classList.add("versteckt");
+    }
+
+
+    function datenquelleEinrichtenOeffnen() {
+        if (
+            !datenquelleEinrichtenOverlay
+            || !datenquelleEinrichtenFrame
+        ) {
+            return;
+        }
+
+        datenquelleEinrichtenFrame.src =
+            "{{ synchronisation_hinzufuegen_url }}?modal=1";
+
+        datenquelleEinrichtenOverlay.classList.remove(
+            "versteckt"
+        );
+    }
+
+
+    function datenquelleEinrichtenSchliessen() {
+        if (
+            !datenquelleEinrichtenOverlay
+            || !datenquelleEinrichtenFrame
+        ) {
+            return;
+        }
+
+        datenquelleEinrichtenFrame.src = "";
+
+        datenquelleEinrichtenOverlay.classList.add(
+            "versteckt"
+        );
+    }
+
+
+    function ausgewaehlteAnbieterId() {
+        if (
+            !anbieterSelect
+            || !anbieterSelect.selectedOptions.length
+        ) {
+            return "";
+        }
+
+        return (
+            anbieterSelect.selectedOptions[0].dataset.id
+            || ""
+        );
+    }
+
+
+    function ausgewaehlteKategorieId() {
+        if (
+            !kategorieSelect
+            || !kategorieSelect.selectedOptions.length
+        ) {
+            return "";
+        }
+
+        return kategorieSelect.value || "";
+    }
+
+
+    function ausgewaehlteDatenquelleName() {
+        if (
+            !datenquelleModalSelect
+            || !datenquelleModalSelect.selectedOptions.length
+        ) {
+            return "";
+        }
+
+        const option =
+            datenquelleModalSelect.selectedOptions[0];
+
+        if (!option || !option.value) {
+            return "";
+        }
+
+        return option.textContent.trim();
+    }
+
+
+    function datenquelleOptionHinzufuegenOderAktualisieren(
+        datenquelle
+    ) {
+        if (
+            !datenquelleModalSelect
+            || !datenquelle
+            || !datenquelle.id
+        ) {
+            return;
+        }
+
+        const wert = String(datenquelle.id);
+
+        let option = Array.from(
+            datenquelleModalSelect.options
+        ).find(function (eintrag) {
+            return eintrag.value === wert;
+        });
+
+        if (!option) {
+            option = document.createElement("option");
+            option.value = wert;
+
+            datenquelleModalSelect.appendChild(option);
+        }
+
+        option.textContent =
+            datenquelle.name || "Neue Datenquelle";
+
+        option.dataset.typ =
+            datenquelle.typ || "";
+
+        option.dataset.status =
+            datenquelle.status || "verbunden";
+
+        datenquelleModalSelect.value = wert;
+
+        if (datenquelleHidden) {
+            datenquelleHidden.value = wert;
+        }
+    }
+
+
+    function kategorieVorschauAktualisieren() {
+        if (
+            !kategorieSelect
+            || !kategorieSelect.selectedOptions.length
+        ) {
+            return;
+        }
+
+        const option = kategorieSelect.selectedOptions[0];
+
+        const beschreibung =
+            option.dataset.beschreibung
+            || "Keine Beschreibung hinterlegt.";
+
+        const typischeNutzung =
+            option.dataset.typischeNutzung
+            || "Keine typische Nutzung hinterlegt.";
+
+        if (vorschauBeschreibung) {
+            vorschauBeschreibung.textContent =
+                beschreibung;
+        }
+
+        if (vorschauNutzung) {
+            vorschauNutzung.textContent =
+                typischeNutzung;
+        }
+    }
+
+
+    function manuelleRadioAuswahlSetzen() {
+        if (!manuelleZuweisungArtInput) {
+            return;
+        }
+
+        const wert =
+            manuelleZuweisungArtInput.value
+            || "keine";
+
+        const radio = document.querySelector(
+            'input[name="manuelle-option"][value="'
+            + wert
+            + '"]'
+        );
+
+        if (radio) {
+            radio.checked = true;
+        }
+    }
+
+
+    function manuelleBereicheAktualisieren() {
+        const option = document.querySelector(
+            'input[name="manuelle-option"]:checked'
+        );
+
+        const wert =
+            option ? option.value : "keine";
+
+        if (manuellBenutzerBereich) {
+            manuellBenutzerBereich.classList.toggle(
+                "versteckt",
+                wert !== "benutzer"
+            );
+        }
+
+        if (manuellGeraetBereich) {
+            manuellGeraetBereich.classList.toggle(
+                "versteckt",
+                wert !== "geraet"
+            );
+        }
+
+        if (
+            wert === "benutzer"
+            && manuellBenutzerSuche
+        ) {
+            window.setTimeout(function () {
+                manuellBenutzerSuche.focus();
+            }, 50);
+        }
+    }
+
+
+    function abteilungsfilterAufbauen() {
+        if (!manuellAbteilungFilter) {
+            return;
+        }
+
+        while (
+            manuellAbteilungFilter.options.length > 1
+        ) {
+            manuellAbteilungFilter.remove(1);
+        }
+
+        const abteilungen = new Set();
+
+        benutzerTreffer.forEach(function (treffer) {
+            const abteilung =
+                (treffer.dataset.abteilung || "").trim();
+
+            if (abteilung) {
+                abteilungen.add(abteilung);
+            }
+        });
+
+        Array.from(abteilungen)
+            .sort(function (a, b) {
+                return a.localeCompare(
+                    b,
+                    "de",
+                    { sensitivity: "base" }
+                );
+            })
+            .forEach(function (abteilung) {
+                const option =
+                    document.createElement("option");
+
+                option.value = abteilung;
+                option.textContent = abteilung;
+
+                manuellAbteilungFilter.appendChild(
+                    option
+                );
+            });
+    }
+
+
+    function benutzerTrefferFiltern() {
+        const suchtext =
+            manuellBenutzerSuche
+                ? manuellBenutzerSuche.value
+                    .trim()
+                    .toLowerCase()
+                : "";
+
+        const abteilung =
+            manuellAbteilungFilter
+                ? manuellAbteilungFilter.value
+                    .trim()
+                    .toLowerCase()
+                : "";
+
+        const suchwoerter =
+            suchtext
+                .split(/\s+/)
+                .filter(Boolean);
+
+        const sucheAktiv =
+            suchtext.length >= 2
+            || abteilung !== "";
+
+        let sichtbareTreffer = 0;
+
+        benutzerTreffer.forEach(function (treffer) {
+            const suchbasis =
+                (treffer.dataset.suchtext || "")
+                    .toLowerCase();
+
+            const trefferAbteilung =
+                (treffer.dataset.abteilung || "")
+                    .trim()
+                    .toLowerCase();
+
+            const passtSuchtext =
+                suchwoerter.length === 0
+                || suchwoerter.every(function (wort) {
+                    return suchbasis.includes(wort);
+                });
+
+            const passtAbteilung =
+                !abteilung
+                || trefferAbteilung === abteilung;
+
+            const sichtbar =
+                sucheAktiv
+                && passtSuchtext
+                && passtAbteilung;
+
+            treffer.classList.toggle(
+                "versteckt",
+                !sichtbar
+            );
+
+            if (sichtbar) {
+                sichtbareTreffer += 1;
+            }
+        });
+
+        if (manuellBenutzerTrefferliste) {
+            manuellBenutzerTrefferliste.classList.toggle(
+                "versteckt",
+                !sucheAktiv || sichtbareTreffer === 0
+            );
+        }
+
+        if (manuellBenutzerStartHinweis) {
+            manuellBenutzerStartHinweis.classList.toggle(
+                "versteckt",
+                sucheAktiv
+            );
+        }
+
+        if (manuellBenutzerKeineTreffer) {
+            manuellBenutzerKeineTreffer.classList.toggle(
+                "versteckt",
+                !sucheAktiv || sichtbareTreffer > 0
+            );
+        }
+    }
+
+
+    function benutzerAuswahlSetzen(id, name) {
+        if (!manuellesZielIdInput) {
+            return;
+        }
+
+        manuellesZielIdInput.value =
+            id ? String(id) : "";
+
+        if (manuellBenutzerAuswahlName) {
+            manuellBenutzerAuswahlName.textContent =
+                name || "—";
+        }
+
+        if (manuellBenutzerAuswahl) {
+            manuellBenutzerAuswahl.classList.toggle(
+                "versteckt",
+                !id
+            );
+        }
+
+        benutzerTreffer.forEach(function (treffer) {
+            treffer.classList.toggle(
+                "aktiv",
+                treffer.dataset.id === String(id)
+            );
+        });
+    }
+
+
+    function benutzerAuswahlZuruecksetzen() {
+        benutzerAuswahlSetzen("", "");
+
+        if (manuellBenutzerSuche) {
+            manuellBenutzerSuche.value = "";
+        }
+
+        if (manuellAbteilungFilter) {
+            manuellAbteilungFilter.value = "";
+        }
+
+        benutzerTrefferFiltern();
+    }
+
+
+    function vorhandeneBenutzerAuswahlWiederherstellen() {
+        if (
+            !manuelleZuweisungArtInput
+            || manuelleZuweisungArtInput.value !== "benutzer"
+            || !manuellesZielIdInput
+            || !manuellesZielIdInput.value
+        ) {
+            return;
+        }
+
+        const zielId =
+            String(manuellesZielIdInput.value);
+
+        const treffer =
+            Array.from(benutzerTreffer).find(
+                function (eintrag) {
+                    return eintrag.dataset.id === zielId;
+                }
+            );
+
+        if (!treffer) {
+            return;
+        }
+
+        benutzerAuswahlSetzen(
+            zielId,
+            treffer.dataset.anzeigename || ""
+        );
+    }
+
+
+    function verwaltungsartAnzeigeAktualisieren() {
+        if (!verwaltungsartInput) {
+            return;
+        }
+
+        const verwaltungsart =
+            verwaltungsartInput.value || "";
+
+        if (manuellButton) {
+            manuellButton.classList.toggle(
+                "aktiv",
+                verwaltungsart === "manuell"
+            );
+        }
+
+        if (datenquelleButton) {
+            datenquelleButton.classList.toggle(
+                "aktiv",
+                verwaltungsart === "datenquelle"
+            );
+        }
+
+        if (verwaltungsartZusammenfassung) {
+            verwaltungsartZusammenfassung.classList.toggle(
+                "versteckt",
+                !verwaltungsart
+            );
+        }
+
+        if (
+            !verwaltungsart
+            || !zusammenfassungTitel
+            || !zusammenfassungText
+        ) {
+            return;
+        }
+
+        if (verwaltungsart === "datenquelle") {
+            const quellenname =
+                ausgewaehlteDatenquelleName()
+                || "Keine Datenquelle ausgewählt";
+
+            zusammenfassungTitel.textContent =
+                "Über Datenquelle verwalten";
+
+            zusammenfassungText.textContent =
+                "Datenquelle: " + quellenname;
+
+            return;
+        }
+
+        zusammenfassungTitel.textContent =
+            "Manuell verwalten";
+
+        const zuweisungsart =
+            manuelleZuweisungArtInput
+                ? manuelleZuweisungArtInput.value
+                : "keine";
+
+        if (zuweisungsart === "benutzer") {
+            const benutzername =
+                manuellBenutzerAuswahlName
+                    ? manuellBenutzerAuswahlName
+                        .textContent
+                        .trim()
+                    : "";
+
+            zusammenfassungText.textContent =
+                "Direkte Zuweisung an Benutzer: "
+                + (
+                    benutzername
+                    && benutzername !== "—"
+                        ? benutzername
+                        : "nicht ausgewählt"
+                );
+
+            return;
+        }
+
+        if (zuweisungsart === "geraet") {
+            const option =
+                manuellGeraetSelect
+                && manuellGeraetSelect
+                    .selectedOptions.length
+                    ? manuellGeraetSelect
+                        .selectedOptions[0]
+                    : null;
+
+            zusammenfassungText.textContent =
+                "Direkte Zuweisung an Gerät: "
+                + (
+                    option && option.value
+                        ? option.textContent.trim()
+                        : "nicht ausgewählt"
+                );
+
+            return;
+        }
+
+        zusammenfassungText.textContent =
+            "Die Lizenz wird zunächst ohne Zuweisung "
+            + "lokal gespeichert.";
+    }
+
+
+    if (kategorieSelect) {
+        kategorieSelect.addEventListener(
+            "change",
+            kategorieVorschauAktualisieren
+        );
+    }
+
+
+    if (anbieterHinzufuegenButton) {
+        anbieterHinzufuegenButton.addEventListener(
+            "click",
+            function () {
+                modalOeffnen(
+                    "{{ anbieter_hinzufuegen_url }}?modal=1"
+                );
+            }
+        );
+    }
+
+
+    if (anbieterBearbeitenButton) {
+        anbieterBearbeitenButton.addEventListener(
+            "click",
+            function () {
+                const anbieterId =
+                    ausgewaehlteAnbieterId();
+
+                if (!anbieterId) {
+                    alert(
+                        "Bitte zuerst einen Anbieter auswählen."
+                    );
+                    return;
+                }
+
+                modalOeffnen(
+                    "/anbieter/"
+                    + anbieterId
+                    + "/bearbeiten/?modal=1"
+                );
+            }
+        );
+    }
+
+
+    if (kategorieHinzufuegenButton) {
+        kategorieHinzufuegenButton.addEventListener(
+            "click",
+            function () {
+                modalOeffnen(
+                    "{{ lizenzkategorie_hinzufuegen_url }}?modal=1"
+                );
+            }
+        );
+    }
+
+
+    if (kategorieBearbeitenButton) {
+        kategorieBearbeitenButton.addEventListener(
+            "click",
+            function () {
+                const kategorieId =
+                    ausgewaehlteKategorieId();
+
+                if (!kategorieId) {
+                    alert(
+                        "Bitte zuerst eine Kategorie auswählen."
+                    );
+                    return;
+                }
+
+                modalOeffnen(
+                    "/lizenzkategorien/"
+                    + kategorieId
+                    + "/bearbeiten/?modal=1"
+                );
+            }
+        );
+    }
+
+
+    if (kategorieVerwaltenButton) {
+        kategorieVerwaltenButton.addEventListener(
+            "click",
+            function () {
+                modalOeffnen(
+                    "{{ lizenzkategorien_url }}?modal=1"
+                );
+            }
+        );
+    }
+
+
+    if (modalSchliessenButton) {
+        modalSchliessenButton.addEventListener(
+            "click",
+            modalSchliessen
+        );
+    }
+
+
+    if (modalOverlay) {
+        modalOverlay.addEventListener(
+            "click",
+            function (event) {
+                if (event.target === modalOverlay) {
+                    modalSchliessen();
+                }
+            }
+        );
+    }
+
+
+    if (geraetModalOeffnenButton) {
+        geraetModalOeffnenButton.addEventListener(
+            "click",
+            function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                geraetModalOeffnen();
+            }
+        );
+    }
+
+
+    if (geraetModalSchliessenButton) {
+        geraetModalSchliessenButton.addEventListener(
+            "click",
+            geraetModalSchliessen
+        );
+    }
+
+
+    if (geraetModalOverlay) {
+        geraetModalOverlay.addEventListener(
+            "click",
+            function (event) {
+                if (event.target === geraetModalOverlay) {
+                    geraetModalSchliessen();
+                }
+            }
+        );
+    }
+
+
+    if (datenquelleEinrichtenButton) {
+        datenquelleEinrichtenButton.addEventListener(
+            "click",
+            function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                datenquelleEinrichtenOeffnen();
+            }
+        );
+    }
+
+
+    if (datenquelleEinrichtenSchliessenButton) {
+        datenquelleEinrichtenSchliessenButton.addEventListener(
+            "click",
+            datenquelleEinrichtenSchliessen
+        );
+    }
+
+
+    if (datenquelleEinrichtenOverlay) {
+        datenquelleEinrichtenOverlay.addEventListener(
+            "click",
+            function (event) {
+                if (
+                    event.target
+                    === datenquelleEinrichtenOverlay
+                ) {
+                    datenquelleEinrichtenSchliessen();
+                }
+            }
+        );
+    }
+
+
+    if (manuellButton) {
+        manuellButton.addEventListener(
+            "click",
+            function () {
+                manuelleRadioAuswahlSetzen();
+                manuelleBereicheAktualisieren();
+                vorhandeneBenutzerAuswahlWiederherstellen();
+                benutzerTrefferFiltern();
+
+                verwaltungsModalOeffnen(
+                    manuellModal
+                );
+            }
+        );
+    }
+
+
+    if (datenquelleButton) {
+        datenquelleButton.addEventListener(
+            "click",
+            function () {
+                verwaltungsModalOeffnen(
+                    datenquelleModal
+                );
+            }
+        );
+    }
+
+
+    if (verwaltungsartAendernButton) {
+        verwaltungsartAendernButton.addEventListener(
+            "click",
+            function () {
+                if (
+                    verwaltungsartInput
+                    && verwaltungsartInput.value
+                        === "datenquelle"
+                ) {
+                    verwaltungsModalOeffnen(
+                        datenquelleModal
+                    );
+
+                    return;
+                }
+
+                manuelleRadioAuswahlSetzen();
+                manuelleBereicheAktualisieren();
+                vorhandeneBenutzerAuswahlWiederherstellen();
+                benutzerTrefferFiltern();
+
+                verwaltungsModalOeffnen(
+                    manuellModal
+                );
+            }
+        );
+    }
+
+
+    document.querySelectorAll(
+        'input[name="manuelle-option"]'
+    ).forEach(function (radio) {
+        radio.addEventListener(
+            "change",
+            function () {
+                manuelleBereicheAktualisieren();
+
+                if (
+                    !radio.checked
+                    || !manuellesZielIdInput
+                ) {
+                    return;
+                }
+
+                manuellesZielIdInput.value = "";
+
+                if (radio.value !== "benutzer") {
+                    benutzerAuswahlZuruecksetzen();
+                }
+
+                if (
+                    radio.value !== "geraet"
+                    && manuellGeraetSelect
+                ) {
+                    manuellGeraetSelect.value = "";
+                }
+            }
+        );
+    });
+
+
+    if (manuellBenutzerSuche) {
+        manuellBenutzerSuche.addEventListener(
+            "input",
+            benutzerTrefferFiltern
+        );
+    }
+
+
+    if (manuellAbteilungFilter) {
+        manuellAbteilungFilter.addEventListener(
+            "change",
+            benutzerTrefferFiltern
+        );
+    }
+
+
+    benutzerTreffer.forEach(function (treffer) {
+        treffer.addEventListener(
+            "click",
+            function () {
+                benutzerAuswahlSetzen(
+                    treffer.dataset.id,
+                    treffer.dataset.anzeigename
+                );
+            }
+        );
+    });
+
+
+    if (manuellBenutzerAuswahlEntfernen) {
+        manuellBenutzerAuswahlEntfernen.addEventListener(
+            "click",
+            benutzerAuswahlZuruecksetzen
+        );
+    }
+
+
+    if (manuellAuswahlUebernehmen) {
+        manuellAuswahlUebernehmen.addEventListener(
+            "click",
+            function () {
+                const option =
+                    document.querySelector(
+                        'input[name="manuelle-option"]:checked'
+                    );
+
+                const zuweisungsart =
+                    option
+                        ? option.value
+                        : "keine";
+
+                let zielId = "";
+
+                if (zuweisungsart === "benutzer") {
+                    zielId =
+                        manuellesZielIdInput
+                            ? manuellesZielIdInput.value
+                            : "";
+
+                    if (!zielId) {
+                        alert(
+                            "Bitte einen Benutzer auswählen."
+                        );
+                        return;
+                    }
+                }
+
+                if (zuweisungsart === "geraet") {
+                    zielId =
+                        manuellGeraetSelect
+                            ? manuellGeraetSelect.value
+                            : "";
+
+                    if (!zielId) {
+                        alert(
+                            "Bitte ein Gerät auswählen."
+                        );
+                        return;
+                    }
+                }
+
+                if (verwaltungsartInput) {
+                    verwaltungsartInput.value =
+                        "manuell";
+                }
+
+                if (manuelleZuweisungArtInput) {
+                    manuelleZuweisungArtInput.value =
+                        zuweisungsart;
+                }
+
+                if (manuellesZielIdInput) {
+                    manuellesZielIdInput.value =
+                        zielId;
+                }
+
+                if (datenquelleHidden) {
+                    datenquelleHidden.value = "";
+                }
+
+                verwaltungsModalSchliessen(
+                    manuellModal
+                );
+
+                verwaltungsartAnzeigeAktualisieren();
+            }
+        );
+    }
+
+
+    if (datenquelleAuswahlUebernehmen) {
+        datenquelleAuswahlUebernehmen.addEventListener(
+            "click",
+            function () {
+                const datenquelle =
+                    datenquelleModalSelect
+                        ? datenquelleModalSelect.value
+                        : "";
+
+                if (!datenquelle) {
+                    alert(
+                        "Bitte eine Datenquelle auswählen."
+                    );
+                    return;
+                }
+
+                if (verwaltungsartInput) {
+                    verwaltungsartInput.value =
+                        "datenquelle";
+                }
+
+                if (datenquelleHidden) {
+                    datenquelleHidden.value =
+                        datenquelle;
+                }
+
+                if (manuelleZuweisungArtInput) {
+                    manuelleZuweisungArtInput.value =
+                        "keine";
+                }
+
+                if (manuellesZielIdInput) {
+                    manuellesZielIdInput.value = "";
+                }
+
+                benutzerAuswahlZuruecksetzen();
+
+                if (manuellGeraetSelect) {
+                    manuellGeraetSelect.value = "";
+                }
+
+                verwaltungsModalSchliessen(
+                    datenquelleModal
+                );
+
+                verwaltungsartAnzeigeAktualisieren();
+            }
+        );
+    }
+
+
+    document.querySelectorAll(
+        "[data-verwaltungs-modal-schliessen]"
+    ).forEach(function (button) {
+        button.addEventListener(
+            "click",
+            function () {
+                verwaltungsModalSchliessen(
+                    button.closest(
+                        ".verwaltungs-modal-overlay"
+                    )
+                );
+            }
+        );
+    });
+
+
+    [manuellModal, datenquelleModal].forEach(
+        function (modal) {
+            if (!modal) {
+                return;
+            }
+
+            modal.addEventListener(
+                "click",
+                function (event) {
+                    if (event.target === modal) {
+                        verwaltungsModalSchliessen(
+                            modal
+                        );
+                    }
+                }
+            );
+        }
+    );
+
+
+    window.addEventListener(
+        "message",
+        function (event) {
+            if (event.origin !== window.location.origin) {
+                return;
+            }
+
+            if (
+                event.data === "geraet_modal_schliessen"
+            ) {
+                geraetModalSchliessen();
+                return;
+            }
+
+            if (
+                event.data === "geraet_gespeichert"
+            ) {
+                geraetModalSchliessen();
+                return;
+            }
+
+            if (
+                event.data
+                === "datenquelle_modal_schliessen"
+            ) {
+                datenquelleEinrichtenSchliessen();
+                return;
+            }
+
+            if (
+                event.data
+                && event.data.type
+                    === "datenquelle_gespeichert"
+                && event.data.datenquelle
+            ) {
+                const datenquelle =
+                    event.data.datenquelle;
+
+                datenquelleOptionHinzufuegenOderAktualisieren(
+                    datenquelle
+                );
+
+                if (verwaltungsartInput) {
+                    verwaltungsartInput.value =
+                        "datenquelle";
+                }
+
+                if (manuelleZuweisungArtInput) {
+                    manuelleZuweisungArtInput.value =
+                        "keine";
+                }
+
+                if (manuellesZielIdInput) {
+                    manuellesZielIdInput.value = "";
+                }
+
+                datenquelleEinrichtenSchliessen();
+
+                verwaltungsartAnzeigeAktualisieren();
+
+                return;
+            }
+
+            if (
+                event.data
+                && event.data.type === "anbieter_gespeichert"
+                && event.data.anbieter
+                && modalFrame
+                && event.source === modalFrame.contentWindow
+            ) {
+                const anbieter = event.data.anbieter;
+                let option = Array.from(anbieterSelect.options).find(
+                    eintrag => eintrag.dataset.id === String(anbieter.id)
+                );
+                if (!option) {
+                    option = new Option(anbieter.name, anbieter.name);
+                    option.dataset.id = String(anbieter.id);
+                    anbieterSelect.add(option);
+                }
+                option.textContent = anbieter.name;
+                option.value = anbieter.name;
+                anbieterSelect.value = anbieter.name;
+                anbieterSelect.dispatchEvent(new Event("change", {bubbles: true}));
+                modalSchliessen();
+                anbieterSelect.focus();
+                return;
+            }
+
+            if (
+                event.data === "anbieter_gespeichert"
+            ) {
+                window.location.reload();
+                return;
+            }
+
+            if (
+                event.data === "kategorie_gespeichert"
+            ) {
+                if (
+                    modalFrame
+                    && modalFrame.src
+                    && modalFrame.src.includes(
+                        "/kategorien/"
+                    )
+                ) {
+                    modalFrame.src =
+                        "{{ lizenzkategorien_url }}"
+                        + "?modal=1&aktualisiert=1";
+
+                    return;
+                }
+
+                window.location.reload();
+                return;
+            }
+
+            if (
+                event.data
+                    === "anbieter_modal_schliessen"
+                || event.data
+                    === "kategorie_modal_schliessen"
+            ) {
+                modalSchliessen();
+            }
+        }
+    );
+
+
+    document.addEventListener(
+        "keydown",
+        function (event) {
+            if (event.key !== "Escape") {
+                return;
+            }
+
+            if (
+                datenquelleEinrichtenOverlay
+                && !datenquelleEinrichtenOverlay
+                    .classList.contains("versteckt")
+            ) {
+                datenquelleEinrichtenSchliessen();
+                return;
+            }
+
+            if (
+                geraetModalOverlay
+                && !geraetModalOverlay.classList.contains(
+                    "versteckt"
+                )
+            ) {
+                geraetModalSchliessen();
+                return;
+            }
+
+            if (
+                manuellModal
+                && !manuellModal.classList.contains(
+                    "versteckt"
+                )
+            ) {
+                verwaltungsModalSchliessen(
+                    manuellModal
+                );
+                return;
+            }
+
+            if (
+                datenquelleModal
+                && !datenquelleModal.classList.contains(
+                    "versteckt"
+                )
+            ) {
+                verwaltungsModalSchliessen(
+                    datenquelleModal
+                );
+                return;
+            }
+
+            if (
+                modalOverlay
+                && !modalOverlay.classList.contains(
+                    "versteckt"
+                )
+            ) {
+                modalSchliessen();
+            }
+        }
+    );
+
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+            kategorieVorschauAktualisieren();
+            manuelleRadioAuswahlSetzen();
+            manuelleBereicheAktualisieren();
+            abteilungsfilterAufbauen();
+            vorhandeneBenutzerAuswahlWiederherstellen();
+            benutzerTrefferFiltern();
+            verwaltungsartAnzeigeAktualisieren();
+        }
+    );
+</script>
+
+{% endblock %}

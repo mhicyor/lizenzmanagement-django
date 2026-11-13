@@ -1,0 +1,51 @@
+{% extends "lizenzen/base.html" %}
+
+{% block content %}
+<div class="seite-kopf">
+    <div>
+        <p class="seiten-label">Datenquelle</p>
+        <h1>Offene Lizenzprodukte</h1>
+        <p>
+            Diese externen Gruppen oder Produktprofile konnten noch keiner lokalen Lizenz zugeordnet werden.
+        </p>
+    </div>
+
+    <a href="{% url 'synchronisation_uebersicht' %}" class="button-sekundaer">
+        Zurück zu Datenquellen
+    </a>
+</div>
+
+<div class="kartenbereich">
+    {% if offene_zuordnungen %}
+        {% for eintrag in offene_zuordnungen %}
+            <article class="karte">
+                <h3>{{ eintrag.gruppenname }}</h3>
+
+                <p>
+                    Klassifikation:
+                    <strong>{{ eintrag.klassifikation }}</strong>
+                </p>
+
+                <div class="karten-aktionen">
+                    <button type="button" class="button-sekundaer">
+                        Mit bestehender Lizenz verbinden
+                    </button>
+
+                    <button type="button" class="button-primaer">
+                        Neue Lizenz daraus anlegen
+                    </button>
+
+                    <button type="button" class="button-gefahr">
+                        Ignorieren
+                    </button>
+                </div>
+            </article>
+        {% endfor %}
+    {% else %}
+        <div class="leerzustand">
+            <h2>Keine offenen Lizenzprodukte</h2>
+            <p>Alle erkannten Produktgruppen sind bereits zugeordnet oder ignoriert.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

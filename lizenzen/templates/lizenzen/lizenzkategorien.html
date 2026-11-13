@@ -1,0 +1,1348 @@
+{% extends template_basis|default:"lizenzen/base.html" %}
+
+{% block title %}Lizenzkategorien{% endblock %}
+
+{% block content %}
+<style>
+    .kategorien-page {
+        max-width: 1180px;
+    }
+
+    .kategorien-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 24px;
+        margin-bottom: 24px;
+    }
+
+    .kategorien-header h1 {
+        margin: 0 0 8px 0;
+        font-size: 32px;
+        line-height: 1.1;
+        letter-spacing: -0.03em;
+    }
+
+    .kategorien-header p {
+        max-width: 760px;
+        margin: 0;
+        color: #555;
+        font-size: 15px;
+        line-height: 1.45;
+    }
+
+    .kategorien-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        flex: 0 0 auto;
+    }
+
+    .kategorien-actions a,
+    .kategorien-actions button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 42px;
+        padding: 0 15px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 800;
+        text-decoration: none;
+        box-sizing: border-box;
+        border: none;
+        cursor: pointer;
+    }
+
+    .kategorien-tabs {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+    }
+
+    .kategorien-tab {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 38px;
+        padding: 0 14px;
+        border-radius: 999px;
+        background: #f3f3f3;
+        border: 1px solid #e2e2e2;
+        color: #333;
+        font-size: 13px;
+        font-weight: 800;
+        cursor: pointer;
+        font-family: inherit;
+    }
+
+    .kategorien-tab.aktiv {
+        background: rgba(58, 127, 49, 0.12);
+        border-color: rgba(58, 127, 49, 0.26);
+        color: var(--dpz-green-dark);
+    }
+
+    .kategorien-section {
+        border: 1px solid #eeeeee;
+        border-radius: 22px;
+        background: #fbfbfb;
+        padding: 20px;
+        margin-top: 18px;
+    }
+
+    .kategorien-section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 18px;
+        margin-bottom: 16px;
+    }
+
+    .kategorien-section-header h2 {
+        margin: 0 0 5px 0;
+        font-size: 23px;
+        letter-spacing: -0.02em;
+    }
+
+    .kategorien-section-header p {
+        margin: 0;
+        color: #666;
+        font-size: 14px;
+        line-height: 1.45;
+    }
+
+    .anzahl-hinweis {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 30px;
+        padding: 0 11px;
+        border-radius: 999px;
+        background: #eeeeee;
+        color: #555;
+        font-size: 12px;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    .kategorie-listen-header {
+        display: grid;
+        grid-template-columns: 1.2fr 1.8fr 1.4fr 150px;
+        gap: 14px;
+        padding: 0 16px 10px 16px;
+        color: #666;
+        font-size: 11px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .kategorie-liste-modern {
+        display: grid;
+        gap: 10px;
+    }
+
+    .kategorie-row {
+        display: grid;
+        grid-template-columns: 1.2fr 1.8fr 1.4fr 150px;
+        gap: 14px;
+        align-items: center;
+        padding: 16px;
+        border-radius: 18px;
+        background: white;
+        border: 1px solid #eeeeee;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.035);
+        transition:
+            background-color 0.18s ease,
+            border-color 0.18s ease,
+            transform 0.18s ease,
+            box-shadow 0.18s ease;
+    }
+
+    .kategorie-row:hover {
+        background: #fcfcfc;
+        border-color: rgba(58, 127, 49, 0.24);
+        transform: translateY(-1px);
+        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.055);
+    }
+
+    .kategorie-row.archiviert {
+        opacity: 0.72;
+        background: #f7f7f7;
+    }
+
+    .kategorie-name {
+        font-weight: 900;
+        color: #111;
+        font-size: 14px;
+        line-height: 1.35;
+    }
+
+    .kategorie-text {
+        color: #333;
+        font-size: 14px;
+        line-height: 1.4;
+    }
+
+    .text-muted {
+        color: #777;
+    }
+
+    .lizenzen-zelle {
+        white-space: nowrap;
+        font-weight: 900;
+        color: #111;
+        font-size: 14px;
+    }
+
+    .status-chip {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: fit-content;
+        min-height: 26px;
+        padding: 0 9px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    .status-aktiv {
+        background: rgba(58, 127, 49, 0.12);
+        color: var(--dpz-green-dark);
+    }
+
+    .status-archiviert {
+        background: #eeeeee;
+        color: #555;
+    }
+
+    .aktionen {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
+
+    .aktionen form {
+        margin: 0;
+    }
+
+    .aktionen button,
+    .aktionen a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 34px;
+        padding: 0 11px;
+        border-radius: 10px;
+        border: none;
+        font-size: 13px;
+        font-weight: 800;
+        cursor: pointer;
+        font-family: inherit;
+        text-decoration: none;
+        transition:
+            background-color 0.18s ease,
+            color 0.18s ease,
+            transform 0.18s ease,
+            box-shadow 0.18s ease;
+    }
+
+    .aktionen button:hover,
+    .aktionen a:hover {
+        transform: translateY(-1px);
+    }
+
+    .aktion-bearbeiten {
+        background: #111;
+        color: white !important;
+    }
+
+    .aktion-bearbeiten:hover {
+        background: #000;
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
+    }
+
+    .aktion-archivieren {
+        background: #f2f2f2;
+        color: #333;
+        border: 1px solid #dddddd !important;
+    }
+
+    .aktion-archivieren:hover {
+        background: #e7e7e7;
+    }
+
+    .aktion-reaktivieren {
+        background: rgba(58, 127, 49, 0.12);
+        color: var(--dpz-green-dark);
+        border: 1px solid rgba(58, 127, 49, 0.25) !important;
+    }
+
+    .aktion-reaktivieren:hover {
+        background: rgba(58, 127, 49, 0.18);
+    }
+
+    .aktion-loeschen {
+        background: #fff1f1;
+        color: #b42318;
+        border: 1px solid #f3c7c3 !important;
+    }
+
+    .aktion-loeschen:hover {
+        background: #ffe3e0;
+    }
+
+    .archiv-meta {
+        display: block;
+        margin-top: 5px;
+        color: #777;
+        font-size: 12px;
+        line-height: 1.35;
+    }
+
+    .leer-hinweis-klein {
+        padding: 16px;
+        border-radius: 14px;
+        background: #f7f7f7;
+        border: 1px solid #e3e3e3;
+        color: #555;
+        font-size: 14px;
+    }
+
+    .archiv-container {
+        display: none;
+    }
+
+    .archiv-container.sichtbar {
+        display: block;
+    }
+
+    .modal-kategorien-page {
+        max-width: 920px;
+    }
+
+    .modal-kategorien-page .kategorien-header {
+        margin-bottom: 16px;
+    }
+
+    .modal-kategorien-page .kategorien-header h1 {
+        font-size: 28px;
+    }
+
+    .modal-kategorien-page .kategorien-header p {
+        display: none;
+    }
+
+    .modal-toolbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 260px;
+        gap: 16px;
+        align-items: center;
+        margin-bottom: 14px;
+        padding: 13px 14px;
+        border-radius: 16px;
+        background: #fafafa;
+        border: 1px solid #eeeeee;
+    }
+
+    .modal-toolbar h2 {
+        margin: 0 0 3px 0;
+        font-size: 18px;
+        letter-spacing: -0.01em;
+    }
+
+    .modal-toolbar p {
+        margin: 0;
+        color: #666;
+        font-size: 13px;
+        line-height: 1.35;
+    }
+
+    .modal-toolbar input {
+        height: 42px;
+        border-radius: 12px;
+        border: 1px solid #d8d8d8;
+        padding: 0 13px;
+        font-family: inherit;
+        font-size: 14px;
+        background: white;
+        box-sizing: border-box;
+    }
+
+    .modal-toolbar input:focus {
+        outline: none;
+        border-color: var(--dpz-green);
+        box-shadow: 0 0 0 3px rgba(58, 127, 49, 0.12);
+    }
+
+    .modal-kategorie-tabelle {
+        display: grid;
+        gap: 8px;
+    }
+
+    .modal-kategorie-kompakt-row {
+        display: grid;
+        grid-template-columns: minmax(190px, 1fr) 120px 90px auto;
+        gap: 12px;
+        align-items: center;
+        padding: 10px 12px;
+        border: 1px solid #eeeeee;
+        border-radius: 14px;
+        background: white;
+    }
+
+    .modal-kategorie-kompakt-row:hover {
+        border-color: rgba(58, 127, 49, 0.22);
+        background: #fcfcfc;
+    }
+
+    .modal-kategorie-kompakt-row.archiviert {
+        background: #f7f7f7;
+        opacity: 0.9;
+    }
+
+    .modal-kategorie-name strong {
+        display: block;
+        font-size: 14px;
+        color: #111;
+        line-height: 1.2;
+    }
+
+    .modal-kategorie-lizenzen {
+        font-size: 13px;
+        font-weight: 900;
+        color: #111;
+        white-space: nowrap;
+    }
+
+    .modal-aktionen-rechts {
+        justify-content: flex-end;
+    }
+
+    .modal-archiv-bereich {
+        margin-top: 16px;
+        padding-top: 14px;
+        border-top: 1px solid #eeeeee;
+    }
+
+    .modal-archiv-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: #f6f6f6;
+        border: 1px solid #e6e6e6;
+        cursor: pointer;
+        list-style: none;
+    }
+
+    .modal-archiv-header::-webkit-details-marker {
+        display: none;
+    }
+
+    .modal-archiv-header::before {
+        content: "▸";
+        font-size: 14px;
+        font-weight: 900;
+        color: #555;
+        transition: transform 0.18s ease;
+    }
+
+    .modal-archiv-bereich[open] .modal-archiv-header::before {
+        transform: rotate(90deg);
+    }
+
+    .modal-archiv-header div {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .modal-archiv-header h3 {
+        margin: 0 0 3px 0;
+        font-size: 15px;
+        color: #333;
+    }
+
+    .modal-archiv-header p {
+        margin: 0;
+        color: #777;
+        font-size: 12px;
+        line-height: 1.35;
+    }
+
+    .modal-archiv-header span {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 26px;
+        padding: 0 9px;
+        border-radius: 999px;
+        background: #eeeeee;
+        color: #555;
+        font-size: 12px;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    .modal-archiv-liste {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .modal-archiv-liste .modal-kategorie-kompakt-row {
+        grid-template-columns: 1fr auto;
+        gap: 8px 12px;
+        align-items: start;
+        padding: 12px 13px;
+    }
+
+    .modal-archiv-liste .modal-kategorie-name {
+        grid-column: 1;
+        display: grid;
+        gap: 3px;
+    }
+
+    .modal-archiv-liste .modal-kategorie-lizenzen {
+        grid-column: 2;
+        justify-self: end;
+        font-size: 12px;
+        width: fit-content;
+    }
+
+    .modal-archiv-liste .status-chip {
+        grid-column: 1;
+        width: fit-content;
+    }
+
+    .modal-archiv-liste .modal-aktionen-rechts {
+        grid-column: 1 / -1;
+        justify-content: flex-start;
+        margin-top: 2px;
+    }
+
+    .loeschen-hinweis {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 34px;
+        padding: 0 10px;
+        border-radius: 10px;
+        background: #eeeeee;
+        color: #777;
+        font-size: 12px;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .stammdaten-modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: rgba(0, 0, 0, 0.22);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+    }
+
+    .stammdaten-modal-overlay.aktiv {
+        display: flex;
+    }
+
+    .stammdaten-modal {
+        width: min(820px, 100%);
+        height: min(84vh, 760px);
+        border-radius: 24px;
+        background: white;
+        box-shadow: 0 28px 70px rgba(0, 0, 0, 0.22);
+        overflow: hidden;
+    }
+
+    .stammdaten-modal-kopf {
+        height: 54px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 0 18px;
+        border-bottom: 1px solid #eeeeee;
+        background: #fbfbfb;
+    }
+
+    .stammdaten-modal-kopf strong {
+        font-size: 15px;
+        color: #222;
+    }
+
+    .modal-kopf-aktionen {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 0 0 auto;
+    }
+
+    .modal-archivieren-button,
+    .modal-reaktivieren-button {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        min-height: 34px;
+        padding: 0 12px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 900;
+        cursor: pointer;
+        font-family: inherit;
+    }
+
+    .modal-archivieren-button {
+        border: 1px solid #dddddd;
+        background: #f2f2f2;
+        color: #333;
+    }
+
+    .modal-archivieren-button:hover {
+        background: #e7e7e7;
+    }
+
+    .modal-reaktivieren-button {
+        border: 1px solid rgba(58, 127, 49, 0.25);
+        background: rgba(58, 127, 49, 0.12);
+        color: var(--dpz-green-dark);
+    }
+
+    .modal-reaktivieren-button:hover {
+        background: rgba(58, 127, 49, 0.18);
+    }
+
+    .stammdaten-modal-schliessen {
+        width: 34px;
+        height: 34px;
+        border-radius: 999px;
+        border: 1px solid #dddddd;
+        background: white;
+        color: #333;
+        font-size: 19px;
+        font-weight: 900;
+        cursor: pointer;
+    }
+
+    .stammdaten-modal-schliessen:hover {
+        background: #f2f2f2;
+    }
+
+    .stammdaten-modal iframe {
+        width: 100%;
+        height: calc(100% - 54px);
+        border: none;
+        background: white;
+    }
+
+    @media (max-width: 1100px) {
+        .kategorie-listen-header {
+            display: none;
+        }
+
+        .kategorie-row {
+            grid-template-columns: 1fr;
+            gap: 10px;
+            align-items: start;
+        }
+
+        .kategorie-row > div::before {
+            display: block;
+            margin-bottom: 4px;
+            color: #777;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .kategorie-row > div:nth-child(1)::before {
+            content: "Name";
+        }
+
+        .kategorie-row > div:nth-child(2)::before {
+            content: "Beschreibung";
+        }
+
+        .kategorie-row > div:nth-child(3)::before {
+            content: "Typische Nutzung";
+        }
+
+        .kategorie-row > div:nth-child(4)::before {
+            content: "Lizenzen";
+        }
+
+        .kategorie-row > div:nth-child(5)::before {
+            content: "Status";
+        }
+
+        .kategorie-row > div:nth-child(6)::before {
+            content: "Aktionen";
+        }
+    }
+
+    @media (max-width: 900px) {
+        .kategorien-header,
+        .kategorien-section-header {
+            flex-direction: column;
+        }
+
+        .kategorien-actions {
+            width: 100%;
+            justify-content: flex-start;
+        }
+
+        .kategorien-actions a,
+        .kategorien-actions button {
+            width: 100%;
+        }
+
+        .stammdaten-modal-overlay {
+            padding: 12px;
+        }
+
+        .stammdaten-modal {
+            height: 90vh;
+        }
+
+        .stammdaten-modal-kopf {
+            height: auto;
+            min-height: 54px;
+            padding: 10px 14px;
+            align-items: flex-start;
+        }
+
+        .modal-kopf-aktionen {
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+    }
+
+    @media (max-width: 760px) {
+        .modal-toolbar {
+            grid-template-columns: 1fr;
+        }
+
+        .modal-kategorie-kompakt-row {
+            grid-template-columns: 1fr;
+            align-items: start;
+        }
+
+        .modal-aktionen-rechts {
+            justify-content: flex-start;
+        }
+
+        .modal-archiv-liste {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="karte seiten-karte kategorien-page {% if ist_modal %}modal-kategorien-page{% endif %}">
+    <div class="kategorien-header">
+        <div>
+            <h1>Lizenzkategorien</h1>
+            <p>
+                Kategorien strukturieren Lizenzen fachlich. Die konkrete Zuweisung zu Benutzern oder Geräten erfolgt getrennt über die Lizenzzuweisung.
+            </p>
+        </div>
+
+        {% if not ist_modal %}
+            <div class="kategorien-actions">
+                <button type="button" class="button-primary" id="kategorie-hinzufuegen-button">
+                    + Kategorie hinzufügen
+                </button>
+
+                <a href="/lizenzen/" class="button-secondary">
+                    Zur Lizenzverwaltung
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if ist_modal %}
+        <div class="modal-toolbar">
+            <div>
+                <h2>Bestehende Kategorien</h2>
+                <p>Bearbeiten, archivieren oder reaktivieren. Neue Kategorien legst du über den Plus-Button im Lizenzformular an.</p>
+            </div>
+
+            <input
+                type="text"
+                id="kategorie-modal-suche"
+                placeholder="Kategorie suchen..."
+                autocomplete="off"
+            >
+        </div>
+
+        <div class="modal-kategorie-tabelle">
+            {% for kategorie in aktive_kategorien %}
+                <div class="modal-kategorie-kompakt-row" data-suche="{{ kategorie.name|lower }} {{ kategorie.beschreibung|default:''|lower }} {{ kategorie.typische_zuordnung|default:''|lower }}">
+                    <div class="modal-kategorie-name">
+                        <strong>{{ kategorie.name }}</strong>
+                    </div>
+
+                    <div class="modal-kategorie-lizenzen">
+                        {{ kategorie.anzahl_lizenzen }} Lizenz(en)
+                    </div>
+
+                    <div>
+                        <span class="status-chip status-aktiv">Aktiv</span>
+                    </div>
+
+                    <div class="aktionen modal-aktionen-rechts">
+                        <a class="aktion-bearbeiten" href="{% url 'lizenzkategorie_bearbeiten' kategorie.id %}?modal=1">
+                            Bearbeiten
+                        </a>
+
+                        <form method="post" action="{% url 'lizenzkategorie_deaktivieren' kategorie.id %}?modal=1">
+                            {% csrf_token %}
+                            <button type="submit" class="aktion-archivieren">
+                                Archivieren
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% empty %}
+                {% if not archivierte_kategorien %}
+                    <div class="leer-hinweis-klein">Keine Kategorien vorhanden.</div>
+                {% endif %}
+            {% endfor %}
+
+            {% if archivierte_kategorien %}
+                <details class="modal-archiv-bereich" id="archivierte-kategorien-details">
+                    <summary class="modal-archiv-header">
+                        <div>
+                            <h3>Archivierte Kategorien</h3>
+                            <p>Archivierte Kategorien sind ausgeblendet, bleiben aber historisch erhalten.</p>
+                        </div>
+
+                        <span>{{ archivierte_kategorien|length }} archiviert</span>
+                    </summary>
+
+                    <div class="modal-archiv-liste">
+                        {% for kategorie in archivierte_kategorien %}
+                            <div class="modal-kategorie-kompakt-row archiviert" data-suche="{{ kategorie.name|lower }} {{ kategorie.beschreibung|default:''|lower }} {{ kategorie.typische_zuordnung|default:''|lower }}">
+                                <div class="modal-kategorie-name">
+                                    <strong>{{ kategorie.name }}</strong>
+                                </div>
+                                <div class="modal-kategorie-lizenzen">
+                                    {{ kategorie.anzahl_lizenzen }} Lizenz(en)
+                                </div>
+
+                                <div>
+                                    <span class="status-chip status-archiviert">Archiviert</span>
+                                </div>
+
+                                <div class="aktionen modal-aktionen-rechts">
+                                    <a class="aktion-bearbeiten" href="{% url 'lizenzkategorie_bearbeiten' kategorie.id %}?modal=1">
+                                        Bearbeiten
+                                    </a>
+
+                                    <form method="post" action="{% url 'lizenzkategorie_reaktivieren' kategorie.id %}?modal=1">
+                                        {% csrf_token %}
+                                        <button type="submit" class="aktion-reaktivieren">
+                                            Reaktivieren
+                                        </button>
+                                    </form>
+
+                                    {% if kategorie.anzahl_lizenzen == 0 %}
+                                        <form
+                                            method="post"
+                                            action="{% url 'lizenzkategorie_loeschen' kategorie.id %}?modal=1"
+                                            onsubmit="return confirm('Diese Kategorie endgültig löschen?');"
+                                        >
+                                            {% csrf_token %}
+                                            <button type="submit" class="aktion-loeschen">
+                                                Löschen
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <span class="loeschen-hinweis">
+                                            Löschen gesperrt
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </details>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="kategorien-tabs">
+            <button type="button" class="kategorien-tab aktiv" id="tab-aktive-kategorien">
+                Aktive Kategorien ({{ aktive_kategorien|length }})
+            </button>
+
+            <button type="button" class="kategorien-tab" id="tab-archivierte-kategorien">
+                Archivierte Kategorien ({{ archivierte_kategorien|length }})
+            </button>
+        </div>
+
+        <div class="kategorien-section" id="aktive-kategorien-container">
+            <div class="kategorien-section-header">
+                <div>
+                    <h2>Aktive Kategorien</h2>
+                    <p>Diese Kategorien stehen beim Erfassen und Bearbeiten von Lizenzen zur Auswahl.</p>
+                </div>
+
+                <span class="anzahl-hinweis">{{ aktive_kategorien|length }} aktiv</span>
+            </div>
+
+            {% if aktive_kategorien %}
+                <div class="kategorie-listen-header">
+                    <div>Kategorie</div>
+                    <div>Beschreibung</div>
+                    <div>Nutzung</div>
+                    <div>Aktionen</div>
+                </div>
+
+                <div class="kategorie-liste-modern">
+                    {% for kategorie in aktive_kategorien %}
+                        <div class="kategorie-row">
+                            <div>
+                                <div class="kategorie-name">
+                                    {{ kategorie.name }}
+                                </div>
+
+                                <span class="archiv-meta">
+                                    {{ kategorie.anzahl_lizenzen }} Lizenz(en)
+                                </span>
+                            </div>
+
+                            <div class="kategorie-text">
+                                {% if kategorie.beschreibung %}
+                                    {{ kategorie.beschreibung }}
+                                {% else %}
+                                    <span class="text-muted">Keine Beschreibung hinterlegt.</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="kategorie-text">
+                                {% if kategorie.typische_zuordnung %}
+                                    {{ kategorie.typische_zuordnung }}
+                                {% else %}
+                                    <span class="text-muted">Noch nicht beschrieben.</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="aktionen">
+                                <button
+                                    type="button"
+                                    class="aktion-bearbeiten kategorie-bearbeiten-button"
+                                    data-id="{{ kategorie.id }}"
+                                    data-status="aktiv"
+                                >
+                                    Bearbeiten
+                                </button>
+
+                                <form method="post" action="{% url 'lizenzkategorie_deaktivieren' kategorie.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="aktion-archivieren">
+                                        Archivieren
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="leer-hinweis-klein">Keine aktiven Kategorien vorhanden.</div>
+            {% endif %}
+        </div>
+
+        <div class="kategorien-section archiv-container" id="archivierte-kategorien-container">
+            <div class="kategorien-section-header">
+                <div>
+                    <h2>Archivierte Kategorien</h2>
+                    <p>Archivierte Kategorien bleiben historisch erhalten und können bei Bedarf reaktiviert werden.</p>
+                </div>
+            </div>
+
+            {% if archivierte_kategorien %}
+                <div class="kategorie-listen-header">
+                    <div>Name</div>
+                    <div>Beschreibung</div>
+                    <div>Typische Nutzung</div>
+                    <div>Lizenzen</div>
+                    <div>Status</div>
+                    <div>Aktionen</div>
+                </div>
+
+                <div class="kategorie-liste-modern">
+                    {% for kategorie in archivierte_kategorien %}
+                        <div class="kategorie-row archiviert">
+                            <div>
+                                <div class="kategorie-name">{{ kategorie.name }}</div>
+
+                                <span class="archiv-meta">
+                                    Archiviert am:
+                                    {% if kategorie.archiviert_am %}
+                                        {{ kategorie.archiviert_am }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                    <br>
+                                    Grund:
+                                    {% if kategorie.archivierungsgrund %}
+                                        {{ kategorie.archivierungsgrund }}
+                                    {% else %}
+                                        Kein Grund angegeben
+                                    {% endif %}
+                                </span>
+                            </div>
+
+                            <div class="kategorie-text">
+                                {% if kategorie.beschreibung %}
+                                    {{ kategorie.beschreibung }}
+                                {% else %}
+                                    <span class="text-muted">Keine Beschreibung hinterlegt.</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="kategorie-text">
+                                {% if kategorie.typische_zuordnung %}
+                                    {{ kategorie.typische_zuordnung }}
+                                {% else %}
+                                    <span class="text-muted">Noch nicht beschrieben.</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="lizenzen-zelle">
+                                {{ kategorie.anzahl_lizenzen }} Lizenz(en)
+                            </div>
+
+                            <div>
+                                <span class="status-chip status-archiviert">Archiviert</span>
+                            </div>
+
+                            <div class="aktionen">
+                                <button
+                                    type="button"
+                                    class="aktion-bearbeiten kategorie-bearbeiten-button"
+                                    data-id="{{ kategorie.id }}"
+                                    data-status="archiviert"
+                                >
+                                    Bearbeiten
+                                </button>
+
+                                <form method="post" action="{% url 'lizenzkategorie_reaktivieren' kategorie.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="aktion-reaktivieren">
+                                        Reaktivieren
+                                    </button>
+                                </form>
+
+                                {% if kategorie.anzahl_lizenzen == 0 %}
+                                    <form
+                                        method="post"
+                                        action="{% url 'lizenzkategorie_loeschen' kategorie.id %}"
+                                        onsubmit="return confirm('Diese archivierte Kategorie endgültig löschen? Dieser Vorgang kann nicht rückgängig gemacht werden.');"
+                                    >
+                                        {% csrf_token %}
+                                        <button type="submit" class="aktion-loeschen">
+                                            Löschen
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <span class="loeschen-hinweis">
+                                        Löschen gesperrt
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="leer-hinweis-klein">Keine archivierten Kategorien vorhanden.</div>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+{% if not ist_modal %}
+<div class="stammdaten-modal-overlay" id="kategorie-modal-overlay">
+    <div class="stammdaten-modal">
+        <div class="stammdaten-modal-kopf">
+            <strong id="kategorie-modal-titel">Kategorie verwalten</strong>
+
+            <div class="modal-kopf-aktionen">
+                <button
+                    type="button"
+                    class="modal-archivieren-button"
+                    id="kategorie-modal-archivieren-button"
+                >
+                    Archivieren
+                </button>
+
+                <button
+                    type="button"
+                    class="modal-reaktivieren-button"
+                    id="kategorie-modal-reaktivieren-button"
+                >
+                    Reaktivieren
+                </button>
+
+                <button type="button" class="stammdaten-modal-schliessen" id="kategorie-modal-schliessen">×</button>
+            </div>
+        </div>
+
+        <iframe
+            src=""
+            id="kategorie-modal-frame"
+            name="kategorie-modal-frame"
+            title="Kategorie verwalten"
+        ></iframe>
+    </div>
+</div>
+
+<script>
+    const aktiveTab = document.getElementById("tab-aktive-kategorien");
+    const archivierteTab = document.getElementById("tab-archivierte-kategorien");
+    const aktiveContainer = document.getElementById("aktive-kategorien-container");
+    const archivierteContainer = document.getElementById("archivierte-kategorien-container");
+
+    const kategorieModalOverlay = document.getElementById("kategorie-modal-overlay");
+    const kategorieModalFrame = document.getElementById("kategorie-modal-frame");
+    const kategorieModalTitel = document.getElementById("kategorie-modal-titel");
+    const kategorieModalSchliessen = document.getElementById("kategorie-modal-schliessen");
+    const kategorieModalArchivierenButton = document.getElementById("kategorie-modal-archivieren-button");
+    const kategorieModalReaktivierenButton = document.getElementById("kategorie-modal-reaktivieren-button");
+
+    const kategorieHinzufuegenButton = document.getElementById("kategorie-hinzufuegen-button");
+    const kategorieBearbeitenButtons = document.querySelectorAll(".kategorie-bearbeiten-button");
+
+    let aktuelleKategorieId = "";
+    let aktuellerKategorieStatus = "";
+
+    function aktiveKategorienAnzeigen() {
+        aktiveTab.classList.add("aktiv");
+        archivierteTab.classList.remove("aktiv");
+        aktiveContainer.classList.remove("archiv-container");
+        archivierteContainer.classList.add("archiv-container");
+        archivierteContainer.classList.remove("sichtbar");
+    }
+
+    function archivierteKategorienAnzeigen() {
+        archivierteTab.classList.add("aktiv");
+        aktiveTab.classList.remove("aktiv");
+        archivierteContainer.classList.add("sichtbar");
+        archivierteContainer.classList.remove("archiv-container");
+        aktiveContainer.classList.add("archiv-container");
+    }
+
+    if (aktiveTab) {
+        aktiveTab.addEventListener("click", aktiveKategorienAnzeigen);
+    }
+
+    if (archivierteTab) {
+        archivierteTab.addEventListener("click", archivierteKategorienAnzeigen);
+    }
+
+    function kategorieModalOeffnen(url, titel, kategorieId, status) {
+        if (!kategorieModalOverlay || !kategorieModalFrame) {
+            return;
+        }
+
+        aktuelleKategorieId = kategorieId || "";
+        aktuellerKategorieStatus = status || "";
+
+        if (kategorieModalTitel) {
+            kategorieModalTitel.textContent = titel || "Kategorie verwalten";
+        }
+
+        if (kategorieModalArchivierenButton) {
+            if (aktuelleKategorieId && aktuellerKategorieStatus === "aktiv") {
+                kategorieModalArchivierenButton.style.display = "inline-flex";
+            } else {
+                kategorieModalArchivierenButton.style.display = "none";
+            }
+        }
+
+        if (kategorieModalReaktivierenButton) {
+            if (aktuelleKategorieId && aktuellerKategorieStatus === "archiviert") {
+                kategorieModalReaktivierenButton.style.display = "inline-flex";
+            } else {
+                kategorieModalReaktivierenButton.style.display = "none";
+            }
+        }
+
+        kategorieModalFrame.src = url;
+        kategorieModalOverlay.classList.add("aktiv");
+        document.body.style.overflow = "hidden";
+    }
+
+    function kategorieModalSchliessenFunktion(neuLaden) {
+        if (!kategorieModalOverlay || !kategorieModalFrame) {
+            return;
+        }
+
+        kategorieModalOverlay.classList.remove("aktiv");
+
+        setTimeout(function () {
+            kategorieModalFrame.src = "";
+            document.body.style.overflow = "";
+
+            aktuelleKategorieId = "";
+            aktuellerKategorieStatus = "";
+
+            if (neuLaden) {
+                window.location.reload();
+            }
+        }, 160);
+    }
+
+    if (kategorieHinzufuegenButton) {
+        kategorieHinzufuegenButton.addEventListener("click", function () {
+            kategorieModalOeffnen(
+                "{% url 'lizenzkategorie_hinzufuegen' %}?modal=1",
+                "Kategorie hinzufügen",
+                null,
+                null
+            );
+        });
+    }
+
+    kategorieBearbeitenButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+            const kategorieId = button.dataset.id;
+            const status = button.dataset.status || "aktiv";
+
+            if (!kategorieId) {
+                return;
+            }
+
+            kategorieModalOeffnen(
+                "/lizenzkategorien/" + kategorieId + "/bearbeiten/?modal=1",
+                "Kategorie bearbeiten",
+                kategorieId,
+                status
+            );
+        });
+    });
+
+    if (kategorieModalSchliessen) {
+        kategorieModalSchliessen.addEventListener("click", function () {
+            kategorieModalSchliessenFunktion(false);
+        });
+    }
+
+    if (kategorieModalOverlay) {
+        kategorieModalOverlay.addEventListener("click", function (event) {
+            if (event.target === kategorieModalOverlay) {
+                kategorieModalSchliessenFunktion(false);
+            }
+        });
+    }
+
+    document.addEventListener("keydown", function (event) {
+        if (
+            event.key === "Escape" &&
+            kategorieModalOverlay &&
+            kategorieModalOverlay.classList.contains("aktiv")
+        ) {
+            kategorieModalSchliessenFunktion(false);
+        }
+    });
+
+    function csrfTokenAuslesen() {
+        const csrfInput = document.querySelector("input[name='csrfmiddlewaretoken']");
+        return csrfInput ? csrfInput.value : "";
+    }
+
+    function kategorieStatusAendern(aktion) {
+        if (!aktuelleKategorieId) {
+            alert("Keine Kategorie ausgewählt.");
+            return;
+        }
+
+        let frage = "Aktion wirklich ausführen?";
+
+        if (aktion === "deaktivieren") {
+            frage = "Diese Kategorie wirklich archivieren?";
+        }
+
+        if (aktion === "reaktivieren") {
+            frage = "Diese Kategorie wirklich reaktivieren?";
+        }
+
+        if (!confirm(frage)) {
+            return;
+        }
+
+        fetch("/lizenzkategorien/" + aktuelleKategorieId + "/" + aktion + "/?modal=1", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrfTokenAuslesen()
+            },
+            credentials: "same-origin"
+        })
+        .then(function () {
+            window.location.reload();
+        })
+        .catch(function () {
+            window.location.reload();
+        });
+    }
+
+    if (kategorieModalArchivierenButton) {
+        kategorieModalArchivierenButton.addEventListener("click", function () {
+            kategorieStatusAendern("deaktivieren");
+        });
+    }
+
+    if (kategorieModalReaktivierenButton) {
+        kategorieModalReaktivierenButton.addEventListener("click", function () {
+            kategorieStatusAendern("reaktivieren");
+        });
+    }
+
+    window.addEventListener("message", function (event) {
+        if (event.data === "kategorie_gespeichert") {
+            kategorieModalSchliessenFunktion(true);
+        }
+
+        if (event.data === "kategorie_modal_schliessen") {
+            kategorieModalSchliessenFunktion(false);
+        }
+    });
+</script>
+{% else %}
+<script>
+    const kategorieModalSuche = document.getElementById("kategorie-modal-suche");
+
+    if (kategorieModalSuche) {
+        kategorieModalSuche.addEventListener("input", function () {
+            const suchwert = kategorieModalSuche.value.toLowerCase().trim();
+            const zeilen = document.querySelectorAll(".modal-kategorie-kompakt-row");
+
+            zeilen.forEach(function (zeile) {
+                const text = zeile.dataset.suche || "";
+
+                if (text.includes(suchwert)) {
+                    zeile.style.display = "grid";
+                } else {
+                    zeile.style.display = "none";
+                }
+            });
+        });
+    }
+</script>
+{% endif %}
+{% endblock %}

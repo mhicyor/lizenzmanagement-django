@@ -1,0 +1,300 @@
+{% extends template_basis|default:"lizenzen/base.html" %}
+
+{% block title %}Anbieter bearbeiten{% endblock %}
+
+{% block content %}
+<style>
+    .anbieter-modal-page {
+        max-width: 560px;
+        margin: 0 auto;
+        padding: 26px;
+        box-sizing: border-box;
+    }
+
+    .anbieter-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 22px;
+    }
+
+    .anbieter-header h1 {
+        margin: 0 0 10px 0;
+        font-size: 30px;
+        line-height: 1.1;
+    }
+
+    .anbieter-header p {
+        margin: 0;
+        color: #666;
+        font-size: 14px;
+        line-height: 1.45;
+        max-width: 400px;
+    }
+
+    .status-pill {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 7px 11px;
+        border-radius: 999px;
+        background: rgba(58, 127, 49, 0.12);
+        color: var(--dpz-green-dark);
+        font-size: 12px;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .status-pill.inaktiv {
+        background: #eeeeee;
+        color: #555;
+    }
+
+    .anbieter-form-block {
+        padding: 22px;
+        border: 1px solid #eeeeee;
+        border-radius: 20px;
+        background: #fbfbfb;
+    }
+
+    .anbieter-form-grid {
+        display: grid;
+        gap: 18px;
+    }
+
+    .anbieter-feld {
+        display: grid;
+        gap: 8px;
+    }
+
+    .anbieter-feld label {
+        font-weight: 800;
+        color: #222;
+        font-size: 14px;
+    }
+
+    .anbieter-feld input,
+    .anbieter-feld textarea,
+    .anbieter-feld select {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid #d2d2d2;
+        border-radius: 12px;
+        background: white;
+        font-size: 14px;
+        font-family: inherit;
+        transition:
+            border-color 0.18s ease,
+            box-shadow 0.18s ease;
+    }
+
+    .anbieter-feld input,
+    .anbieter-feld select {
+        height: 46px;
+        padding: 0 14px;
+    }
+
+    .anbieter-feld textarea {
+        min-height: 96px;
+        padding: 13px 14px;
+        line-height: 1.45;
+        resize: vertical;
+    }
+
+    .anbieter-feld input:focus,
+    .anbieter-feld textarea:focus,
+    .anbieter-feld select:focus {
+        outline: none;
+        border-color: var(--dpz-green);
+        box-shadow: 0 0 0 3px rgba(58, 127, 49, 0.12);
+    }
+
+    .anbieter-feld small {
+        color: #666;
+        font-size: 12px;
+        line-height: 1.35;
+    }
+
+    .anbieter-aktionen {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 22px;
+        padding-top: 20px;
+        border-top: 1px solid #e5e5e5;
+    }
+
+    .anbieter-aktionen button,
+    .anbieter-aktionen a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 44px;
+        padding: 0 18px;
+        border-radius: 12px;
+        border: none;
+        font-size: 14px;
+        font-weight: 800;
+        text-decoration: none;
+        cursor: pointer;
+        font-family: inherit;
+        box-sizing: border-box;
+    }
+
+    .anbieter-aktionen button {
+        background: var(--dpz-green);
+        color: white;
+    }
+
+    .anbieter-aktionen button:hover {
+        background: var(--dpz-green-dark);
+    }
+
+    .anbieter-aktionen a {
+        background: #555;
+        color: white;
+    }
+
+    .anbieter-aktionen a:hover {
+        background: #333;
+        color: white;
+    }
+
+    .anbieter-fehler {
+        margin-bottom: 18px;
+        padding: 13px 15px;
+        border-radius: 14px;
+        background: #fff2f2;
+        border: 1px solid #ffd1d1;
+        color: #a00000;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .zurueck-link {
+        display: inline-flex;
+        margin-bottom: 18px;
+        color: #555;
+        font-size: 13px;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .zurueck-link:hover {
+        color: var(--dpz-green);
+    }
+
+    @media (max-width: 700px) {
+        .anbieter-modal-page {
+            max-width: 100%;
+            padding: 22px;
+        }
+
+        .anbieter-header {
+            flex-direction: column;
+        }
+
+        .anbieter-aktionen {
+            flex-direction: column;
+        }
+
+        .anbieter-aktionen button,
+        .anbieter-aktionen a {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="anbieter-modal-page">
+    {% if not ist_modal %}
+        <a class="zurueck-link" href="{% url 'anbieter_liste' %}">
+            ← Zurück zur Anbieter-Verwaltung
+        </a>
+    {% endif %}
+
+    {% if fehler %}
+        <div class="anbieter-fehler">{{ fehler }}</div>
+    {% endif %}
+
+    {% if anbieter %}
+        <div class="anbieter-header">
+            <div>
+                <h1>Anbieter bearbeiten</h1>
+                <p>
+                    Passe Name, Beschreibung oder Webseite des Anbieters an.
+                </p>
+            </div>
+
+            {% if anbieter.4 %}
+                <span class="status-pill">Aktiv</span>
+            {% else %}
+                <span class="status-pill inaktiv">Inaktiv</span>
+            {% endif %}
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="anbieter-form-block">
+                <div class="anbieter-form-grid">
+                    <div class="anbieter-feld">
+                        <label for="name">Anbietername *</label>
+                        <input
+                            type="text"
+                            name="name"
+                            id="name"
+                            value="{{ anbieter.1 }}"
+                            required
+                        >
+                    </div>
+
+                    <div class="anbieter-feld">
+                        <label for="beschreibung">Beschreibung</label>
+                        <textarea
+                            name="beschreibung"
+                            id="beschreibung"
+                            placeholder="Kurze Beschreibung des Anbieters"
+                        >{{ anbieter.2 }}</textarea>
+                    </div>
+
+                    <div class="anbieter-feld">
+                        <label for="webseite">Webseite</label>
+                        <input
+                            type="url"
+                            name="webseite"
+                            id="webseite"
+                            value="{{ anbieter.3 }}"
+                            placeholder="https://www.beispiel.de"
+                        >
+                    </div>
+
+                    <div class="anbieter-feld">
+                        <label for="aktiv">Status</label>
+                        <select name="aktiv" id="aktiv">
+                            <option value="1" {% if anbieter.4 %}selected{% endif %}>Aktiv</option>
+                            <option value="0" {% if not anbieter.4 %}selected{% endif %}>Inaktiv</option>
+                        </select>
+                        <small>Inaktive Anbieter bleiben historisch erhalten, werden aber nicht mehr aktiv empfohlen.</small>
+                    </div>
+                </div>
+
+                <div class="anbieter-aktionen">
+                    <button type="submit">Änderungen speichern</button>
+
+                    {% if ist_modal %}
+                        <a href="#" onclick="window.parent.postMessage('anbieter_modal_schliessen', '*'); return false;">
+                            Abbrechen
+                        </a>
+                    {% else %}
+                        <a href="{% url 'anbieter_liste' %}">Abbrechen</a>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    {% else %}
+        <div class="anbieter-fehler">Der Anbieter wurde nicht gefunden.</div>
+    {% endif %}
+</div>
+{% endblock %}

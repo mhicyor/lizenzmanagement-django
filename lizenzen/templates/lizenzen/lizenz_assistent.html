@@ -1,0 +1,813 @@
+{% extends "lizenzen/base.html" %}
+
+{% block title %}Lizenz hinzufügen{% endblock %}
+
+{% block content %}
+<style>
+
+    #speichern-button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
+    .info-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        max-width: 860px;
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: rgba(58, 127, 49, 0.08);
+        border: 1px solid rgba(58, 127, 49, 0.18);
+        color: #2f6728;
+        font-size: 14px;
+        line-height: 1.35;
+        margin-top: 8px;
+    }
+
+    .info-icon {
+        width: 20px;
+        height: 20px;
+        min-width: 20px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--dpz-green);
+        color: white;
+        font-weight: bold;
+        font-size: 13px;
+    }
+
+    .lizenztyp-auswahl {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        margin: 24px 0 30px 0;
+    }
+
+    .lizenztyp-karte {
+        display: block;
+        cursor: pointer;
+    }
+
+    .lizenztyp-karte input {
+        display: none;
+    }
+
+    .lizenztyp-karte span {
+        display: block;
+        border: 1px solid #ddd;
+        border-radius: 14px;
+        padding: 18px 20px;
+        background: white;
+        color: #222;
+        transition:
+            border-color 0.2s ease,
+            background-color 0.2s ease,
+            color 0.2s ease,
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+    .lizenztyp-karte:hover span {
+        border-color: var(--dpz-green);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 28px rgba(58, 127, 49, 0.14);
+    }
+
+    .lizenztyp-karte input:checked + span {
+        background: var(--dpz-green);
+        color: white;
+        border-color: var(--dpz-green);
+        box-shadow: 0 10px 28px rgba(58, 127, 49, 0.16);
+    }
+
+    .lizenztyp-karte strong {
+        display: block;
+        font-size: 16px;
+        margin-bottom: 6px;
+    }
+
+    .lizenztyp-karte small {
+        display: block;
+        color: #555;
+        font-size: 13px;
+        line-height: 1.35;
+    }
+
+    .lizenztyp-karte input:checked + span small {
+        color: white;
+    }
+
+    .formular-section {
+        margin-top: 28px;
+    }
+
+    .formular-section h2 {
+        margin: 0 0 8px 0;
+        font-size: 22px;
+    }
+
+    .formular-section p {
+        margin: 0 0 18px 0;
+        color: #555;
+        font-size: 14px;
+        line-height: 1.4;
+    }
+
+    .formular-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px 18px;
+    }
+
+    .formular-feld {
+        display: grid;
+        gap: 8px;
+    }
+
+    .formular-feld label {
+        font-weight: bold;
+        margin: 0;
+    }
+
+    .formular-feld input,
+    .formular-feld select,
+    .formular-feld textarea {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 12px 13px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        font-size: 14px;
+        background: white;
+    }
+
+    .formular-feld input:focus,
+    .formular-feld select:focus,
+    .formular-feld textarea:focus {
+        outline: none;
+        border-color: var(--dpz-green);
+        box-shadow: 0 0 0 3px rgba(58, 127, 49, 0.12);
+    }
+
+    .hinweisbox {
+        margin-top: 14px;
+        padding: 14px 16px;
+        border-radius: 12px;
+        background: #f1f1f1;
+        color: #555;
+        font-size: 14px;
+        line-height: 1.4;
+    }
+
+    .kategorie-wrapper {
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        transform: translateY(-6px);
+        transition:
+            max-height 0.25s ease,
+            opacity 0.2s ease,
+            transform 0.2s ease;
+    }
+
+    .kategorie-wrapper.aktiv {
+        max-height: 120px;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .multi-hinweis {
+        display: none;
+        margin-top: -10px;
+        margin-bottom: 22px;
+        padding: 14px 16px;
+        border-radius: 12px;
+        background: #fff8e5;
+        border: 1px solid #ead18a;
+        color: #5f4700;
+        font-size: 14px;
+        line-height: 1.4;
+    }
+
+    .multi-hinweis.aktiv {
+        display: block;
+    }
+
+    .hauptzuordnung-box {
+        display: none;
+        margin-top: 14px;
+        margin-bottom: 22px;
+        padding: 16px;
+        border: 1px solid #e2e2e2;
+        border-radius: 14px;
+        background: #fafafa;
+    }
+
+    .hauptzuordnung-box.aktiv {
+        display: block;
+    }
+
+    .hauptzuordnung-box h3 {
+        margin: 0 0 6px 0;
+        font-size: 16px;
+    }
+
+    .hauptzuordnung-box p {
+        margin: 0 0 12px 0;
+        color: #555;
+        font-size: 14px;
+    }
+
+    .hauptzuordnung-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+    }
+
+    .hauptzuordnung-grid label {
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .geraet-miterfassen-box {
+        padding: 18px;
+        border: 1px solid rgba(58, 127, 49, 0.20);
+        border-radius: 16px;
+        background: rgba(58, 127, 49, 0.04);
+    }
+
+    .dynamischer-bereich {
+        display: none;
+    }
+
+    .dynamischer-bereich.aktiv {
+        display: block;
+    }
+
+    .trenner {
+        height: 1px;
+        background: #e3e3e3;
+        margin: 28px 0;
+    }
+
+    @media (max-width: 900px) {
+        .lizenztyp-auswahl,
+        .formular-grid,
+        .hauptzuordnung-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .info-pill {
+            border-radius: 16px;
+            align-items: flex-start;
+        }
+    }
+</style>
+
+<div class="karte seiten-karte">
+    <a class="zurueck-link" href="/lizenzen/">
+        ← Zurück zur Lizenzübersicht
+    </a>
+
+    <h1>Lizenz hinzufügen</h1>
+
+    <div class="info-pill">
+        <span class="info-icon">i</span>
+        <span>
+            Wähle aus, wofür die Lizenz gelten kann. Bei Bedarf sind mehrere Bereiche möglich.
+        </span>
+    </div>
+
+    {% if fehler %}
+    <div class="leer-hinweis">{{ fehler }}</div>
+    {% endif %}
+
+    <form method="post" action="/lizenzen/hinzufuegen/" id="assistent-form">
+        {% csrf_token %}
+
+        <input type="hidden" name="lizenzklasse" id="lizenzklasse-hidden" value="">
+        <input type="hidden" name="formular_quelle" value="assistent">
+        <input type="hidden" name="benutzerlizenz_kategorie" value="">
+        <input type="hidden" name="kategorie_benutzer" value="allgemein">
+        <input type="hidden" name="kategorie_geraet" value="allgemein">
+        <input type="hidden" name="kategorie_server" value="allgemein">
+        <input type="hidden" name="lizenzkategorie" id="lizenzkategorie-hidden" value="allgemein">
+
+        <div class="lizenztyp-auswahl">
+            <label class="lizenztyp-karte">
+                <input type="checkbox" name="zielart_ui" value="benutzer">
+                <span>
+                    <strong>Benutzerlizenz</strong>
+                    <small>Lizenz einem Benutzer zuweisen</small>
+                </span>
+            </label>
+
+            <label class="lizenztyp-karte">
+                <input type="checkbox" name="zielart_ui" value="geraet">
+                <span>
+                    <strong>Gerätelizenz</strong>
+                    <small>Lizenz einem Gerät zuweisen</small>
+                </span>
+            </label>
+
+            <label class="lizenztyp-karte">
+                <input type="checkbox" name="zielart_ui" value="server">
+                <span>
+                    <strong>Serverlizenz</strong>
+                    <small>Lizenz einem Server zuweisen</small>
+                </span>
+            </label>
+        </div>
+
+        <div id="multi-hinweis" class="multi-hinweis">
+            <strong>Mehrere Lizenzarten ausgewählt.</strong>
+            Diese Lizenz kann für mehrere Bereiche gelten. Bitte wähle aus, wie sie aktuell im System geführt werden soll.
+        </div>
+
+        <div id="hauptzuordnung-box" class="hauptzuordnung-box">
+            <h3>Im System führen als</h3>
+            <p>
+                Wähle aus, wie diese Lizenz aktuell verwaltet werden soll.
+            </p>
+
+            <div class="hauptzuordnung-grid">
+                <label>
+                    <input type="radio" name="primaere_lizenzklasse" value="benutzer">
+                    Benutzerlizenz
+                </label>
+
+                <label>
+                    <input type="radio" name="primaere_lizenzklasse" value="geraet">
+                    Gerätelizenz
+                </label>
+
+                <label>
+                    <input type="radio" name="primaere_lizenzklasse" value="server">
+                    Serverlizenz
+                </label>
+            </div>
+        </div>
+
+        <div class="formular-section">
+            <h2>Lizenzdaten</h2>
+            <p>Erfasse die wichtigsten Daten zur Lizenz, inklusive Menge, Kosten und Laufzeit.</p>
+
+            <div class="formular-grid">
+                <div class="formular-feld">
+                    <label for="name">Name *</label>
+                    <input
+                        type="text"
+                        name="name"
+                        id="name"
+                        placeholder="z. B. Adobe Acrobat Pro, Microsoft Office, DeepL"
+                        required
+                    >
+                </div>
+
+                <div class="formular-feld">
+                    <label for="anbieter">Anbieter *</label>
+                    <input
+                        type="text"
+                        name="anbieter"
+                        id="anbieter"
+                        placeholder="z. B. Adobe, Microsoft, Sophos"
+                        required
+                    >
+                </div>
+
+                <div class="formular-feld">
+                    <label for="anzahl">Anzahl *</label>
+                    <input
+                        type="number"
+                        name="anzahl"
+                        id="anzahl"
+                        min="1"
+                        placeholder="z. B. 25"
+                        required
+                    >
+                </div>
+
+                <div class="formular-feld">
+                    <label for="kosten">Kosten pro Lizenz *</label>
+                    <input
+                        type="text"
+                        name="kosten"
+                        id="kosten"
+                        placeholder="z. B. 19.99"
+                        required
+                    >
+                </div>
+
+                <div class="formular-feld">
+                    <label for="kostenmodell">
+                        Abrechnungsintervall / Kostenmodell *
+                    </label>
+                    <select name="kostenmodell" id="kostenmodell" required>
+                        <option value="fortlaufend" selected>Monatlich</option>
+                        <option value="jaehrlich">Jährlich</option>
+                        <option value="einmalig">Einmalig</option>
+                    </select>
+                </div>
+
+                <div class="formular-feld">
+                    <label for="ablaufdatum">Ablaufdatum</label>
+                    <input type="date" name="ablaufdatum" id="ablaufdatum">
+                </div>
+
+                <div class="formular-feld">
+                    <label for="verlaengerungsdatum">Verlängerungsdatum</label>
+                    <input type="date" name="verlaengerungsdatum" id="verlaengerungsdatum">
+                </div>
+
+                <div id="lizenzkategorie-wrapper" class="kategorie-wrapper">
+                    <div class="formular-feld">
+                        <label for="lizenzkategorie">Lizenzkategorie</label>
+                        <select name="lizenzkategorie_select" id="lizenzkategorie">
+                            <option value="allgemein" selected>-</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="trenner"></div>
+
+        <div id="bereich-benutzer" class="formular-section dynamischer-bereich">
+            <div class="hinweisbox">
+                Für Benutzerlizenzen sind keine zusätzlichen Objektdaten erforderlich.
+                Die Lizenz wird später einem Benutzer über „Lizenz zuweisen“ zugeordnet.
+            </div>
+        </div>
+
+        <div id="bereich-geraet" class="formular-section dynamischer-bereich">
+            <div class="formular-section">
+                <div class="geraet-miterfassen-box">
+                    <h2>Gerät direkt miterfassen</h2>
+                    <p>
+                        Optional kannst du direkt ein neues Gerät erfassen. Die Lizenz wird dadurch noch nicht automatisch zugewiesen.
+                        Wenn du keinen Gerätenamen einträgst, wird nur die Lizenz gespeichert.
+                    </p>
+
+                    <div class="formular-grid">
+                        <div class="formular-feld">
+                            <label for="geraet_name">Gerätename</label>
+                            <input
+                                type="text"
+                                name="geraet_name"
+                                id="geraet_name"
+                                placeholder="z. B. MacBook Test, Labor-PC 01"
+                            >
+                        </div>
+
+                        <div class="formular-feld">
+                            <label for="seriennummer">Seriennummer</label>
+                            <input
+                                type="text"
+                                name="seriennummer"
+                                id="seriennummer"
+                                placeholder="z. B. C02XXXXXXX"
+                            >
+                        </div>
+
+                        <div class="formular-feld">
+                            <label for="inventarnummer">Inventarnummer optional</label>
+                            <input
+                                type="text"
+                                name="inventarnummer"
+                                id="inventarnummer"
+                                placeholder="z. B. INV-2026-001"
+                            >
+                        </div>
+
+                        <div class="formular-feld">
+                            <label for="geraetetyp">Gerätetyp</label>
+                            <input
+                                type="text"
+                                name="geraetetyp"
+                                id="geraetetyp"
+                                placeholder="z. B. Laptop, Desktop-PC, Smartphone"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="hinweisbox">
+                        Das Gerät erscheint nach dem Speichern im Bestand und kann anschließend über „Lizenz zuweisen“ mit dieser oder einer anderen Gerätelizenz verbunden werden.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="bereich-server" class="formular-section dynamischer-bereich">
+            <div class="hinweisbox">
+                Für Serverlizenzen werden Serverdaten separat über „Server hinzufügen“ erfasst.
+                Die Lizenz kann anschließend über „Lizenz zuweisen“ einem Server zugeordnet werden.
+            </div>
+        </div>
+
+        <div class="formular-aktionen">
+            <button type="submit" id="speichern-button" disabled>Lizenz speichern</button>
+            <a class="button-secondary" href="/lizenzen/">Abbrechen</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    const zielartInputs = document.querySelectorAll('input[name="zielart_ui"]');
+    const primaerInputs = document.querySelectorAll('input[name="primaere_lizenzklasse"]');
+
+    const lizenzklasseHidden = document.getElementById("lizenzklasse-hidden");
+    const speichernButton = document.getElementById("speichern-button");
+    const multiHinweis = document.getElementById("multi-hinweis");
+    const hauptzuordnungBox = document.getElementById("hauptzuordnung-box");
+
+    const bereichBenutzer = document.getElementById("bereich-benutzer");
+    const bereichGeraet = document.getElementById("bereich-geraet");
+    const bereichServer = document.getElementById("bereich-server");
+
+    const feldName = document.getElementById("name");
+    const feldAnbieter = document.getElementById("anbieter");
+
+    const assistentForm = document.getElementById("assistent-form");
+
+    const lizenzkategorieSelect = document.getElementById("lizenzkategorie");
+    const lizenzkategorieHidden = document.getElementById("lizenzkategorie-hidden");
+    const lizenzkategorieWrapper = document.getElementById("lizenzkategorie-wrapper");
+    function ausgewaehlteZielarten() {
+        return Array.from(zielartInputs)
+            .filter(function (input) {
+                return input.checked;
+            })
+            .map(function (input) {
+                return input.value;
+            });
+    }
+
+    function ausgewaehltePrimaereLizenzklasse() {
+        const aktiv = document.querySelector('input[name="primaere_lizenzklasse"]:checked');
+        return aktiv ? aktiv.value : "";
+    }
+
+    function setzeAktiv(element, aktiv) {
+        if (!element) {
+            return;
+        }
+
+        if (aktiv) {
+            element.classList.add("aktiv");
+        } else {
+            element.classList.remove("aktiv");
+        }
+    }
+
+    function aktualisierePlatzhalter(zielarten, primaer) {
+        if (!feldName || !feldAnbieter) {
+            return;
+        }
+
+        const hatBenutzer = zielarten.includes("benutzer");
+        const hatGeraet = zielarten.includes("geraet");
+        const hatServer = zielarten.includes("server");
+
+        if (hatBenutzer && hatGeraet && !hatServer) {
+            feldName.placeholder = "z. B. Sophos Endpoint, MS Core CALs, Remote Access";
+            feldAnbieter.placeholder = "z. B. Sophos, Microsoft";
+            return;
+        }
+
+        if (hatBenutzer && hatServer && !hatGeraet) {
+            feldName.placeholder = "z. B. Windows Server CALs, Remote Access, Backup User Access";
+            feldAnbieter.placeholder = "z. B. Microsoft, Veeam";
+            return;
+        }
+
+        if (hatGeraet && hatServer && !hatBenutzer) {
+            feldName.placeholder = "z. B. Backup, Monitoring, Sicherheit";
+            feldAnbieter.placeholder = "z. B. Veeam, Sophos, PRTG";
+            return;
+        }
+
+        if (hatBenutzer && hatGeraet && hatServer) {
+            feldName.placeholder = "z. B. Suite / Paket, Volumenlizenz, Sicherheitspaket";
+            feldAnbieter.placeholder = "z. B. Microsoft, Sophos, Hersteller";
+            return;
+        }
+
+        if (primaer === "benutzer" || hatBenutzer) {
+            feldName.placeholder = "z. B. Adobe Acrobat Pro, Microsoft 365, DeepL, Zoom";
+            feldAnbieter.placeholder = "z. B. Adobe, Microsoft, DeepL, Zoom";
+            return;
+        }
+
+        if (primaer === "geraet" || hatGeraet) {
+            feldName.placeholder = "z. B. Sophos Endpoint, Jamf Pro, Intune, Gerätesoftware";
+            feldAnbieter.placeholder = "z. B. Sophos, Jamf, Microsoft";
+            return;
+        }
+
+        if (primaer === "server" || hatServer) {
+            feldName.placeholder = "z. B. Windows Server 2022, SQL Server, Veeam Backup";
+            feldAnbieter.placeholder = "z. B. Microsoft, Veeam";
+            return;
+        }
+
+        feldName.placeholder = "z. B. Adobe Acrobat Pro, Sophos Endpoint, Windows Server";
+        feldAnbieter.placeholder = "z. B. Adobe, Microsoft, Sophos";
+    }
+
+    function setzeKategorieOptionen(optionen) {
+        if (!lizenzkategorieSelect || !lizenzkategorieHidden) {
+            return;
+        }
+
+        const aktuellerWert = lizenzkategorieSelect.value;
+
+        lizenzkategorieSelect.innerHTML = "";
+
+        optionen.forEach(function (option) {
+            const optionElement = document.createElement("option");
+            optionElement.value = option.value;
+            optionElement.textContent = option.label;
+            lizenzkategorieSelect.appendChild(optionElement);
+        });
+
+        const vorhandenerWertNochDa = optionen.some(function (option) {
+            return option.value === aktuellerWert;
+        });
+
+        if (vorhandenerWertNochDa) {
+            lizenzkategorieSelect.value = aktuellerWert;
+        } else {
+            lizenzkategorieSelect.value = "allgemein";
+        }
+
+        lizenzkategorieHidden.value = lizenzkategorieSelect.value;
+    }
+
+    function aktualisiereKategorie(zielarten) {
+        const hatBenutzer = zielarten.includes("benutzer");
+        const hatGeraet = zielarten.includes("geraet");
+        const hatServer = zielarten.includes("server");
+
+        let optionen = [
+            { value: "allgemein", label: "-" }
+        ];
+
+        if (hatBenutzer && !hatGeraet && !hatServer) {
+            optionen = optionen.concat([
+                { value: "office_produktivitaet", label: "Office / Produktivität" },
+                { value: "kreativsoftware", label: "Kreativsoftware" },
+                { value: "kommunikation", label: "Kommunikation" },
+                { value: "uebersetzung_ki", label: "Übersetzung / KI" },
+                { value: "zugriff_remote", label: "Zugriff / Remote" },
+                { value: "schulung", label: "Schulung" },
+                { value: "sonstiges", label: "Sonstiges" }
+            ]);
+        } else if (hatGeraet && !hatBenutzer && !hatServer) {
+            optionen = optionen.concat([
+                { value: "geraeteverwaltung", label: "Geräteverwaltung" },
+                { value: "sicherheit", label: "Sicherheit" },
+                { value: "client_software", label: "Client-Software" },
+                { value: "inventar_monitoring", label: "Inventar / Monitoring" },
+                { value: "backup", label: "Backup" },
+                { value: "sonstiges", label: "Sonstiges" }
+            ]);
+        } else if (hatServer && !hatBenutzer && !hatGeraet) {
+            optionen = optionen.concat([
+                { value: "server_betriebssystem", label: "Server-Betriebssystem" },
+                { value: "datenbank", label: "Datenbank" },
+                { value: "backup", label: "Backup" },
+                { value: "virtualisierung", label: "Virtualisierung" },
+                { value: "monitoring", label: "Monitoring" },
+                { value: "zugriff_cal", label: "Zugriff / CAL" },
+                { value: "sonstiges", label: "Sonstiges" }
+            ]);
+        } else if (hatBenutzer && hatGeraet && !hatServer) {
+            optionen = optionen.concat([
+                { value: "zugriff_cal", label: "Zugriff / CAL" },
+                { value: "sicherheit", label: "Sicherheit" },
+                { value: "geraeteverwaltung", label: "Geräteverwaltung" },
+                { value: "remote_access", label: "Remote Access" },
+                { value: "client_software", label: "Client-Software" },
+                { value: "sonstiges", label: "Sonstiges" }
+            ]);
+        } else if (hatGeraet && hatServer && !hatBenutzer) {
+            optionen = optionen.concat([
+                { value: "sicherheit", label: "Sicherheit" },
+                { value: "backup", label: "Backup" },
+                { value: "monitoring", label: "Monitoring" },
+                { value: "infrastruktur", label: "Infrastruktur" },
+                { value: "sonstiges", label: "Sonstiges" }
+            ]);
+        } else if (hatBenutzer && hatServer && !hatGeraet) {
+            optionen = optionen.concat([
+                { value: "zugriff_cal", label: "Zugriff / CAL" },
+                { value: "remote_access", label: "Remote Access" },
+                { value: "datenbankzugriff", label: "Datenbankzugriff" },
+                { value: "serverdienst", label: "Serverdienst" },
+                { value: "sonstiges", label: "Sonstiges" }
+            ]);
+        } else if (hatBenutzer && hatGeraet && hatServer) {
+            optionen = optionen.concat([
+                { value: "suite_paket", label: "Suite / Paket" },
+                { value: "volumenlizenz", label: "Volumenlizenz" },
+                { value: "sicherheitspaket", label: "Sicherheitspaket" },
+                { value: "rahmenvertrag", label: "Rahmenvertrag" },
+                { value: "sonstiges", label: "Sonstiges" }
+            ]);
+        }
+
+        setzeKategorieOptionen(optionen);
+    }
+
+    function aktualisiereAssistent() {
+        const zielarten = ausgewaehlteZielarten();
+        let primaer = ausgewaehltePrimaereLizenzklasse();
+
+        if (zielarten.length === 1) {
+            primaer = zielarten[0];
+
+            const radio = document.querySelector(
+                'input[name="primaere_lizenzklasse"][value="' + primaer + '"]'
+            );
+
+            if (radio) {
+                radio.checked = true;
+            }
+        }
+
+        if (zielarten.length > 1) {
+            setzeAktiv(multiHinweis, true);
+            setzeAktiv(hauptzuordnungBox, true);
+        } else {
+            setzeAktiv(multiHinweis, false);
+            setzeAktiv(hauptzuordnungBox, false);
+        }
+
+        if (lizenzklasseHidden) {
+            lizenzklasseHidden.value = primaer;
+        }
+
+        setzeAktiv(
+            bereichBenutzer,
+            zielarten.includes("benutzer")
+        );
+
+        setzeAktiv(
+            bereichGeraet,
+            zielarten.includes("geraet")
+        );
+
+        setzeAktiv(
+            bereichServer,
+            zielarten.includes("server")
+        );
+
+        aktualisierePlatzhalter(zielarten, primaer);
+        aktualisiereKategorie(zielarten);
+
+        setzeAktiv(lizenzkategorieWrapper, zielarten.length > 0);
+
+        if (speichernButton) {
+            speichernButton.disabled = zielarten.length === 0 || primaer === "";
+        }
+    }
+
+    zielartInputs.forEach(function (input) {
+        input.addEventListener("change", aktualisiereAssistent);
+    });
+
+    primaerInputs.forEach(function (input) {
+        input.addEventListener("change", aktualisiereAssistent);
+    });
+
+    if (lizenzkategorieSelect) {
+        lizenzkategorieSelect.addEventListener("change", function () {
+            if (lizenzkategorieHidden) {
+                lizenzkategorieHidden.value = lizenzkategorieSelect.value;
+            }
+        });
+    }
+
+    if (assistentForm) {
+        assistentForm.addEventListener("submit", function (event) {
+            const zielarten = ausgewaehlteZielarten();
+            const primaer = ausgewaehltePrimaereLizenzklasse();
+
+            if (zielarten.length === 0) {
+                event.preventDefault();
+                alert("Bitte wähle zuerst eine Lizenzart aus.");
+                return;
+            }
+
+            if (!lizenzklasseHidden.value && !primaer) {
+                event.preventDefault();
+                alert("Bitte wähle aus, wie die Lizenz im System geführt werden soll.");
+            }
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", aktualisiereAssistent);
+</script>
+{% endblock %}

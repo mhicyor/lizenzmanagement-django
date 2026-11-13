@@ -1,0 +1,130 @@
+{% extends template_basis|default:"lizenzen/base.html" %}
+
+{% block title %}Benutzer hinzufügen{% endblock %}
+
+{% block content %}
+{% include "lizenzen/partials/bestand_formular_styles.html" %}
+
+<div class="karte bestand-form-seite">
+    {% if not ist_modal %}
+        <a class="zurueck-link" href="{% url 'benutzer_liste' %}">
+            ← Zurück zur Benutzerübersicht
+        </a>
+    {% endif %}
+
+    <header class="bestand-form-kopf">
+        <div class="bestand-form-symbol" aria-hidden="true">
+            +B
+        </div>
+
+        <div>
+            <h1>Benutzer hinzufügen</h1>
+
+            <p>
+                Erfasse einen lokalen Benutzer. Synchronisierte Benutzer
+                werden weiterhin über ihre Datenquelle verwaltet.
+            </p>
+        </div>
+    </header>
+
+    {% if fehler %}
+        <div class="bestand-form-fehler" role="alert">
+            {{ fehler }}
+        </div>
+    {% endif %}
+
+    <form method="post" class="bestand-formular">
+        {% csrf_token %}
+
+        <div class="bestand-form-feld voll">
+            <label for="benutzer-name">
+                Vollständiger Name <span>Pflichtfeld</span>
+            </label>
+
+            <input
+                type="text"
+                name="name"
+                id="benutzer-name"
+                value="{{ formular_daten.name }}"
+                placeholder="Vorname Nachname"
+                autocomplete="name"
+                required
+                autofocus
+            >
+        </div>
+
+        <div class="bestand-form-feld">
+            <label for="benutzername">
+                Benutzername <span>Pflichtfeld</span>
+            </label>
+
+            <input
+                type="text"
+                name="benutzername"
+                id="benutzername"
+                value="{{ formular_daten.benutzername }}"
+                placeholder="Zum Beispiel mmuster"
+                autocomplete="username"
+                required
+            >
+        </div>
+
+        <div class="bestand-form-feld">
+            <label for="email">
+                E-Mail-Adresse <span>Pflichtfeld</span>
+            </label>
+
+            <input
+                type="email"
+                name="email"
+                id="email"
+                value="{{ formular_daten.email }}"
+                placeholder="name@unternehmen.de"
+                autocomplete="email"
+                required
+            >
+        </div>
+
+        <div class="bestand-form-feld voll">
+            <label for="abteilung">
+                Abteilung <span>optional</span>
+            </label>
+
+            <input
+                type="text"
+                name="abteilung"
+                id="abteilung"
+                value="{{ formular_daten.abteilung }}"
+                placeholder="Zum Beispiel Informationstechnologie"
+                autocomplete="organization-title"
+            >
+        </div>
+
+        <div class="bestand-form-aktionen">
+            {% if ist_modal %}
+                <button
+                    type="button"
+                    class="bestand-form-abbrechen"
+                    onclick="window.parent.postMessage(
+                        'benutzer_modal_schliessen',
+                        window.location.origin
+                    )"
+                >
+                    Abbrechen
+                </button>
+            {% else %}
+                <a
+                    href="{% url 'benutzer_liste' %}"
+                    class="bestand-form-abbrechen"
+                >
+                    Abbrechen
+                </a>
+            {% endif %}
+
+            <button type="submit">
+                Benutzer speichern
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "lizenzen/base.html" %}
+
+{% block title %}Server hinzufügen{% endblock %}
+
+{% block content %}
+<div class="karte">
+    <a class="zurueck-link" href="/server/">← Zurück zur Serverübersicht</a>
+
+    <h1>Server hinzufügen</h1>
+    <p>
+        Neuen Server erfassen. Server bilden später das Ziel für Serverlizenzen.
+    </p>
+
+    {% if fehler %}
+    <div class="leer-hinweis">{{ fehler }}</div>
+    {% endif %}
+
+    <form method="post" class="formular">
+        {% csrf_token %}
+
+        <label>Name *</label>
+        <input type="text" name="name" placeholder="z. B. DC01, SQL-Server, Fileserver">
+
+        <label>Hostname</label>
+        <input type="text" name="hostname" placeholder="z. B. dc01.dpz.lokal">
+
+        <label>IP-Adresse</label>
+        <input type="text" name="ip_adresse" placeholder="z. B. 192.0.2.2">
+
+        <label>Betriebssystem</label>
+        <input type="text" name="betriebssystem" placeholder="z. B. Windows Server 2022, Ubuntu Server">
+
+        <div class="formular-aktionen">
+            <button type="submit">Server speichern</button>
+            <a href="/server/">Abbrechen</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

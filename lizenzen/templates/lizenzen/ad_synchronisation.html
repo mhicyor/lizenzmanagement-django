@@ -1,0 +1,235 @@
+{% extends "lizenzen/base.html" %}
+
+{% block title %}
+    Active Directory
+{% endblock %}
+
+{% block content %}
+{% include "lizenzen/partials/verbindungsseite_styles.html" %}
+
+<div class="verbindungsseite">
+    <a
+        class="verbindungsseite-zurueck"
+        href="{% url 'synchronisation_uebersicht' %}"
+    >
+        ← Zurück zu den Datenquellen
+    </a>
+
+    <div class="verbindungsseite-kopf">
+        <div class="verbindungsseite-kopf-text">
+            <h1>Active Directory</h1>
+
+            <p>
+                Benutzer, Abteilungen und Kontostatus
+                werden aus dem Unternehmensverzeichnis
+                übernommen und lokal aktualisiert.
+            </p>
+        </div>
+
+        <div class="verbindungsseite-aktionen">
+            <form method="post">
+                {% csrf_token %}
+
+                <input
+                    type="hidden"
+                    name="aktion"
+                    value="verbindung_testen"
+                >
+
+                <button
+                    type="submit"
+                    class="
+                        verbindungsseite-button
+                        verbindungsseite-button-sekundaer
+                    "
+                >
+                    Verbindung prüfen
+                </button>
+            </form>
+
+            <form
+                method="post"
+                onsubmit="return confirm(
+                    'Benutzer jetzt aktualisieren?'
+                );"
+            >
+                {% csrf_token %}
+
+                <input
+                    type="hidden"
+                    name="aktion"
+                    value="benutzer_synchronisieren"
+                >
+
+                <button
+                    type="submit"
+                    class="verbindungsseite-button"
+                >
+                    Jetzt aktualisieren
+                </button>
+            </form>
+        </div>
+    </div>
+
+    {% if verbindung_ergebnis %}
+        <div
+            class="
+                verbindungsseite-status
+                {% if verbindung_ergebnis.erfolgreich %}
+                    erfolgreich
+                {% else %}
+                    fehler
+                {% endif %}
+            "
+        >
+            <strong>
+                {% if verbindung_ergebnis.erfolgreich %}
+                    Verbindung erfolgreich
+                {% else %}
+                    Verbindung nicht möglich
+                {% endif %}
+            </strong>
+
+            <p>
+                {{ verbindung_ergebnis.meldung }}
+            </p>
+        </div>
+    {% else %}
+        <div class="verbindungsseite-status">
+            <strong>
+                Active Directory ist eingerichtet
+            </strong>
+
+            <p>
+                Die gespeicherte Konfiguration kann über
+                „Verbindung prüfen“ getestet werden.
+                Für den Zugriff kann eine Verbindung mit
+                dem Firmennetz erforderlich sein.
+            </p>
+        </div>
+    {% endif %}
+
+    {% if sync_ergebnis %}
+        <section class="verbindungsseite-bereich">
+            <div class="verbindungsseite-bereich-kopf">
+                <h2>
+                    Ergebnis der Aktualisierung
+                </h2>
+
+                <p>
+                    {{ sync_ergebnis.meldung }}
+                </p>
+            </div>
+
+            {% if sync_ergebnis.erfolgreich %}
+                <div class="verbindungsseite-kennzahlen">
+                    <div class="verbindungsseite-kennzahl">
+                        <span>Neu übernommen</span>
+                        <strong>
+                            {{ sync_ergebnis.neu|default:0 }}
+                        </strong>
+                    </div>
+
+                    <div class="verbindungsseite-kennzahl">
+                        <span>Aktualisiert</span>
+                        <strong>
+                            {{ sync_ergebnis.aktualisiert|default:0 }}
+                        </strong>
+                    </div>
+
+                    <div class="verbindungsseite-kennzahl warnung">
+                        <span>Deaktiviert</span>
+                        <strong>
+                            {{ sync_ergebnis.deaktiviert|default:0 }}
+                        </strong>
+                    </div>
+
+                    <div class="verbindungsseite-kennzahl">
+                        <span>Unverändert</span>
+                        <strong>
+                            {{ sync_ergebnis.uebersprungen|default:0 }}
+                        </strong>
+                    </div>
+
+                    <div class="verbindungsseite-kennzahl">
+                        <span>Insgesamt geladen</span>
+                        <strong>
+                            {{ sync_ergebnis.geladen|default:0 }}
+                        </strong>
+                    </div>
+
+                    <div class="verbindungsseite-kennzahl fehler">
+                        <span>Fehler</span>
+                        <strong>
+                            {{ sync_ergebnis.fehler|default:0 }}
+                        </strong>
+                    </div>
+                </div>
+            {% else %}
+                <div class="verbindungsseite-status fehler">
+                    <strong>
+                        Aktualisierung fehlgeschlagen
+                    </strong>
+
+                    <p>
+                        {{ sync_ergebnis.meldung }}
+                    </p>
+                </div>
+            {% endif %}
+        </section>
+    {% endif %}
+
+    <details class="verbindungsseite-details">
+        <summary>
+            Technische Details
+        </summary>
+
+        <div class="verbindungsseite-details-inhalt">
+            <p class="">
+                Hier wird nur angezeigt, ob die für die
+                Verbindung benötigten Einstellungen vorhanden
+                sind. Zugangsdaten und konkrete Werte werden
+                nicht dargestellt.
+            </p>
+
+            <div
+                class="
+                    verbindungsseite-konfiguration
+                    {% if not konfiguration.vollstaendig %}
+                        unvollstaendig
+                    {% endif %}
+                "
+            >
+                {% if konfiguration.vollstaendig %}
+                    Die Einrichtung ist vollständig.
+                {% else %}
+                    Die Einrichtung ist noch unvollständig.
+                {% endif %}
+            </div>
+
+            <div class="verbindungsseite-technische-liste">
+                {% for eintrag in konfiguration.keys %}
+                    <div class="verbindungsseite-technische-zeile">
+                        <code>{{ eintrag.key }}</code>
+
+                        <span
+                            class="
+                                verbindungsseite-technische-status
+                                {% if not eintrag.vorhanden %}
+                                    fehlt
+                                {% endif %}
+                            "
+                        >
+                            {% if eintrag.vorhanden %}
+                                Vorhanden
+                            {% else %}
+                                Fehlt
+                            {% endif %}
+                        </span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </details>
+</div>
+{% endblock %}

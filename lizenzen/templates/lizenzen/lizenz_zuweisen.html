@@ -1,0 +1,2375 @@
+{% extends template_basis|default:"lizenzen/base.html" %}
+{% block title %}Lizenz zuweisen{% endblock %}
+
+{% block content %}
+<style>
+    .zuweisen-karte {
+        width: 100% !important;
+        max-width: 1040px !important;
+        box-sizing: border-box;
+        padding: 28px 30px 30px;
+    }
+
+    .zuweisen-karte.ist-modal {
+        max-width: 940px !important;
+        padding: 18px 24px 26px;
+    }
+
+    .zuweisen-kopf {
+        margin-bottom: 22px;
+    }
+
+    .zuweisen-kopfzeile {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 18px;
+    }
+
+    .zuweisen-titelbereich {
+        min-width: 0;
+    }
+
+    .zuweisen-titelbereich h1 {
+        margin: 0;
+        color: #171717;
+        font-size: 31px;
+        line-height: 1.14;
+        letter-spacing: -0.7px;
+    }
+
+    .zuweisen-titelbereich p {
+        max-width: 720px;
+        margin: 7px 0 0;
+        color: #666666;
+        font-size: 14px;
+        line-height: 1.45;
+    }
+
+    .zurueck-link-modern {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 14px;
+        color: #555555;
+        font-size: 13px;
+        font-weight: 750;
+        text-decoration: none;
+        transition:
+            color 0.18s ease,
+            transform 0.18s ease;
+    }
+
+    .zurueck-link-modern:hover {
+        color: var(--dpz-green-dark);
+        transform: translateX(-2px);
+    }
+
+    .zurueck-pill-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 34px;
+        margin-bottom: 14px;
+        padding: 0 13px;
+        border: 1px solid #dddddd;
+        border-radius: 999px;
+        background: #ffffff;
+        color: #333333;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 800;
+        cursor: pointer;
+        transition:
+            background-color 0.18s ease,
+            border-color 0.18s ease,
+            color 0.18s ease,
+            transform 0.18s ease,
+            box-shadow 0.18s ease;
+    }
+
+    .zurueck-pill-button:hover {
+        border-color: rgba(58, 127, 49, 0.32);
+        background: rgba(58, 127, 49, 0.06);
+        color: var(--dpz-green-dark);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.05);
+    }
+
+    .lizenz-kompaktinfo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 16px;
+        padding: 12px 14px;
+        border: 1px solid #e4e4e4;
+        border-radius: 13px;
+        background: #f8f8f8;
+        color: #333333;
+        font-size: 13px;
+    }
+
+    .lizenz-kompaktinfo-symbol {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        width: 29px;
+        height: 29px;
+        border-radius: 9px;
+        background: rgba(58, 127, 49, 0.10);
+        color: var(--dpz-green-dark);
+        font-size: 14px;
+        font-weight: 900;
+    }
+
+    .lizenz-kompaktinfo-text {
+        display: grid;
+        gap: 2px;
+        min-width: 0;
+    }
+
+    .lizenz-kompaktinfo-text strong {
+        overflow: hidden;
+        color: #222222;
+        font-size: 13px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .lizenz-kompaktinfo-text span {
+        color: #777777;
+        font-size: 12px;
+    }
+
+    .zuweisungsart-tabs {
+        display: inline-flex;
+        gap: 5px;
+        margin-bottom: 22px;
+        padding: 5px;
+        border: 1px solid #e2e2e2;
+        border-radius: 14px;
+        background: #f5f5f5;
+    }
+
+    .zuweisungsart-tab {
+        min-height: 40px;
+        padding: 0 18px;
+        border: 0;
+        border-radius: 10px;
+        background: transparent;
+        color: #555555;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 850;
+        cursor: pointer;
+        transition:
+            background-color 0.18s ease,
+            color 0.18s ease,
+            transform 0.18s ease,
+            box-shadow 0.18s ease;
+    }
+
+    .zuweisungsart-tab:hover {
+        background: #ffffff;
+        color: #222222;
+        transform: translateY(-1px);
+        box-shadow: 0 5px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .zuweisungsart-tab.aktiv {
+        background: var(--dpz-green);
+        color: #ffffff;
+        box-shadow: 0 7px 16px rgba(58, 127, 49, 0.20);
+    }
+
+    .zuweisungsart-tab.aktiv:hover {
+        background: var(--dpz-green-dark);
+        color: #ffffff;
+    }
+
+    .zuweisungsbereich {
+        display: none;
+    }
+
+    .zuweisungsbereich.aktiv {
+        display: block;
+        animation: bereichEinblenden 0.18s ease;
+    }
+
+    @keyframes bereichEinblenden {
+        from {
+            opacity: 0;
+            transform: translateY(3px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .formular-sektion {
+        padding: 20px;
+        border: 1px solid #e8e8e8;
+        border-radius: 17px;
+        background: #ffffff;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.035);
+    }
+
+    .formular-sektion + .formular-sektion {
+        margin-top: 14px;
+    }
+
+    .formular-sektion-kopf {
+        margin-bottom: 16px;
+    }
+
+    .formular-sektion-kopf h2 {
+        margin: 0;
+        color: #202020;
+        font-size: 16px;
+        line-height: 1.25;
+    }
+
+    .formular-sektion-kopf p {
+        margin: 5px 0 0;
+        color: #777777;
+        font-size: 13px;
+        line-height: 1.4;
+    }
+
+    .benutzer-filter-zeile {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 290px;
+        gap: 14px;
+        align-items: end;
+    }
+
+    .formular-feld {
+        min-width: 0;
+    }
+
+    .zuweisen-karte label {
+        display: block;
+        margin: 0 0 7px;
+        color: #262626;
+        font-size: 13px;
+        font-weight: 850;
+    }
+
+    .zuweisen-karte input[type="text"],
+    .zuweisen-karte select {
+        width: 100%;
+        min-height: 46px;
+        box-sizing: border-box;
+        padding: 0 14px;
+        border: 1px solid #d8d8d8;
+        border-radius: 12px;
+        background: #ffffff;
+        color: #222222;
+        font-family: inherit;
+        font-size: 14px;
+        transition:
+            border-color 0.18s ease,
+            box-shadow 0.18s ease,
+            background-color 0.18s ease;
+    }
+
+    .zuweisen-karte input[type="text"]::placeholder {
+        color: #9a9a9a;
+    }
+
+    .zuweisen-karte input[type="text"]:hover,
+    .zuweisen-karte select:hover {
+        border-color: #bdbdbd;
+        background: #fefefe;
+    }
+
+    .zuweisen-karte input[type="text"]:focus,
+    .zuweisen-karte select:focus {
+        outline: none;
+        border-color: var(--dpz-green);
+        box-shadow: 0 0 0 3px rgba(58, 127, 49, 0.11);
+    }
+
+    .zuweisen-karte select {
+        padding-right: 42px;
+        appearance: none;
+        -webkit-appearance: none;
+        background-image:
+            linear-gradient(45deg, transparent 50%, #555555 50%),
+            linear-gradient(135deg, #555555 50%, transparent 50%);
+        background-position:
+            calc(100% - 19px) 20px,
+            calc(100% - 14px) 20px;
+        background-size:
+            5px 5px,
+            5px 5px;
+        background-repeat: no-repeat;
+    }
+
+    .benutzer-suche-wrapper {
+        position: relative;
+    }
+
+    .benutzer-dropdown {
+        position: absolute;
+        top: calc(100% + 7px);
+        left: 0;
+        right: 0;
+        z-index: 60;
+        display: none;
+        max-height: 290px;
+        overflow: auto;
+        padding: 7px;
+        border: 1px solid #e7e7e7;
+        border-radius: 14px;
+        background: #ffffff;
+        box-shadow: 0 18px 42px rgba(0, 0, 0, 0.15);
+    }
+
+    .benutzer-dropdown.aktiv {
+        display: grid;
+        gap: 6px;
+    }
+
+    .benutzer-dropdown-eintrag {
+        display: grid;
+        gap: 3px;
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid transparent;
+        border-radius: 10px;
+        background: #ffffff;
+        text-align: left;
+        font-family: inherit;
+        cursor: pointer;
+        transition:
+            background-color 0.16s ease,
+            border-color 0.16s ease,
+            transform 0.16s ease;
+    }
+
+    .benutzer-dropdown-eintrag:hover {
+        border-color: rgba(58, 127, 49, 0.18);
+        background: rgba(58, 127, 49, 0.07);
+        transform: translateY(-1px);
+    }
+
+    .benutzer-dropdown-eintrag.ausgewaehlt {
+        border-color: rgba(58, 127, 49, 0.32);
+        background: rgba(58, 127, 49, 0.11);
+    }
+
+    .benutzer-dropdown-eintrag strong {
+        color: #1f1f1f;
+        font-size: 13px;
+    }
+
+    .benutzer-dropdown-eintrag span {
+        color: #777777;
+        font-size: 12px;
+        line-height: 1.3;
+    }
+
+    .mehrfachauswahl-box {
+        margin-top: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(58, 127, 49, 0.23);
+        border-radius: 12px;
+        background: rgba(58, 127, 49, 0.07);
+    }
+
+    .mehrfachauswahl-kopf {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        width: 100%;
+        min-height: 44px;
+        padding: 0 13px;
+        border: 0;
+        background: transparent;
+        color: #31572d;
+        text-align: left;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 850;
+        cursor: pointer;
+        transition:
+            background-color 0.18s ease,
+            color 0.18s ease;
+    }
+
+    .mehrfachauswahl-kopf:not(:disabled):hover {
+        background: rgba(58, 127, 49, 0.07);
+        color: var(--dpz-green-dark);
+    }
+
+    .mehrfachauswahl-kopf:disabled {
+        cursor: default;
+        opacity: 0.78;
+    }
+
+    .mehrfachauswahl-zaehler {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 25px;
+        height: 25px;
+        margin-right: 7px;
+        padding: 0 7px;
+        border-radius: 999px;
+        background: var(--dpz-green);
+        color: #ffffff;
+        font-size: 12px;
+        font-weight: 900;
+    }
+
+    .mehrfachauswahl-pfeil {
+        font-size: 17px;
+        line-height: 1;
+        transition: transform 0.18s ease;
+    }
+
+    .mehrfachauswahl-kopf.aktiv .mehrfachauswahl-pfeil {
+        transform: rotate(180deg);
+    }
+
+    .mehrfachauswahl-liste {
+        display: none;
+        padding: 0 9px 9px;
+    }
+
+    .mehrfachauswahl-liste.aktiv {
+        display: grid;
+        gap: 6px;
+    }
+
+    .mehrfachauswahl-eintrag {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 9px 10px;
+        border: 1px solid rgba(58, 127, 49, 0.16);
+        border-radius: 10px;
+        background: #ffffff;
+        transition:
+            border-color 0.18s ease,
+            box-shadow 0.18s ease;
+    }
+
+    .mehrfachauswahl-eintrag:hover {
+        border-color: rgba(58, 127, 49, 0.30);
+        box-shadow: 0 5px 12px rgba(0, 0, 0, 0.04);
+    }
+
+    .mehrfachauswahl-person {
+        min-width: 0;
+    }
+
+    .mehrfachauswahl-person strong {
+        display: block;
+        overflow: hidden;
+        color: #222222;
+        font-size: 13px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .mehrfachauswahl-person span {
+        display: block;
+        margin-top: 2px;
+        overflow: hidden;
+        color: #7a7a7a;
+        font-size: 11px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .mehrfachauswahl-entfernen {
+        flex: 0 0 auto;
+        min-height: 30px;
+        padding: 0 9px;
+        border: 1px solid rgba(161, 38, 38, 0.14);
+        border-radius: 8px;
+        background: rgba(161, 38, 38, 0.06);
+        color: #a12626;
+        font-family: inherit;
+        font-size: 11px;
+        font-weight: 850;
+        cursor: pointer;
+        transition:
+            background-color 0.18s ease,
+            border-color 0.18s ease,
+            transform 0.18s ease;
+    }
+
+    .mehrfachauswahl-entfernen:hover {
+        border-color: rgba(161, 38, 38, 0.25);
+        background: rgba(161, 38, 38, 0.12);
+        transform: translateY(-1px);
+    }
+
+    .lizenzfeld-abstand {
+        margin-top: 16px;
+    }
+
+    .lizenz-auswahl-hinweis {
+        display: flex;
+        align-items: center;
+        min-height: 46px;
+        box-sizing: border-box;
+        padding: 0 14px;
+        border: 1px solid rgba(58, 127, 49, 0.20);
+        border-radius: 12px;
+        background: rgba(58, 127, 49, 0.07);
+        color: #333333;
+        font-size: 13px;
+    }
+
+    .formular-aktionen {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 18px;
+    }
+
+    .button-primary-modern {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 42px;
+        padding: 0 18px;
+        border: 1px solid var(--dpz-green);
+        border-radius: 11px;
+        background: var(--dpz-green);
+        color: #ffffff;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 900;
+        cursor: pointer;
+        transition:
+            background-color 0.18s ease,
+            border-color 0.18s ease,
+            transform 0.18s ease,
+            box-shadow 0.18s ease;
+    }
+
+    .button-primary-modern:hover {
+        border-color: var(--dpz-green-dark);
+        background: var(--dpz-green-dark);
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px rgba(58, 127, 49, 0.19);
+    }
+
+    .button-secondary-modern {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 42px;
+        padding: 0 16px;
+        border: 1px solid #dddddd;
+        border-radius: 11px;
+        background: #f5f5f5;
+        color: #333333;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 850;
+        text-decoration: none;
+        cursor: pointer;
+        transition:
+            background-color 0.18s ease,
+            border-color 0.18s ease,
+            color 0.18s ease,
+            transform 0.18s ease,
+            box-shadow 0.18s ease;
+    }
+
+    .button-secondary-modern:hover {
+        border-color: #cfcfcf;
+        background: #ebebeb;
+        color: #222222;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.05);
+    }
+
+    .datenquellen-hinweis {
+        margin: 16px 0 0;
+        color: #898989;
+        font-size: 12px;
+        line-height: 1.4;
+    }
+
+    .auswahl-fehler {
+        display: none;
+        margin-top: 10px;
+        padding: 9px 11px;
+        border: 1px solid rgba(172, 44, 44, 0.18);
+        border-radius: 10px;
+        background: rgba(172, 44, 44, 0.06);
+        color: #9b2c2c;
+        font-size: 12px;
+        font-weight: 750;
+    }
+
+    .auswahl-fehler.aktiv {
+        display: block;
+    }
+
+    .geraet-modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 3000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 28px;
+        background: rgba(10, 10, 10, 0.48);
+        backdrop-filter: blur(7px);
+        -webkit-backdrop-filter: blur(7px);
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition:
+            opacity 0.2s ease,
+            visibility 0.2s ease;
+    }
+
+    .geraet-modal-overlay.aktiv {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+    }
+
+    .geraet-modal-box {
+        display: flex;
+        flex-direction: column;
+        width: min(760px, 100%);
+        height: min(690px, calc(100vh - 56px));
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.45);
+        border-radius: 24px;
+        background: #ffffff;
+        box-shadow: 0 30px 90px rgba(0, 0, 0, 0.28);
+        transform: translateY(14px) scale(0.985);
+        transition: transform 0.2s ease;
+    }
+
+    .geraet-modal-overlay.aktiv .geraet-modal-box {
+        transform: translateY(0) scale(1);
+    }
+
+    .geraet-modal-kopf {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex: 0 0 auto;
+        min-height: 68px;
+        padding: 0 22px;
+        border-bottom: 1px solid #eeeeee;
+        background: #ffffff;
+    }
+
+    .geraet-modal-kopf strong {
+        color: #111111;
+        font-size: 17px;
+        font-weight: 850;
+    }
+
+    .geraet-modal-schliessen {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        padding: 0;
+        border: 1px solid #dddddd;
+        border-radius: 50%;
+        background: #f6f6f6;
+        color: #222222;
+        font-family: inherit;
+        font-size: 23px;
+        line-height: 1;
+        cursor: pointer;
+        transition:
+            background-color 0.18s ease,
+            border-color 0.18s ease,
+            transform 0.18s ease;
+    }
+
+    .geraet-modal-schliessen:hover {
+        border-color: rgba(58, 127, 49, 0.32);
+        background: rgba(58, 127, 49, 0.09);
+        transform: rotate(3deg);
+    }
+
+    .geraet-modal-frame {
+        width: 100%;
+        flex: 1 1 auto;
+        min-height: 0;
+        border: 0;
+        background: #f7f7f7;
+    }
+
+    body.modal-geoeffnet {
+        overflow: hidden;
+    }
+
+    @media (max-width: 700px) {
+        .geraet-modal-overlay {
+            padding: 12px;
+        }
+
+        .geraet-modal-box {
+            height: calc(100vh - 24px);
+            border-radius: 18px;
+        }
+    }
+
+    @media (max-width: 900px) {
+        .zuweisen-karte,
+        .zuweisen-karte.ist-modal {
+            width: 100% !important;
+            max-width: 100% !important;
+            padding: 22px 20px 24px;
+        }
+
+        .benutzer-filter-zeile {
+            grid-template-columns: 1fr;
+        }
+
+        .zuweisen-kopfzeile {
+            flex-direction: column;
+        }
+    }
+
+    @media (max-width: 620px) {
+        .zuweisen-titelbereich h1 {
+            font-size: 26px;
+        }
+
+        .zuweisungsart-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            width: 100%;
+        }
+
+        .zuweisungsart-tab {
+            padding: 0 12px;
+        }
+
+        .formular-sektion {
+            padding: 16px;
+        }
+
+        .formular-aktionen {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .formular-aktionen button,
+        .formular-aktionen a {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="karte seiten-karte zuweisen-karte {% if ist_modal %}ist-modal{% endif %}">
+    {% if not ist_modal %}
+        {% if vorausgewaehlte_lizenz %}
+            <a
+                class="zurueck-link-modern"
+                href="/lizenzen/{{ vorausgewaehlte_lizenz.0 }}/"
+            >
+                ← Zurück zur Lizenz
+            </a>
+        {% else %}
+            <a
+                class="zurueck-link-modern"
+                href="/lizenzen/"
+            >
+                ← Zurück zur Lizenzübersicht
+            </a>
+        {% endif %}
+    {% endif %}
+
+    {% if ist_modal and vorausgewaehlte_lizenz %}
+        <button
+            type="button"
+            class="zurueck-pill-button"
+            onclick="window.parent.postMessage({
+                typ: 'modal_oeffnen',
+                url: '/lizenzen/{{ vorausgewaehlte_lizenz.0 }}/?modal=1',
+                titel: 'Lizenzdetails'
+            }, '*')"
+        >
+            ← Zurück zur Lizenz
+        </button>
+    {% endif %}
+
+    <div class="zuweisen-kopf">
+        <div class="zuweisen-kopfzeile">
+            <div class="zuweisen-titelbereich">
+                {% if not ist_modal %}
+                    <h1>Lizenz zuweisen</h1>
+
+                    <p>
+                        Weise eine manuell gepflegte Lizenz Benutzern
+                        oder einem Gerät zu.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if vorausgewaehlte_lizenz %}
+            <div class="lizenz-kompaktinfo">
+                <span class="lizenz-kompaktinfo-symbol">
+                    L
+                </span>
+
+                <div class="lizenz-kompaktinfo-text">
+                    <strong>{{ vorausgewaehlte_lizenz.1 }}</strong>
+
+                    <span>
+                        {% if vorausgewaehlte_lizenz.2 %}
+                            {{ vorausgewaehlte_lizenz.2 }}
+                        {% else %}
+                            Manuell gepflegte Lizenz
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="zuweisungsart-tabs">
+        <button
+            type="button"
+            class="zuweisungsart-tab aktiv"
+            data-ziel="benutzer"
+        >
+            Benutzer
+        </button>
+
+        <button
+            type="button"
+            class="zuweisungsart-tab"
+            data-ziel="geraet"
+        >
+            Gerät
+        </button>
+    </div>
+
+    {% if fehler %}
+        <div class="leer-hinweis">
+            {{ fehler }}
+        </div>
+    {% endif %}
+
+    {% if erfolg %}
+        <div class="erfolg-hinweis">
+            {{ erfolg }}
+        </div>
+    {% endif %}
+
+    <div
+        id="bereich-benutzer"
+        class="zuweisungsbereich aktiv"
+    >
+        <form
+            method="post"
+            id="benutzer-zuweisung-formular"
+        >
+            {% csrf_token %}
+
+            <input
+                type="hidden"
+                name="zuweisung_typ"
+                value="benutzer"
+            >
+
+            <div id="benutzer-hidden-container"></div>
+
+            <div class="formular-sektion">
+                <div class="formular-sektion-kopf">
+                    <h2>Benutzer auswählen</h2>
+
+                    <p>
+                        Suche einen oder mehrere Benutzer und füge sie
+                        der Auswahl hinzu.
+                    </p>
+                </div>
+
+                <div class="benutzer-filter-zeile">
+                    <div class="formular-feld">
+                        <label for="benutzer-suche">
+                            Suche
+                        </label>
+
+                        <div class="benutzer-suche-wrapper">
+                            <input
+                                type="text"
+                                id="benutzer-suche"
+                                placeholder="Name, Benutzername oder E-Mail"
+                                autocomplete="off"
+                            >
+
+                            <div
+                                id="benutzer-dropdown"
+                                class="benutzer-dropdown"
+                            >
+                                {% for benutzer in benutzer_liste %}
+                                    <button
+                                        type="button"
+                                        class="benutzer-dropdown-eintrag"
+                                        data-benutzer-id="{{ benutzer.0 }}"
+                                        data-benutzer-name="{{ benutzer.1 }}"
+                                        data-benutzer-info="{% if benutzer.2 %}{{ benutzer.2 }}{% endif %}{% if benutzer.3 %} | {{ benutzer.3 }}{% endif %}{% if benutzer.4 %} | {{ benutzer.4 }}{% endif %}"
+                                        data-abteilung="{{ benutzer.4|default:'' }}"
+                                        data-suchtext="{{ benutzer.1 }} {{ benutzer.2 }} {{ benutzer.3 }} {{ benutzer.4 }} {{ benutzer.2 }} {{ benutzer.1 }}"
+                                        {% if ausgewaehlter_benutzer and benutzer.0 == ausgewaehlter_benutzer.0 %}data-vorausgewaehlt="true"{% endif %}
+                                    >
+                                        <strong>{{ benutzer.1 }}</strong>
+
+                                        <span>
+                                            {% if benutzer.2 %}
+                                                {{ benutzer.2 }}
+                                            {% endif %}
+
+                                            {% if benutzer.3 %}
+                                                | {{ benutzer.3 }}
+                                            {% endif %}
+
+                                            {% if benutzer.4 %}
+                                                | {{ benutzer.4 }}
+                                            {% endif %}
+                                        </span>
+                                    </button>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="formular-feld">
+                        <label for="abteilung-filter">
+                            Abteilung
+                        </label>
+
+                        <select id="abteilung-filter">
+                            <option value="Alle Abteilungen">
+                                Alle Abteilungen
+                            </option>
+
+                            {% for abteilung in abteilungen %}
+                                {% if abteilung != "Alle Abteilungen" %}
+                                    <option value="{{ abteilung }}">
+                                        {{ abteilung }}
+                                    </option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mehrfachauswahl-box">
+                    <button
+                        type="button"
+                        id="mehrfachauswahl-kopf"
+                        class="mehrfachauswahl-kopf"
+                        aria-expanded="false"
+                        disabled
+                    >
+                        <span>
+                            <span
+                                id="mehrfachauswahl-zaehler"
+                                class="mehrfachauswahl-zaehler"
+                            >
+                                0
+                            </span>
+
+                            <span id="mehrfachauswahl-text">
+                                Keine Benutzer ausgewählt
+                            </span>
+                        </span>
+
+                        <span class="mehrfachauswahl-pfeil">
+                            ⌄
+                        </span>
+                    </button>
+
+                    <div
+                        id="mehrfachauswahl-liste"
+                        class="mehrfachauswahl-liste"
+                    ></div>
+                </div>
+
+                <div
+                    id="benutzer-auswahl-fehler"
+                    class="auswahl-fehler"
+                >
+                    Bitte mindestens einen Benutzer auswählen.
+                </div>
+
+                {% if not vorausgewaehlte_lizenz %}
+                    <div class="formular-feld lizenzfeld-abstand">
+                        <label for="benutzer-lizenz-auswahl">
+                            Lizenz
+                        </label>
+
+                        <select
+                            id="benutzer-lizenz-auswahl"
+                            name="lizenz_id"
+                            required
+                        >
+                            <option value="">
+                                Benutzerlizenz auswählen
+                            </option>
+
+                            {% for lizenz in benutzer_lizenzen %}
+                                <option value="{{ lizenz.0 }}">
+                                    {{ lizenz.1 }}
+
+                                    {% if lizenz.2 %}
+                                        | {{ lizenz.2 }}
+                                    {% endif %}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% elif vorausgewaehlte_lizenz.8 == "benutzer" %}
+                    <input
+                        type="hidden"
+                        name="lizenz_id"
+                        value="{{ vorausgewaehlte_lizenz.0 }}"
+                    >
+                {% endif %}
+
+                <div class="formular-aktionen">
+                    <button
+                        type="submit"
+                        class="button-primary-modern"
+                    >
+                        Lizenz zuweisen
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div
+        id="bereich-geraet"
+        class="zuweisungsbereich"
+    >
+        <form
+            method="post"
+            id="geraete-zuweisung-formular"
+        >
+            {% csrf_token %}
+
+            <input
+                type="hidden"
+                name="zuweisung_typ"
+                value="geraet"
+            >
+
+            <div id="geraete-hidden-container"></div>
+
+            <div class="formular-sektion">
+                <div class="formular-sektion-kopf">
+                    <h2>Geräte auswählen</h2>
+
+                    <p>
+                        Suche ein oder mehrere Geräte und füge sie
+                        der Auswahl hinzu.
+                    </p>
+                </div>
+
+                <div class="formular-feld">
+                    <label for="geraete-suche">
+                        Suche
+                    </label>
+
+                    <div class="benutzer-suche-wrapper">
+                        <input
+                            type="text"
+                            id="geraete-suche"
+                            placeholder="Gerätename, Inventarnummer, Seriennummer oder Typ"
+                            autocomplete="off"
+                        >
+
+                        <div
+                            id="geraete-dropdown"
+                            class="benutzer-dropdown"
+                        >
+                            {% for geraet in geraete_liste %}
+                                <button
+                                    type="button"
+                                    class="benutzer-dropdown-eintrag geraete-dropdown-eintrag"
+                                    data-geraet-id="{{ geraet.0 }}"
+                                    data-geraet-name="{{ geraet.1 }}"
+                                    data-geraet-info="{% if geraet.2 %}{{ geraet.2 }}{% endif %}{% if geraet.3 %} | {{ geraet.3 }}{% endif %}{% if geraet.4 %} | {{ geraet.4 }}{% endif %}"
+                                    data-suchtext="{{ geraet.1 }} {{ geraet.2 }} {{ geraet.3 }} {{ geraet.4 }}"
+                                    {% if ausgewaehltes_geraet and geraet.0 == ausgewaehltes_geraet.0 %}data-vorausgewaehlt="true"{% endif %}
+                                >
+                                    <strong>{{ geraet.1 }}</strong>
+
+                                    <span>
+                                        {% if geraet.2 %}
+                                            {{ geraet.2 }}
+                                        {% endif %}
+
+                                        {% if geraet.3 %}
+                                            | {{ geraet.3 }}
+                                        {% endif %}
+
+                                        {% if geraet.4 %}
+                                            | {{ geraet.4 }}
+                                        {% endif %}
+                                    </span>
+                                </button>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mehrfachauswahl-box">
+                    <button
+                        type="button"
+                        id="geraete-mehrfachauswahl-kopf"
+                        class="mehrfachauswahl-kopf"
+                        aria-expanded="false"
+                        disabled
+                    >
+                        <span>
+                            <span
+                                id="geraete-mehrfachauswahl-zaehler"
+                                class="mehrfachauswahl-zaehler"
+                            >
+                                0
+                            </span>
+
+                            <span id="geraete-mehrfachauswahl-text">
+                                Keine Geräte ausgewählt
+                            </span>
+                        </span>
+
+                        <span class="mehrfachauswahl-pfeil">
+                            ⌄
+                        </span>
+                    </button>
+
+                    <div
+                        id="geraete-mehrfachauswahl-liste"
+                        class="mehrfachauswahl-liste"
+                    ></div>
+                </div>
+
+                <div
+                    id="geraete-auswahl-fehler"
+                    class="auswahl-fehler"
+                >
+                    Bitte mindestens ein Gerät auswählen.
+                </div>
+
+                {% if not vorausgewaehlte_lizenz %}
+                    <div class="formular-feld lizenzfeld-abstand">
+                        <label for="geraete-lizenz-auswahl">
+                            Lizenz
+                        </label>
+
+                        <select
+                            id="geraete-lizenz-auswahl"
+                            name="lizenz_id"
+                            required
+                        >
+                            <option value="">
+                                Gerätelizenz auswählen
+                            </option>
+
+                            {% for lizenz in geraete_lizenzen %}
+                                <option value="{{ lizenz.0 }}">
+                                    {{ lizenz.1 }}
+
+                                    {% if lizenz.2 %}
+                                        | {{ lizenz.2 }}
+                                    {% endif %}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% elif vorausgewaehlte_lizenz.8 == "geraet" %}
+                    <input
+                        type="hidden"
+                        name="lizenz_id"
+                        value="{{ vorausgewaehlte_lizenz.0 }}"
+                    >
+                {% endif %}
+
+                <div class="formular-aktionen">
+                    <button
+                        type="submit"
+                        class="button-primary-modern"
+                    >
+                        Lizenz zuweisen
+                    </button>
+
+                    <button
+                        type="button"
+                        class="button-secondary-modern"
+                        id="geraet-modal-oeffnen"
+                    >
+                        Gerät hinzufügen
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <p class="datenquellen-hinweis">
+        API-geführte Lizenzen werden ausschließlich über die jeweilige
+        Datenquelle synchronisiert.
+    </p>
+</div>
+
+<div
+    class="geraet-modal-overlay"
+    id="geraet-modal-overlay"
+    aria-hidden="true"
+>
+    <div
+        class="geraet-modal-box"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="geraet-modal-titel"
+    >
+        <div class="geraet-modal-kopf">
+            <strong id="geraet-modal-titel">
+                Gerät hinzufügen
+            </strong>
+
+            <button
+                type="button"
+                class="geraet-modal-schliessen"
+                id="geraet-modal-schliessen"
+                aria-label="Modal schließen"
+            >
+                ×
+            </button>
+        </div>
+
+        <iframe
+            src=""
+            class="geraet-modal-frame"
+            id="geraet-modal-frame"
+            title="Gerät hinzufügen"
+        ></iframe>
+    </div>
+</div>
+
+<script>
+    const zuweisungsartTabs =
+        document.querySelectorAll(
+            ".zuweisungsart-tab"
+        );
+
+    const zuweisungsbereiche = {
+        benutzer:
+            document.getElementById(
+                "bereich-benutzer"
+            ),
+        geraet:
+            document.getElementById(
+                "bereich-geraet"
+            )
+    };
+
+    function zuweisungsbereichAktivieren(ziel) {
+        if (!zuweisungsbereiche[ziel]) {
+            ziel = "benutzer";
+        }
+
+        zuweisungsartTabs.forEach((tab) => {
+            tab.classList.toggle(
+                "aktiv",
+                tab.dataset.ziel === ziel
+            );
+        });
+
+        Object.entries(
+            zuweisungsbereiche
+        ).forEach(([name, bereich]) => {
+            if (bereich) {
+                bereich.classList.toggle(
+                    "aktiv",
+                    name === ziel
+                );
+            }
+        });
+    }
+
+    zuweisungsartTabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+            zuweisungsbereichAktivieren(
+                tab.dataset.ziel
+            );
+        });
+    });
+
+    const parameter =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    const typAusUrl =
+        parameter.get("typ");
+
+    const vorauswahlTyp =
+        "{% if vorausgewaehlte_lizenz %}{{ vorausgewaehlte_lizenz.8|default:'benutzer'|escapejs }}{% endif %}";
+
+    if (
+        vorauswahlTyp === "geraet"
+        || (
+            !vorauswahlTyp
+            && typAusUrl === "geraet"
+        )
+    ) {
+        zuweisungsbereichAktivieren("geraet");
+    } else {
+        zuweisungsbereichAktivieren("benutzer");
+    }
+
+    const benutzerSuche =
+        document.getElementById(
+            "benutzer-suche"
+        );
+
+    const abteilungFilter =
+        document.getElementById(
+            "abteilung-filter"
+        );
+
+    const benutzerDropdown =
+        document.getElementById(
+            "benutzer-dropdown"
+        );
+
+    const benutzerEintraege =
+        document.querySelectorAll(
+            "#benutzer-dropdown .benutzer-dropdown-eintrag"
+        );
+
+    const hiddenContainer =
+        document.getElementById(
+            "benutzer-hidden-container"
+        );
+
+    const mehrfachauswahlKopf =
+        document.getElementById(
+            "mehrfachauswahl-kopf"
+        );
+
+    const mehrfachauswahlZaehler =
+        document.getElementById(
+            "mehrfachauswahl-zaehler"
+        );
+
+    const mehrfachauswahlText =
+        document.getElementById(
+            "mehrfachauswahl-text"
+        );
+
+    const mehrfachauswahlListe =
+        document.getElementById(
+            "mehrfachauswahl-liste"
+        );
+
+    const benutzerFormular =
+        document.getElementById(
+            "benutzer-zuweisung-formular"
+        );
+
+    const benutzerAuswahlFehler =
+        document.getElementById(
+            "benutzer-auswahl-fehler"
+        );
+
+    const ausgewaehlteBenutzer =
+        new Map();
+
+    function benutzerFiltern() {
+        if (
+            !benutzerSuche
+            || !abteilungFilter
+            || !benutzerDropdown
+        ) {
+            return;
+        }
+
+        const suchtext =
+            benutzerSuche.value
+                .toLowerCase()
+                .trim();
+
+        const abteilung =
+            abteilungFilter.value;
+
+        const suchWoerter =
+            suchtext
+                .split(" ")
+                .filter(
+                    (wort) => wort !== ""
+                );
+
+        let sichtbareTreffer = 0;
+
+        benutzerEintraege.forEach(
+            (eintrag) => {
+                const suchbasis =
+                    (
+                        eintrag.dataset.suchtext
+                        || ""
+                    ).toLowerCase();
+
+                const benutzerAbteilung =
+                    eintrag.dataset.abteilung
+                    || "";
+
+                const passtZurSuche =
+                    suchWoerter.length === 0
+                    || suchWoerter.every(
+                        (wort) =>
+                            suchbasis.includes(
+                                wort
+                            )
+                    );
+
+                const passtZurAbteilung =
+                    abteilung
+                        === "Alle Abteilungen"
+                    || benutzerAbteilung
+                        === abteilung;
+
+                const sichtbar =
+                    passtZurSuche
+                    && passtZurAbteilung;
+
+                eintrag.style.display =
+                    sichtbar
+                        ? "grid"
+                        : "none";
+
+                if (sichtbar) {
+                    sichtbareTreffer++;
+                }
+            }
+        );
+
+        const sollOeffnen =
+            (
+                suchtext.length >= 1
+                || abteilung
+                    !== "Alle Abteilungen"
+            )
+            && sichtbareTreffer > 0;
+
+        benutzerDropdown.classList.toggle(
+            "aktiv",
+            sollOeffnen
+        );
+    }
+
+    function mehrfachauswahlRendern() {
+        if (
+            !hiddenContainer
+            || !mehrfachauswahlKopf
+            || !mehrfachauswahlZaehler
+            || !mehrfachauswahlText
+            || !mehrfachauswahlListe
+        ) {
+            return;
+        }
+
+        hiddenContainer.innerHTML = "";
+        mehrfachauswahlListe.innerHTML = "";
+
+        const anzahl =
+            ausgewaehlteBenutzer.size;
+
+        mehrfachauswahlZaehler.textContent =
+            String(anzahl);
+
+        mehrfachauswahlText.textContent =
+            anzahl === 0
+                ? "Keine Benutzer ausgewählt"
+                : anzahl === 1
+                    ? "1 Benutzer ausgewählt"
+                    : `${anzahl} Benutzer ausgewählt`;
+
+        if (anzahl === 0) {
+            mehrfachauswahlKopf.disabled = true;
+            mehrfachauswahlKopf.classList.remove(
+                "aktiv"
+            );
+
+            mehrfachauswahlKopf.setAttribute(
+                "aria-expanded",
+                "false"
+            );
+
+            mehrfachauswahlListe.classList.remove(
+                "aktiv"
+            );
+        } else {
+            mehrfachauswahlKopf.disabled = false;
+        }
+
+        ausgewaehlteBenutzer.forEach(
+            (benutzer, benutzerId) => {
+                const hiddenInput =
+                    document.createElement(
+                        "input"
+                    );
+
+                hiddenInput.type = "hidden";
+                hiddenInput.name = "benutzer_ids";
+                hiddenInput.value = benutzerId;
+
+                hiddenContainer.appendChild(
+                    hiddenInput
+                );
+
+                const listenEintrag =
+                    document.createElement(
+                        "div"
+                    );
+
+                listenEintrag.className =
+                    "mehrfachauswahl-eintrag";
+
+                const person =
+                    document.createElement(
+                        "div"
+                    );
+
+                person.className =
+                    "mehrfachauswahl-person";
+
+                const name =
+                    document.createElement(
+                        "strong"
+                    );
+
+                name.textContent =
+                    benutzer.name;
+
+                const info =
+                    document.createElement(
+                        "span"
+                    );
+
+                info.textContent =
+                    benutzer.info
+                    || "Keine weiteren Angaben";
+
+                const entfernenButton =
+                    document.createElement(
+                        "button"
+                    );
+
+                entfernenButton.type = "button";
+                entfernenButton.className =
+                    "mehrfachauswahl-entfernen";
+                entfernenButton.textContent =
+                    "Entfernen";
+
+                entfernenButton.addEventListener(
+                    "click",
+                    () => {
+                        ausgewaehlteBenutzer.delete(
+                            benutzerId
+                        );
+
+                        const dropdownEintrag =
+                            document.querySelector(
+                                `.benutzer-dropdown-eintrag[data-benutzer-id="${benutzerId}"]`
+                            );
+
+                        if (dropdownEintrag) {
+                            dropdownEintrag.classList.remove(
+                                "ausgewaehlt"
+                            );
+                        }
+
+                        mehrfachauswahlRendern();
+                    }
+                );
+
+                person.appendChild(name);
+                person.appendChild(info);
+
+                listenEintrag.appendChild(person);
+                listenEintrag.appendChild(
+                    entfernenButton
+                );
+
+                mehrfachauswahlListe.appendChild(
+                    listenEintrag
+                );
+            }
+        );
+    }
+
+    if (benutzerSuche) {
+        benutzerSuche.addEventListener(
+            "input",
+            benutzerFiltern
+        );
+
+        benutzerSuche.addEventListener(
+            "focus",
+            benutzerFiltern
+        );
+    }
+
+    if (abteilungFilter) {
+        abteilungFilter.addEventListener(
+            "change",
+            benutzerFiltern
+        );
+    }
+
+    benutzerEintraege.forEach(
+        (eintrag) => {
+            eintrag.addEventListener(
+                "click",
+                () => {
+                    const benutzerId =
+                        eintrag.dataset.benutzerId;
+
+                    const benutzerName =
+                        eintrag.dataset.benutzerName
+                        || "";
+
+                    const benutzerInfo =
+                        eintrag.dataset.benutzerInfo
+                        || "";
+
+                    if (
+                        ausgewaehlteBenutzer.has(
+                            benutzerId
+                        )
+                    ) {
+                        ausgewaehlteBenutzer.delete(
+                            benutzerId
+                        );
+
+                        eintrag.classList.remove(
+                            "ausgewaehlt"
+                        );
+                    } else {
+                        ausgewaehlteBenutzer.set(
+                            benutzerId,
+                            {
+                                name: benutzerName,
+                                info: benutzerInfo
+                            }
+                        );
+
+                        eintrag.classList.add(
+                            "ausgewaehlt"
+                        );
+                    }
+
+                    if (benutzerAuswahlFehler) {
+                        benutzerAuswahlFehler.classList.remove(
+                            "aktiv"
+                        );
+                    }
+
+                    mehrfachauswahlRendern();
+
+                    if (benutzerSuche) {
+                        benutzerSuche.value = "";
+                    }
+
+                    benutzerFiltern();
+
+                }
+            );
+        }
+    );
+
+    if (mehrfachauswahlKopf) {
+        mehrfachauswahlKopf.addEventListener(
+            "click",
+            () => {
+                if (
+                    mehrfachauswahlKopf.disabled
+                ) {
+                    return;
+                }
+
+                const offen =
+                    mehrfachauswahlListe.classList.toggle(
+                        "aktiv"
+                    );
+
+                mehrfachauswahlKopf.classList.toggle(
+                    "aktiv",
+                    offen
+                );
+
+                mehrfachauswahlKopf.setAttribute(
+                    "aria-expanded",
+                    offen
+                        ? "true"
+                        : "false"
+                );
+            }
+        );
+    }
+
+    document.addEventListener(
+        "click",
+        (event) => {
+            if (
+                benutzerDropdown
+                && !event.target.closest(
+                    ".benutzer-suche-wrapper"
+                )
+            ) {
+                benutzerDropdown.classList.remove(
+                    "aktiv"
+                );
+            }
+        }
+    );
+
+    if (benutzerFormular) {
+        benutzerFormular.addEventListener(
+            "submit",
+            (event) => {
+                if (
+                    ausgewaehlteBenutzer.size === 0
+                ) {
+                    event.preventDefault();
+
+                    if (benutzerAuswahlFehler) {
+                        benutzerAuswahlFehler.classList.add(
+                            "aktiv"
+                        );
+                    }
+                }
+            }
+        );
+    }
+
+    const geraeteSuche =
+        document.getElementById(
+            "geraete-suche"
+        );
+
+    const geraeteDropdown =
+        document.getElementById(
+            "geraete-dropdown"
+        );
+
+    const geraeteEintraege =
+        document.querySelectorAll(
+            ".geraete-dropdown-eintrag"
+        );
+
+    const geraeteHiddenContainer =
+        document.getElementById(
+            "geraete-hidden-container"
+        );
+
+    const geraeteMehrfachauswahlKopf =
+        document.getElementById(
+            "geraete-mehrfachauswahl-kopf"
+        );
+
+    const geraeteMehrfachauswahlZaehler =
+        document.getElementById(
+            "geraete-mehrfachauswahl-zaehler"
+        );
+
+    const geraeteMehrfachauswahlText =
+        document.getElementById(
+            "geraete-mehrfachauswahl-text"
+        );
+
+    const geraeteMehrfachauswahlListe =
+        document.getElementById(
+            "geraete-mehrfachauswahl-liste"
+        );
+
+    const geraeteFormular =
+        document.getElementById(
+            "geraete-zuweisung-formular"
+        );
+
+    const geraeteAuswahlFehler =
+        document.getElementById(
+            "geraete-auswahl-fehler"
+        );
+
+    const ausgewaehlteGeraete =
+        new Map();
+
+    function geraeteFiltern() {
+        if (
+            !geraeteSuche
+            || !geraeteDropdown
+        ) {
+            return;
+        }
+
+        const suchtext =
+            geraeteSuche.value
+                .toLowerCase()
+                .trim();
+
+        const suchWoerter =
+            suchtext
+                .split(" ")
+                .filter(
+                    (wort) => wort !== ""
+                );
+
+        let sichtbareTreffer = 0;
+
+        geraeteEintraege.forEach(
+            (eintrag) => {
+                const suchbasis =
+                    (
+                        eintrag.dataset.suchtext
+                        || ""
+                    ).toLowerCase();
+
+                const sichtbar =
+                    suchWoerter.length === 0
+                    || suchWoerter.every(
+                        (wort) =>
+                            suchbasis.includes(
+                                wort
+                            )
+                    );
+
+                eintrag.style.display =
+                    sichtbar
+                        ? "grid"
+                        : "none";
+
+                if (sichtbar) {
+                    sichtbareTreffer++;
+                }
+            }
+        );
+
+        geraeteDropdown.classList.toggle(
+            "aktiv",
+            sichtbareTreffer > 0
+        );
+    }
+
+    function geraeteMehrfachauswahlRendern() {
+        if (
+            !geraeteHiddenContainer
+            || !geraeteMehrfachauswahlKopf
+            || !geraeteMehrfachauswahlZaehler
+            || !geraeteMehrfachauswahlText
+            || !geraeteMehrfachauswahlListe
+        ) {
+            return;
+        }
+
+        geraeteHiddenContainer.innerHTML = "";
+        geraeteMehrfachauswahlListe.innerHTML = "";
+
+        const anzahl =
+            ausgewaehlteGeraete.size;
+
+        geraeteMehrfachauswahlZaehler.textContent =
+            String(anzahl);
+
+        geraeteMehrfachauswahlText.textContent =
+            anzahl === 0
+                ? "Keine Geräte ausgewählt"
+                : anzahl === 1
+                    ? "1 Gerät ausgewählt"
+                    : `${anzahl} Geräte ausgewählt`;
+
+        if (anzahl === 0) {
+            geraeteMehrfachauswahlKopf.disabled = true;
+
+            geraeteMehrfachauswahlKopf.classList.remove(
+                "aktiv"
+            );
+
+            geraeteMehrfachauswahlKopf.setAttribute(
+                "aria-expanded",
+                "false"
+            );
+
+            geraeteMehrfachauswahlListe.classList.remove(
+                "aktiv"
+            );
+        } else {
+            geraeteMehrfachauswahlKopf.disabled = false;
+        }
+
+        ausgewaehlteGeraete.forEach(
+            (geraet, geraetId) => {
+                const hiddenInput =
+                    document.createElement(
+                        "input"
+                    );
+
+                hiddenInput.type = "hidden";
+                hiddenInput.name = "geraete_ids";
+                hiddenInput.value = geraetId;
+
+                geraeteHiddenContainer.appendChild(
+                    hiddenInput
+                );
+
+                const listenEintrag =
+                    document.createElement(
+                        "div"
+                    );
+
+                listenEintrag.className =
+                    "mehrfachauswahl-eintrag";
+
+                const person =
+                    document.createElement(
+                        "div"
+                    );
+
+                person.className =
+                    "mehrfachauswahl-person";
+
+                const name =
+                    document.createElement(
+                        "strong"
+                    );
+
+                name.textContent =
+                    geraet.name;
+
+                const info =
+                    document.createElement(
+                        "span"
+                    );
+
+                info.textContent =
+                    geraet.info
+                    || "Keine weiteren Angaben";
+
+                const entfernenButton =
+                    document.createElement(
+                        "button"
+                    );
+
+                entfernenButton.type = "button";
+
+                entfernenButton.className =
+                    "mehrfachauswahl-entfernen";
+
+                entfernenButton.textContent =
+                    "Entfernen";
+
+                entfernenButton.addEventListener(
+                    "click",
+                    () => {
+                        ausgewaehlteGeraete.delete(
+                            geraetId
+                        );
+
+                        const dropdownEintrag =
+                            document.querySelector(
+                                `.geraete-dropdown-eintrag[data-geraet-id="${geraetId}"]`
+                            );
+
+                        if (dropdownEintrag) {
+                            dropdownEintrag.classList.remove(
+                                "ausgewaehlt"
+                            );
+                        }
+
+                        geraeteMehrfachauswahlRendern();
+                    }
+                );
+
+                person.appendChild(name);
+                person.appendChild(info);
+
+                listenEintrag.appendChild(person);
+                listenEintrag.appendChild(
+                    entfernenButton
+                );
+
+                geraeteMehrfachauswahlListe.appendChild(
+                    listenEintrag
+                );
+            }
+        );
+    }
+
+    if (geraeteSuche) {
+        geraeteSuche.addEventListener(
+            "input",
+            geraeteFiltern
+        );
+
+        geraeteSuche.addEventListener(
+            "focus",
+            geraeteFiltern
+        );
+    }
+
+    geraeteEintraege.forEach(
+        (eintrag) => {
+            eintrag.addEventListener(
+                "click",
+                () => {
+                    const geraetId =
+                        eintrag.dataset.geraetId;
+
+                    const geraetName =
+                        eintrag.dataset.geraetName
+                        || "";
+
+                    const geraetInfo =
+                        eintrag.dataset.geraetInfo
+                        || "";
+
+                    if (
+                        ausgewaehlteGeraete.has(
+                            geraetId
+                        )
+                    ) {
+                        ausgewaehlteGeraete.delete(
+                            geraetId
+                        );
+
+                        eintrag.classList.remove(
+                            "ausgewaehlt"
+                        );
+                    } else {
+                        ausgewaehlteGeraete.set(
+                            geraetId,
+                            {
+                                name: geraetName,
+                                info: geraetInfo
+                            }
+                        );
+
+                        eintrag.classList.add(
+                            "ausgewaehlt"
+                        );
+                    }
+
+                    if (geraeteAuswahlFehler) {
+                        geraeteAuswahlFehler.classList.remove(
+                            "aktiv"
+                        );
+                    }
+
+                    geraeteMehrfachauswahlRendern();
+
+                    if (geraeteSuche) {
+                        geraeteSuche.value = "";
+                    }
+
+                    geraeteFiltern();
+                }
+            );
+        }
+    );
+
+    if (geraeteMehrfachauswahlKopf) {
+        geraeteMehrfachauswahlKopf.addEventListener(
+            "click",
+            () => {
+                if (
+                    geraeteMehrfachauswahlKopf.disabled
+                ) {
+                    return;
+                }
+
+                const offen =
+                    geraeteMehrfachauswahlListe.classList.toggle(
+                        "aktiv"
+                    );
+
+                geraeteMehrfachauswahlKopf.classList.toggle(
+                    "aktiv",
+                    offen
+                );
+
+                geraeteMehrfachauswahlKopf.setAttribute(
+                    "aria-expanded",
+                    offen
+                        ? "true"
+                        : "false"
+                );
+            }
+        );
+    }
+
+    document.addEventListener(
+        "click",
+        (event) => {
+            if (
+                geraeteDropdown
+                && !event.target.closest(
+                    "#bereich-geraet .benutzer-suche-wrapper"
+                )
+            ) {
+                geraeteDropdown.classList.remove(
+                    "aktiv"
+                );
+            }
+        }
+    );
+
+    if (geraeteFormular) {
+        geraeteFormular.addEventListener(
+            "submit",
+            (event) => {
+                if (
+                    ausgewaehlteGeraete.size === 0
+                ) {
+                    event.preventDefault();
+
+                    if (geraeteAuswahlFehler) {
+                        geraeteAuswahlFehler.classList.add(
+                            "aktiv"
+                        );
+                    }
+                }
+            }
+        );
+    }
+
+    const geraetModalOeffnenButton =
+        document.getElementById(
+            "geraet-modal-oeffnen"
+        );
+
+    const geraetModalOverlay =
+        document.getElementById(
+            "geraet-modal-overlay"
+        );
+
+    const geraetModalSchliessenButton =
+        document.getElementById(
+            "geraet-modal-schliessen"
+        );
+
+    const geraetModalFrame =
+        document.getElementById(
+            "geraet-modal-frame"
+        );
+
+    function geraetModalOeffnen() {
+        if (
+            !geraetModalOverlay
+            || !geraetModalFrame
+        ) {
+            return;
+        }
+
+        geraetModalFrame.src =
+            "/geraete/hinzufuegen/"
+            + "?next=zuweisen&modal=1";
+
+        geraetModalOverlay.classList.add(
+            "aktiv"
+        );
+
+        geraetModalOverlay.setAttribute(
+            "aria-hidden",
+            "false"
+        );
+
+        document.body.classList.add(
+            "modal-geoeffnet"
+        );
+    }
+
+    function geraetModalSchliessen(
+        seiteNeuLaden = false
+    ) {
+        if (
+            !geraetModalOverlay
+            || !geraetModalFrame
+        ) {
+            return;
+        }
+
+        geraetModalOverlay.classList.remove(
+            "aktiv"
+        );
+
+        geraetModalOverlay.setAttribute(
+            "aria-hidden",
+            "true"
+        );
+
+        document.body.classList.remove(
+            "modal-geoeffnet"
+        );
+
+        geraetModalFrame.src = "";
+
+        if (seiteNeuLaden) {
+            const aktuelleUrl =
+                new URL(
+                    window.location.href
+                );
+
+            aktuelleUrl.searchParams.set(
+                "typ",
+                "geraet"
+            );
+
+            window.location.href =
+                aktuelleUrl.toString();
+        }
+    }
+
+    if (geraetModalOeffnenButton) {
+        geraetModalOeffnenButton.addEventListener(
+            "click",
+            geraetModalOeffnen
+        );
+    }
+
+    if (geraetModalSchliessenButton) {
+        geraetModalSchliessenButton.addEventListener(
+            "click",
+            () => {
+                geraetModalSchliessen(false);
+            }
+        );
+    }
+
+    if (geraetModalOverlay) {
+        geraetModalOverlay.addEventListener(
+            "click",
+            (event) => {
+                if (
+                    event.target
+                    === geraetModalOverlay
+                ) {
+                    geraetModalSchliessen(false);
+                }
+            }
+        );
+    }
+
+    document.addEventListener(
+        "keydown",
+        (event) => {
+            if (
+                event.key === "Escape"
+                && geraetModalOverlay
+                && geraetModalOverlay.classList.contains(
+                    "aktiv"
+                )
+            ) {
+                geraetModalSchliessen(false);
+            }
+        }
+    );
+
+    window.addEventListener(
+        "message",
+        (event) => {
+            if (
+                event.origin
+                !== window.location.origin
+            ) {
+                return;
+            }
+
+            if (
+                event.data
+                === "geraet_modal_schliessen"
+            ) {
+                geraetModalSchliessen(false);
+                return;
+            }
+
+            if (
+                event.data
+                === "geraet_gespeichert"
+            ) {
+                geraetModalSchliessen(true);
+            }
+        }
+    );
+
+    const vorausgewaehlterBenutzerEintrag =
+        document.querySelector(
+            "#benutzer-dropdown [data-vorausgewaehlt='true']"
+        );
+
+    if (vorausgewaehlterBenutzerEintrag) {
+        const benutzerId =
+            vorausgewaehlterBenutzerEintrag.dataset.benutzerId;
+
+        ausgewaehlteBenutzer.set(
+            benutzerId,
+            {
+                name:
+                    vorausgewaehlterBenutzerEintrag.dataset.benutzerName
+                    || "",
+                info:
+                    vorausgewaehlterBenutzerEintrag.dataset.benutzerInfo
+                    || ""
+            }
+        );
+
+        vorausgewaehlterBenutzerEintrag.classList.add(
+            "ausgewaehlt"
+        );
+    }
+
+    const vorausgewaehltesGeraetEintrag =
+        document.querySelector(
+            "#geraete-dropdown [data-vorausgewaehlt='true']"
+        );
+
+    if (vorausgewaehltesGeraetEintrag) {
+        const geraetId =
+            vorausgewaehltesGeraetEintrag.dataset.geraetId;
+
+        ausgewaehlteGeraete.set(
+            geraetId,
+            {
+                name:
+                    vorausgewaehltesGeraetEintrag.dataset.geraetName
+                    || "",
+                info:
+                    vorausgewaehltesGeraetEintrag.dataset.geraetInfo
+                    || ""
+            }
+        );
+
+        vorausgewaehltesGeraetEintrag.classList.add(
+            "ausgewaehlt"
+        );
+    }
+
+    geraeteMehrfachauswahlRendern();
+    mehrfachauswahlRendern();
+</script>
+{% endblock %}

@@ -1,0 +1,352 @@
+{% extends "lizenzen/base.html" %}
+{% load formatierung %}
+
+{% block title %}Geräte{% endblock %}
+
+{% block content %}
+{% include "lizenzen/partials/bestand_uebersicht_styles.html" %}
+
+<style>
+    .geraete-seite {
+        --bestand-spalten:
+            minmax(145px, 1.3fr)
+            minmax(95px, 0.82fr)
+            minmax(105px, 0.9fr)
+            minmax(85px, 0.7fr)
+            minmax(58px, 0.48fr)
+            minmax(150px, auto);
+    }
+    .geraete-seite .bestand-filterformular {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+    }
+    .geraete-seite .bestand-eingabe { grid-column: 1 / -1; }
+    .geraete-herkunft { display: block; margin-top: 4px; font-size: 12px; color: #626c62; }
+    @media (max-width: 900px) {
+        .geraete-seite .bestand-filterformular { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 560px) {
+        .geraete-seite .bestand-filterformular { grid-template-columns: minmax(0, 1fr); }
+    }
+</style>
+
+<div class="karte bestand-seite geraete-seite">
+    <header class="bestand-kopf">
+        <div class="bestand-kopf-text">
+            <h1>Geräte</h1>
+
+            <p>
+                Verwalte die Geräte im Bestand und halte
+                Inventarnummern, Seriennummern und Status aktuell.
+            </p>
+        </div>
+
+        <div class="bestand-kopf-aktionen">
+            <a
+                class="bestand-button primaer bestand-modal-oeffnen"
+                href="{% url 'geraet_hinzufuegen' %}"
+                data-modal-url="{% url 'geraet_hinzufuegen' %}?modal=1"
+                data-modal-titel="Gerät hinzufügen"
+                data-modal-groesse="kompakt"
+            >
+                + Gerät hinzufügen
+            </a>
+        </div>
+    </header>
+
+    <section
+        class="bestand-statistik"
+        aria-label="Gerätestatistik"
+    >
+        <div class="bestand-statistik-karte">
+            <strong class="bestand-statistik-wert">
+                {{ geraete_statistik.gesamt }}
+            </strong>
+            <span class="bestand-statistik-label">
+                Geräte insgesamt
+            </span>
+        </div>
+
+        <div class="bestand-statistik-karte">
+            <strong class="bestand-statistik-wert">
+                {{ geraete_statistik.aktiv }}
+            </strong>
+            <span class="bestand-statistik-label">
+                Aktive Geräte
+            </span>
+        </div>
+
+        <div class="bestand-statistik-karte">
+            <strong class="bestand-statistik-wert">
+                {{ geraete_statistik.geraetetypen }}
+            </strong>
+            <span class="bestand-statistik-label">
+                Gerätetypen
+            </span>
+        </div>
+
+        <div class="bestand-statistik-karte">
+            <strong class="bestand-statistik-wert">
+                {{ geraete_statistik.angezeigt }}
+            </strong>
+            <span class="bestand-statistik-label">
+                Treffer der Filterung
+            </span>
+        </div>
+    </section>
+
+    <section
+        class="bestand-werkzeuge"
+        aria-label="Geräte suchen und filtern"
+    >
+        <form
+            method="get"
+            class="bestand-filterformular"
+        >
+            <input
+                class="bestand-eingabe"
+                type="search"
+                name="suche"
+                value="{{ suchtext }}"
+                placeholder="Name, Inventar- oder Seriennummer suchen …"
+                aria-label="Geräte durchsuchen"
+            >
+
+            <select
+                class="bestand-auswahl"
+                name="geraetetyp"
+                aria-label="Nach Gerätetyp filtern"
+            >
+                <option value="Alle Gerätetypen">
+                    Alle Gerätetypen
+                </option>
+
+                {% for geraetetyp in geraetetypen %}
+                    <option
+                        value="{{ geraetetyp }}"
+                        {% if geraetetyp == geraetetyp_filter %}selected{% endif %}
+                    >
+                        {{ geraetetyp }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <select
+                class="bestand-auswahl"
+                name="status"
+                aria-label="Nach Status filtern"
+            >
+                <option value="Alle Status">
+                    Alle Status
+                </option>
+
+                {% for status in statuswerte %}
+                    <option
+                        value="{{ status }}"
+                        {% if status == status_filter %}selected{% endif %}
+                    >
+                        {{ status|title }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <select class="bestand-auswahl" name="herkunft" aria-label="Nach Herkunft filtern">
+                <option value="alle">Alle Herkünfte</option>
+                <option value="manuell" {% if herkunft_filter == 'manuell' %}selected{% endif %}>Manuell hinzugefügt</option>
+                <option value="datenquelle" {% if herkunft_filter == 'datenquelle' %}selected{% endif %}>Über Datenquelle</option>
+            </select>
+            <select class="bestand-auswahl" name="sortierung" aria-label="Geräte sortieren">
+                {% for wert, label in sortierungen.items %}
+                    <option value="{{ wert }}" {% if sortierung == wert %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+
+            <button
+                type="submit"
+                class="bestand-filter-button"
+            >
+                Anwenden
+            </button>
+        </form>
+
+        {% if suchtext or geraetetyp_filter != "Alle Gerätetypen" or status_filter != "Alle Status" or herkunft_filter != 'alle' or sortierung != 'name' %}
+            <a
+                class="bestand-reset"
+                href="{% url 'geraete_liste' %}"
+            >
+                Suche und Filter zurücksetzen
+            </a>
+        {% endif %}
+    </section>
+
+    <div class="bestand-listen-kopf">
+        <div>
+            <h2>Gerätebestand</h2>
+
+            <p>
+                Geräte bearbeiten oder kontrolliert aus dem Bestand entfernen.
+            </p>
+        </div>
+
+        <span class="bestand-anzahl">
+            {{ geraete_seite.start_index }}–{{ geraete_seite.end_index }} von {{ geraete_seite.paginator.count }}
+        </span>
+    </div>
+
+    {% if geraete %}
+        <div
+            class="bestand-listen-spalten"
+            aria-hidden="true"
+        >
+            <span>Gerät</span>
+            <span>Inventarnummer</span>
+            <span>Seriennummer</span>
+            <span>Gerätetyp</span>
+            <span>Status</span>
+            <span>Aktionen</span>
+        </div>
+
+        <div class="bestand-liste">
+            {% for geraet in geraete %}
+                <article class="bestand-zeile">
+                    <div class="bestand-identitaet">
+                        <div
+                            class="bestand-avatar"
+                            aria-hidden="true"
+                        >
+                            {{ geraet.1|slice:':2' }}
+                        </div>
+
+                        <div class="bestand-identitaet-text">
+                            <a
+                                class="bestand-name bestand-modal-oeffnen"
+                                href="{% url 'geraet_bearbeiten' geraet.0 %}"
+                                data-modal-url="{% url 'geraet_bearbeiten' geraet.0 %}?modal=1"
+                                data-modal-titel="{{ geraet.1 }} bearbeiten"
+                                data-modal-groesse="kompakt"
+                            >
+                                {{ geraet.1 }}
+                            </a>
+
+                            <span class="bestand-meta">
+                                Geräte-ID {{ geraet.0 }}
+                            </span>
+                            <span class="geraete-herkunft">
+                                {% if geraet.6 == 'datenquelle' %}Datenquelle{% else %}Manuell{% endif %}
+                            </span>
+                            <span class="geraete-herkunft">
+                                Hinzugefügt: {{ geraet.7|zeitpunkt_lokal|default:'Unbekannt' }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="bestand-zelle" title="{{ geraet.2 }}">
+                        <span class="bestand-zelle-label">
+                            Inventarnummer
+                        </span>
+
+                        {% if geraet.2 %}
+                            {{ geraet.2 }}
+                        {% else %}
+                            <span class="bestand-leerwert">
+                                Nicht hinterlegt
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="bestand-zelle" title="{{ geraet.3 }}">
+                        <span class="bestand-zelle-label">
+                            Seriennummer
+                        </span>
+
+                        {% if geraet.3 %}
+                            {{ geraet.3 }}
+                        {% else %}
+                            <span class="bestand-leerwert">
+                                Nicht hinterlegt
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="bestand-zelle">
+                        <span class="bestand-zelle-label">
+                            Gerätetyp
+                        </span>
+
+                        {% if geraet.4 %}
+                            <span class="bestand-chip typ" title="{{ geraet.4 }}">
+                                {{ geraet.4 }}
+                            </span>
+                        {% else %}
+                            <span class="bestand-leerwert">
+                                Nicht zugeordnet
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="bestand-zelle">
+                        <span class="bestand-zelle-label">
+                            Status
+                        </span>
+
+                        <span class="bestand-chip {% if geraet.5|lower == 'aktiv' %}aktiv{% else %}inaktiv{% endif %}">
+                            {{ geraet.5|default:"Unbekannt"|title }}
+                        </span>
+                    </div>
+
+                    <div class="bestand-zeilen-aktionen">
+                        <a
+                            class="bestand-miniaktion bestand-modal-oeffnen"
+                            href="{% url 'geraet_bearbeiten' geraet.0 %}"
+                            data-modal-url="{% url 'geraet_bearbeiten' geraet.0 %}?modal=1"
+                            data-modal-titel="{{ geraet.1 }} bearbeiten"
+                            data-modal-groesse="kompakt"
+                        >
+                            Bearbeiten
+                        </a>
+
+                        <form
+                            method="post"
+                            action="{% url 'geraet_loeschen' geraet.0 %}"
+                            onsubmit="return confirm('Dieses Gerät wirklich löschen? Bestehende Geräte-Lizenzzuweisungen werden ebenfalls entfernt.');"
+                        >
+                            {% csrf_token %}
+
+                            <button
+                                type="submit"
+                                class="bestand-miniaktion gefahr"
+                            >
+                                Löschen
+                            </button>
+                        </form>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+        {% if geraete_seite.paginator.num_pages > 1 %}
+            <nav class="bestand-pagination" aria-label="Seitennavigation der Geräteliste">
+                {% if geraete_seite.has_previous %}
+                    <a href="?{{ geraete_filter_query }}&seite={{ geraete_seite.previous_page_number }}">← Zurück</a>
+                {% endif %}
+                <span>Seite {{ geraete_seite.number }} von {{ geraete_seite.paginator.num_pages }}</span>
+                {% if geraete_seite.has_next %}
+                    <a href="?{{ geraete_filter_query }}&seite={{ geraete_seite.next_page_number }}">Weiter →</a>
+                {% endif %}
+            </nav>
+        {% endif %}
+    {% else %}
+        <div class="bestand-leer">
+            <div class="bestand-leer-symbol" aria-hidden="true">
+                IT
+            </div>
+
+            <strong>Keine Geräte gefunden</strong>
+
+            <p>
+                Passe die Suche an oder erfasse ein neues Gerät.
+            </p>
+        </div>
+    {% endif %}
+</div>
+
+{% include "lizenzen/partials/bestand_modal.html" %}
+{% endblock %}

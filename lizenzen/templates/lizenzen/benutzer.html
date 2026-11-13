@@ -1,0 +1,904 @@
+{% extends "lizenzen/base.html" %}
+
+{% block title %}Benutzer{% endblock %}
+
+{% block content %}
+{% include "lizenzen/partials/bestand_uebersicht_styles.html" %}
+
+<style>
+    .benutzer-seite {
+        --bestand-spalten:
+            minmax(155px, 1.2fr)
+            minmax(80px, 0.68fr)
+            minmax(140px, 1.08fr)
+            minmax(150px, 1.14fr)
+            minmax(58px, 0.46fr)
+            minmax(64px, 0.48fr);
+    }
+
+    .benutzer-filterformular {
+        grid-template-columns:
+            minmax(280px, 1fr)
+            185px
+            160px
+            170px
+            auto;
+    }
+
+    .benutzer-mehrfachfilter {
+        position: relative;
+        height: 46px;
+        min-width: 0;
+        overflow: visible;
+    }
+
+    .benutzer-mehrfachfilter[open] {
+        z-index: 30;
+    }
+
+    .benutzer-mehrfachfilter > summary {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        height: 46px;
+        padding: 0 38px 0 15px;
+        box-sizing: border-box;
+        border: 1px solid #d9ded9;
+        border-radius: 16px;
+        background: #ffffff;
+        color: #222222;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 700;
+        list-style: none;
+        white-space: nowrap;
+    }
+
+    .benutzer-mehrfachfilter[open] > summary {
+        margin-bottom: 0;
+    }
+
+    .benutzer-mehrfachfilter > summary::after,
+    .benutzer-mehrfachfilter[open] > summary::after {
+        content: none;
+        display: none;
+    }
+
+    .benutzer-mehrfachfilter > summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .benutzer-mehrfachfilter > summary::marker {
+        content: "";
+    }
+
+    .benutzer-mehrfachfilter > summary > span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .benutzer-mehrfachfilter > summary .benutzer-dropdown-pfeil {
+        position: absolute;
+        right: 13px;
+        top: 50%;
+        width: 16px;
+        height: 16px;
+        fill: none;
+        stroke: #667267;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        pointer-events: none;
+        transform: translateY(-50%) rotate(0deg);
+        transition: transform 200ms ease-in-out;
+    }
+
+    .benutzer-mehrfachfilter[open] > summary .benutzer-dropdown-pfeil {
+        transform: translateY(-50%) rotate(180deg);
+    }
+
+    .benutzer-mehrfachfilter > summary:hover,
+    .benutzer-mehrfachfilter[open] > summary {
+        border-color: #b7c6b8;
+        background: #fcfefc;
+    }
+
+    .benutzer-mehrfachfilter > summary:focus-visible {
+        outline: 3px solid rgba(58, 127, 49, 0.18);
+        outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .benutzer-mehrfachfilter > summary .benutzer-dropdown-pfeil {
+            transition: none;
+        }
+    }
+
+    .benutzer-mehrfachfilter-panel {
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        width: max(100%, 260px);
+        max-width: min(300px, calc(100vw - 48px));
+        padding: 12px;
+        box-sizing: border-box;
+        border: 1px solid #dce5dc;
+        border-radius: 14px;
+        background: #ffffff;
+        box-shadow: 0 16px 36px rgba(30, 45, 30, 0.16);
+    }
+
+    .benutzer-status-filter .benutzer-mehrfachfilter-panel {
+        right: 0;
+        left: auto;
+        width: max(100%, 210px);
+    }
+
+    .benutzer-lizenz-mehrfachfilter .benutzer-mehrfachfilter-panel {
+        width: max(100%, 240px);
+        max-width: min(270px, calc(100vw - 48px));
+    }
+
+    .benutzer-mehrfachfilter-optionen {
+        display: grid;
+        gap: 4px;
+        max-height: 230px;
+        overflow-y: auto;
+    }
+
+    .benutzer-mehrfachfilter-optionen label {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 7px 6px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 12px;
+    }
+
+    .benutzer-mehrfachfilter-optionen label:hover {
+        background: #f5f8f5;
+    }
+
+    .benutzer-mehrfachfilter-optionen label[hidden] {
+        display: none;
+    }
+
+    .benutzer-mehrfachfilter-optionen input {
+        flex: 0 0 auto;
+        margin-top: 2px;
+        accent-color: var(--dpz-green);
+    }
+
+    .benutzer-mehrfachfilter-suche {
+        width: 100%;
+        min-height: 36px;
+        margin-bottom: 8px;
+        padding: 0 10px;
+        box-sizing: border-box;
+        border: 1px solid #d9ded9;
+        border-radius: 9px;
+        font: inherit;
+        font-size: 12px;
+    }
+
+    .benutzer-lizenzstatus {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-top: 9px;
+        padding-top: 9px;
+        border-top: 1px solid #e3e7e3;
+        font-size: 12px;
+    }
+
+    .benutzer-lizenzstatus > span {
+        flex: 0 0 100%;
+        color: #536153;
+        font-weight: 700;
+    }
+
+    .benutzer-lizenzstatus label {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        cursor: pointer;
+    }
+
+    .benutzer-lizenzstatus input {
+        margin: 0;
+        accent-color: var(--dpz-green);
+    }
+
+    .benutzer-lizenzfilter-zuruecksetzen {
+        margin-top: 8px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: #536153;
+        cursor: pointer;
+        font: inherit;
+        font-size: 12px;
+        text-decoration: underline;
+    }
+
+    .benutzer-lizenzfilter-zuruecksetzen[hidden] {
+        display: none;
+    }
+
+    .benutzer-listen-aktionen {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+
+    .benutzer-listen-export {
+        min-height: 34px;
+        padding: 0 12px;
+        border-radius: 11px;
+        color: #2f6728;
+        background: #ffffff;
+        border-color: #cbdcc9;
+        box-shadow: none;
+        font-size: 12px;
+    }
+
+    .benutzer-seite .bestand-reset {
+        min-height: 30px;
+        margin: 8px 0 0 2px;
+        padding: 0 11px;
+        border: 1px solid #dce5dc;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.72);
+        color: #647064;
+        font-size: 11px;
+        transition:
+            border-color 0.18s ease,
+            background 0.18s ease,
+            color 0.18s ease,
+            transform 0.18s ease;
+    }
+
+    .benutzer-seite .bestand-reset:hover {
+        border-color: rgba(58, 127, 49, 0.30);
+        background: #ffffff;
+        color: var(--dpz-green-dark);
+        transform: translateY(-1px);
+    }
+
+    .benutzer-seite .bestand-reset:focus-visible {
+        outline: 3px solid rgba(58, 127, 49, 0.14);
+        outline-offset: 2px;
+    }
+
+    @media (max-width: 1450px) {
+        .benutzer-filterformular {
+            grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+        }
+
+        .benutzer-filterformular .bestand-eingabe {
+            grid-column: 1 / -1;
+        }
+    }
+
+    @media (max-width: 850px) {
+        .benutzer-filterformular {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .benutzer-filterformular {
+            grid-template-columns: 1fr;
+        }
+
+        .benutzer-filterformular .bestand-eingabe {
+            grid-column: auto;
+        }
+
+        .benutzer-listen-aktionen {
+            width: 100%;
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .benutzer-listen-export {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="karte bestand-seite benutzer-seite">
+    <header class="bestand-kopf">
+        <div class="bestand-kopf-text">
+            <h1>Benutzer</h1>
+
+            <p>
+                Finde Benutzer schnell, prüfe Abteilung und Status
+                und öffne Lizenzzuweisungen direkt im Benutzerprofil.
+            </p>
+        </div>
+
+        <div class="bestand-kopf-aktionen">
+            <a
+                class="bestand-button bestand-modal-oeffnen"
+                href="{% url 'deaktivierte_benutzer' %}"
+                data-modal-url="{% url 'deaktivierte_benutzer' %}?modal=1"
+                data-modal-titel="Deaktivierte Benutzer"
+                data-modal-bereich="Benutzer"
+                data-modal-groesse="breit"
+            >
+                Deaktivierte ansehen
+            </a>
+
+            <a
+                class="bestand-button primaer bestand-modal-oeffnen"
+                href="{% url 'benutzer_hinzufuegen' %}"
+                data-modal-url="{% url 'benutzer_hinzufuegen' %}?modal=1"
+                data-modal-titel="Benutzer hinzufügen"
+                data-modal-groesse="kompakt"
+            >
+                + Benutzer hinzufügen
+            </a>
+        </div>
+    </header>
+
+    <section
+        class="bestand-statistik"
+        aria-label="Benutzerstatistik"
+    >
+        <div class="bestand-statistik-karte">
+            <strong class="bestand-statistik-wert">
+                {{ benutzer_statistik.aktiv }}
+            </strong>
+            <span class="bestand-statistik-label">
+                Aktive Benutzer
+            </span>
+        </div>
+
+        <div class="bestand-statistik-karte">
+            <strong class="bestand-statistik-wert">
+                {{ benutzer_statistik.abteilungen }}
+            </strong>
+            <span class="bestand-statistik-label">
+                Abteilungen
+            </span>
+        </div>
+
+        <div class="bestand-statistik-karte">
+            <strong class="bestand-statistik-wert">
+                {{ benutzer_statistik.mit_email }}
+            </strong>
+            <span class="bestand-statistik-label">
+                Mit E-Mail-Adresse
+            </span>
+        </div>
+
+        <div class="bestand-statistik-karte">
+            <strong class="bestand-statistik-wert">
+                {{ benutzer_statistik.angezeigt }}
+            </strong>
+            <span class="bestand-statistik-label">
+                Treffer der Filterung
+            </span>
+        </div>
+    </section>
+
+    <section
+        class="bestand-werkzeuge"
+        aria-label="Benutzer suchen und filtern"
+    >
+        <form
+            method="get"
+            class="bestand-filterformular benutzer-filterformular"
+        >
+            <input
+                class="bestand-eingabe"
+                type="search"
+                name="suche"
+                value="{{ suchtext }}"
+                placeholder="Name, Benutzername oder E-Mail suchen …"
+                aria-label="Benutzer durchsuchen"
+            >
+
+            <details class="benutzer-mehrfachfilter" id="benutzer-abteilung-filter">
+                <summary aria-label="Abteilungen auswählen">
+                    <span data-filter-anzahl data-standard="Alle Abteilungen" data-einzahl="1 Abteilung" data-mehrzahl="Abteilungen">
+                        {% if ausgewaehlte_abteilungen %}
+                            {{ ausgewaehlte_abteilungen|length }} Abteilung{% if ausgewaehlte_abteilungen|length != 1 %}en{% endif %}
+                        {% else %}
+                            Alle Abteilungen
+                        {% endif %}
+                    </span>
+                    <svg class="benutzer-dropdown-pfeil" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                        <path d="M3 6l5 5 5-5" />
+                    </svg>
+                </summary>
+                <div class="benutzer-mehrfachfilter-panel">
+                    <input
+                        class="benutzer-mehrfachfilter-suche"
+                        type="search"
+                        placeholder="Abteilung suchen …"
+                        aria-label="Abteilungen durchsuchen"
+                    >
+                    <div class="benutzer-mehrfachfilter-optionen">
+                        {% for abteilung in abteilungen %}
+                            {% if abteilung != "Alle Abteilungen" %}
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        name="abteilung"
+                                        value="{{ abteilung }}"
+                                        {% if abteilung in ausgewaehlte_abteilungen %}checked{% endif %}
+                                    >
+                                    <span>{{ abteilung }}</span>
+                                </label>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </details>
+
+            <details
+                class="benutzer-mehrfachfilter benutzer-lizenz-mehrfachfilter"
+                id="benutzer-lizenz-filter"
+            >
+                <summary aria-label="Lizenzen und Zuweisung filtern">
+                    <span data-filter-anzahl data-standard="Lizenzen" data-einzahl="1 Lizenz" data-mehrzahl="Lizenzen">
+                        {% if ausgewaehlte_lizenz_ids %}
+                            {{ ausgewaehlte_lizenz_ids|length }} Lizenz{% if ausgewaehlte_lizenz_ids|length != 1 %}en{% endif %}{% if lizenzstatus_filter == "ohne" %} · Nein{% endif %}
+                        {% elif lizenzstatus_filter == "mit" %}
+                            Lizenz: Ja
+                        {% elif lizenzstatus_filter == "ohne" %}
+                            Lizenz: Nein
+                        {% else %}
+                            Lizenzen
+                        {% endif %}
+                    </span>
+                    <svg class="benutzer-dropdown-pfeil" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                        <path d="M3 6l5 5 5-5" />
+                    </svg>
+                </summary>
+                <div class="benutzer-mehrfachfilter-panel">
+                    <input
+                        class="benutzer-mehrfachfilter-suche"
+                        type="search"
+                        placeholder="Lizenz suchen …"
+                        aria-label="Lizenzen durchsuchen"
+                    >
+                    <div class="benutzer-mehrfachfilter-optionen">
+                        {% for lizenz in filter_lizenzen %}
+                            <label>
+                                <input
+                                    type="checkbox"
+                                    name="lizenz"
+                                    value="{{ lizenz.id }}"
+                                    {% if lizenz.id in ausgewaehlte_lizenz_ids %}checked{% endif %}
+                                >
+                                <span>{{ lizenz.name }}{% if lizenz.anbieter %} · {{ lizenz.anbieter }}{% endif %}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                    <div
+                        class="benutzer-lizenzstatus"
+                        role="group"
+                        aria-label="Lizenz vorhanden"
+                    >
+                        <span>Lizenz vorhanden?</span>
+                        <label>
+                            <input
+                                type="radio"
+                                name="lizenzstatus"
+                                value="mit"
+                                {% if lizenzstatus_filter == "mit" %}checked{% endif %}
+                            >
+                            Ja
+                        </label>
+                        <label>
+                            <input
+                                type="radio"
+                                name="lizenzstatus"
+                                value="ohne"
+                                {% if lizenzstatus_filter == "ohne" %}checked{% endif %}
+                            >
+                            Nein
+                        </label>
+                    </div>
+                    <button
+                        type="button"
+                        class="benutzer-lizenzfilter-zuruecksetzen"
+                        hidden
+                    >
+                        Auswahl aufheben
+                    </button>
+                </div>
+            </details>
+
+            <details
+                class="benutzer-mehrfachfilter benutzer-status-filter"
+                id="benutzer-status-filter"
+            >
+                <summary aria-label="Nach Benutzerstatus filtern">
+                    <span data-status-anzeige>
+                        {% if benutzerstatus_filter == "deaktiviert" %}
+                            Status: Deaktiviert
+                        {% elif benutzerstatus_filter == "alle" %}
+                            Alle Benutzer
+                        {% else %}
+                            Status: Aktiv
+                        {% endif %}
+                    </span>
+                    <svg class="benutzer-dropdown-pfeil" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                        <path d="M3 6l5 5 5-5" />
+                    </svg>
+                </summary>
+                <div class="benutzer-mehrfachfilter-panel">
+                    <div class="benutzer-mehrfachfilter-optionen">
+                        <label>
+                            <input
+                                type="radio"
+                                name="benutzerstatus"
+                                value="aktiv"
+                                data-anzeige="Status: Aktiv"
+                                {% if benutzerstatus_filter == "aktiv" %}checked{% endif %}
+                            >
+                            <span>Aktive Benutzer</span>
+                        </label>
+                        <label>
+                            <input
+                                type="radio"
+                                name="benutzerstatus"
+                                value="deaktiviert"
+                                data-anzeige="Status: Deaktiviert"
+                                {% if benutzerstatus_filter == "deaktiviert" %}checked{% endif %}
+                            >
+                            <span>Deaktivierte Benutzer</span>
+                        </label>
+                    </div>
+                </div>
+            </details>
+
+            <button
+                type="submit"
+                class="bestand-filter-button"
+            >
+                Anwenden
+            </button>
+        </form>
+
+        {% if suchtext or ausgewaehlte_abteilungen or ausgewaehlte_lizenz_ids or lizenzstatus_filter != "alle" or benutzerstatus_filter != "aktiv" %}
+            <a
+                class="bestand-reset"
+                href="{% url 'benutzer_liste' %}"
+            >
+                Suche und Filter zurücksetzen
+            </a>
+        {% endif %}
+    </section>
+
+    <div class="bestand-listen-kopf">
+        <div>
+            <h2>
+                {% if benutzerstatus_filter == "deaktiviert" %}
+                    Deaktivierte Benutzer
+                {% elif benutzerstatus_filter == "alle" %}
+                    Benutzer
+                {% else %}
+                    Aktive Benutzer
+                {% endif %}
+            </h2>
+
+            <p>
+                Öffne ein Profil, um Details und Lizenzzuweisungen zu verwalten.
+            </p>
+        </div>
+
+        <div class="benutzer-listen-aktionen">
+            <span class="bestand-anzahl">
+                {{ benutzer_statistik.angezeigt }} Treffer
+            </span>
+
+            <a
+                class="bestand-button benutzer-listen-export"
+                href="{% url 'benutzer_export_csv' %}?{{ benutzer_filter_query }}"
+                aria-label="Gefilterte Benutzerliste als CSV exportieren"
+            >
+                CSV exportieren
+            </a>
+
+            <a
+                class="bestand-button benutzer-listen-export"
+                href="{% url 'benutzer_export_pdf' %}?{{ benutzer_filter_query }}"
+                aria-label="Gefilterte Benutzerliste als PDF exportieren"
+            >
+                PDF exportieren
+            </a>
+        </div>
+    </div>
+
+    {% if benutzer %}
+        <div
+            class="bestand-listen-spalten"
+            aria-hidden="true"
+        >
+            <span>Benutzer</span>
+            <span>Benutzername</span>
+            <span>E-Mail</span>
+            <span>Abteilung</span>
+            <span>Status</span>
+            <span>Profil</span>
+        </div>
+
+        <div class="bestand-liste">
+            {% for eintrag in benutzer %}
+                <article class="bestand-zeile">
+                    <div class="bestand-identitaet">
+                        <div
+                            class="bestand-avatar"
+                            aria-hidden="true"
+                        >
+                            {{ eintrag.1|slice:':2' }}
+                        </div>
+
+                        <div class="bestand-identitaet-text">
+                            <a
+                                class="bestand-name bestand-modal-oeffnen"
+                                href="{% url 'benutzer_detail' eintrag.0 %}"
+                                data-modal-url="{% url 'benutzer_detail' eintrag.0 %}?modal=1"
+                                data-modal-titel="{{ eintrag.1 }}"
+                            >
+                                {{ eintrag.1 }}
+                            </a>
+
+                            <span class="bestand-meta">
+                                Benutzer-ID {{ eintrag.0 }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="bestand-zelle" title="{{ eintrag.2 }}">
+                        <span class="bestand-zelle-label">
+                            Benutzername
+                        </span>
+
+                        {% if eintrag.2 %}
+                            {{ eintrag.2 }}
+                        {% else %}
+                            <span class="bestand-leerwert">
+                                Nicht hinterlegt
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="bestand-zelle" title="{{ eintrag.3 }}">
+                        <span class="bestand-zelle-label">
+                            E-Mail
+                        </span>
+
+                        {% if eintrag.3 %}
+                            {{ eintrag.3 }}
+                        {% else %}
+                            <span class="bestand-leerwert">
+                                Nicht hinterlegt
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="bestand-zelle">
+                        <span class="bestand-zelle-label">
+                            Abteilung
+                        </span>
+
+                        {% if eintrag.4 %}
+                            <span class="bestand-chip typ" title="{{ eintrag.4 }}">
+                                {{ eintrag.4 }}
+                            </span>
+                        {% else %}
+                            <span class="bestand-leerwert">
+                                Nicht zugeordnet
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="bestand-zelle">
+                        <span class="bestand-zelle-label">
+                            Status
+                        </span>
+
+                        <span class="bestand-chip {% if eintrag.5|lower == 'aktiv' %}aktiv{% else %}inaktiv{% endif %}">
+                            {{ eintrag.5|default:"Unbekannt"|title }}
+                        </span>
+                    </div>
+
+                    <div class="bestand-zeilen-aktionen">
+                        <a
+                            class="bestand-miniaktion bestand-modal-oeffnen"
+                            href="{% url 'benutzer_detail' eintrag.0 %}"
+                            data-modal-url="{% url 'benutzer_detail' eintrag.0 %}?modal=1"
+                            data-modal-titel="{{ eintrag.1 }}"
+                            aria-label="Profil von {{ eintrag.1 }} öffnen"
+                        >
+                            Öffnen
+                        </a>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+
+        {% if benutzer.paginator.num_pages > 1 %}
+            <nav
+                class="bestand-pagination"
+                aria-label="Seitennavigation der Benutzerliste"
+            >
+                {% if benutzer.has_previous %}
+                    <a href="?{{ benutzer_filter_query }}&seite={{ benutzer.previous_page_number }}">
+                        ← Zurück
+                    </a>
+                {% endif %}
+
+                <span>
+                    Seite {{ benutzer.number }} von {{ benutzer.paginator.num_pages }}
+                </span>
+
+                {% if benutzer.has_next %}
+                    <a href="?{{ benutzer_filter_query }}&seite={{ benutzer.next_page_number }}">
+                        Weiter →
+                    </a>
+                {% endif %}
+            </nav>
+        {% endif %}
+    {% else %}
+        <div class="bestand-leer">
+            <div class="bestand-leer-symbol" aria-hidden="true">
+                B
+            </div>
+
+            <strong>Keine Benutzer gefunden</strong>
+
+            <p>
+                Passe die Suche oder die ausgewählten Filter an.
+            </p>
+        </div>
+    {% endif %}
+</div>
+
+{% include "lizenzen/partials/bestand_modal.html" %}
+
+<script>
+    (function () {
+        const mehrfachfilter = document.querySelectorAll(
+            ".benutzer-mehrfachfilter"
+        );
+        const lizenzFilter = document.getElementById("benutzer-lizenz-filter");
+        const statusFilter = document.getElementById("benutzer-status-filter");
+
+        if (!lizenzFilter) {
+            return;
+        }
+
+        function lizenzstatus() {
+            const auswahl = lizenzFilter.querySelector(
+                'input[name="lizenzstatus"]:checked'
+            );
+            return auswahl ? auswahl.value : "alle";
+        }
+
+        function lizenzstatusSetzen(wert) {
+            const auswahl = lizenzFilter.querySelector(
+                'input[name="lizenzstatus"][value="' + wert + '"]'
+            );
+            if (auswahl) {
+                auswahl.checked = true;
+            }
+        }
+
+        function anzahlAktualisieren(filter) {
+            const anzeige = filter.querySelector("[data-filter-anzahl]");
+            if (!anzeige) {
+                return;
+            }
+
+            const anzahl = filter.querySelectorAll(
+                'input[type="checkbox"]:checked'
+            ).length;
+            let text = anzahl === 0
+                ? anzeige.dataset.standard
+                : anzahl === 1
+                    ? anzeige.dataset.einzahl
+                    : anzahl + " " + anzeige.dataset.mehrzahl;
+
+            if (filter === lizenzFilter) {
+                const status = lizenzstatus();
+                if (anzahl === 0 && status !== "alle") {
+                    text = "Lizenz: " + (status === "mit" ? "Ja" : "Nein");
+                } else if (anzahl > 0 && status === "ohne") {
+                    text += " · Nein";
+                }
+            }
+
+            anzeige.textContent = text;
+        }
+
+        mehrfachfilter.forEach(function (filter) {
+            filter.addEventListener("toggle", function () {
+                if (filter.open) {
+                    mehrfachfilter.forEach(function (andererFilter) {
+                        if (andererFilter !== filter) {
+                            andererFilter.open = false;
+                        }
+                    });
+                }
+            });
+
+            filter.addEventListener("change", function (event) {
+                if (filter === statusFilter) {
+                    if (event.target.name === "benutzerstatus") {
+                        filter.querySelector("[data-status-anzeige]").textContent =
+                            event.target.dataset.anzeige;
+                        filter.open = false;
+                    }
+                    return;
+                }
+
+                if (event.target.type === "checkbox") {
+                    if (
+                        filter === lizenzFilter
+                        && event.target.checked
+                        && lizenzstatus() === "alle"
+                    ) {
+                        lizenzstatusSetzen("mit");
+                    }
+                } else if (
+                    filter === lizenzFilter
+                    && event.target.name === "lizenzstatus"
+                    && event.target.value === "alle"
+                ) {
+                    lizenzFilter.querySelectorAll(
+                        'input[name="lizenz"]:checked'
+                    ).forEach(function (checkbox) {
+                        checkbox.checked = false;
+                    });
+                } else if (event.target.name !== "lizenzstatus") {
+                    return;
+                }
+
+                anzahlAktualisieren(filter);
+            });
+        });
+
+        document.querySelectorAll(
+            ".benutzer-mehrfachfilter-suche"
+        ).forEach(function (suche) {
+            suche.addEventListener("input", function () {
+                const suchtext = suche.value.trim().toLocaleLowerCase("de");
+                suche.closest(".benutzer-mehrfachfilter").querySelectorAll(
+                    ".benutzer-mehrfachfilter-optionen label"
+                ).forEach(function (option) {
+                    option.hidden = !option.textContent
+                        .toLocaleLowerCase("de")
+                        .includes(suchtext);
+                });
+            });
+        });
+
+        document.addEventListener("click", function (event) {
+            mehrfachfilter.forEach(function (filter) {
+                if (filter.open && !filter.contains(event.target)) {
+                    filter.open = false;
+                }
+            });
+        });
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape") {
+                mehrfachfilter.forEach(function (filter) {
+                    filter.open = false;
+                });
+            }
+        });
+
+    })();
+</script>
+{% endblock %}

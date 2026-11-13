@@ -1,0 +1,132 @@
+{% extends template_basis|default:"lizenzen/base.html" %}
+
+{% block title %}Gerät hinzufügen{% endblock %}
+
+{% block content %}
+{% include "lizenzen/partials/bestand_formular_styles.html" %}
+
+<div class="karte bestand-form-seite">
+    {% if not ist_modal %}
+        <a class="zurueck-link" href="{% url 'geraete_liste' %}">
+            ← Zurück zur Geräteübersicht
+        </a>
+    {% endif %}
+
+    <header class="bestand-form-kopf">
+        <div class="bestand-form-symbol" aria-hidden="true">
+            +IT
+        </div>
+
+        <div>
+            <h1>Gerät hinzufügen</h1>
+
+            <p>
+                Erfasse die wichtigsten Gerätedaten. Das Gerät kann
+                anschließend direkt einer passenden Lizenz zugewiesen werden.
+            </p>
+        </div>
+    </header>
+
+    {% if fehler %}
+        <div class="bestand-form-fehler" role="alert">
+            {{ fehler }}
+        </div>
+    {% endif %}
+
+    <form method="post" class="bestand-formular">
+        {% csrf_token %}
+
+        <div class="bestand-form-feld voll">
+            <label for="geraet-name">
+                Gerätename <span>Pflichtfeld</span>
+            </label>
+
+            <input
+                type="text"
+                name="name"
+                id="geraet-name"
+                value="{{ formular_daten.name }}"
+                placeholder="Zum Beispiel MacBook Pro – Kommunikation"
+                autocomplete="off"
+                required
+                autofocus
+            >
+        </div>
+
+        <div class="bestand-form-feld">
+            <label for="inventarnummer">
+                Inventarnummer <span>optional</span>
+            </label>
+
+            <input
+                type="text"
+                name="inventarnummer"
+                id="inventarnummer"
+                value="{{ formular_daten.inventarnummer }}"
+                placeholder="INV-2026-001"
+                autocomplete="off"
+            >
+        </div>
+
+        <div class="bestand-form-feld">
+            <label for="seriennummer">
+                Seriennummer <span>optional</span>
+            </label>
+
+            <input
+                type="text"
+                name="seriennummer"
+                id="seriennummer"
+                value="{{ formular_daten.seriennummer }}"
+                placeholder="Hersteller-Seriennummer"
+                autocomplete="off"
+            >
+        </div>
+
+        <div class="bestand-form-feld voll">
+            <label for="geraetetyp">
+                Gerätetyp <span>optional</span>
+            </label>
+
+            <input
+                type="text"
+                name="geraetetyp"
+                id="geraetetyp"
+                value="{{ formular_daten.geraetetyp }}"
+                placeholder="Zum Beispiel Laptop, Desktop oder Smartphone"
+                autocomplete="off"
+            >
+
+            <span class="bestand-form-hilfe">
+                Einheitliche Bezeichnungen verbessern den Gerätefilter.
+            </span>
+        </div>
+
+        <div class="bestand-form-aktionen">
+            {% if ist_modal %}
+                <button
+                    type="button"
+                    class="bestand-form-abbrechen"
+                    onclick="window.parent.postMessage(
+                        'geraet_modal_schliessen',
+                        window.location.origin
+                    )"
+                >
+                    Abbrechen
+                </button>
+            {% else %}
+                <a
+                    href="{% url 'geraete_liste' %}"
+                    class="bestand-form-abbrechen"
+                >
+                    Abbrechen
+                </a>
+            {% endif %}
+
+            <button type="submit">
+                Gerät speichern
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

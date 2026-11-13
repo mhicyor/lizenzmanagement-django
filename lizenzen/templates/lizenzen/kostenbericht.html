@@ -1,0 +1,40 @@
+{% extends "lizenzen/base.html" %}
+
+{% block title %}Kostenbericht{% endblock %}
+
+{% block content %}
+<div class="karte">
+    <h1>Kostenbericht</h1>
+    <p>Übersicht über Lizenzkosten und Gesamtsumme.</p>
+
+    {% if daten %}
+    <div class="table-container">
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Lizenz</th>
+                <th>Anbieter</th>
+                <th>Anzahl</th>
+                <th>Kosten pro Lizenz</th>
+                <th>Gesamtkosten</th>
+            </tr>
+
+            {% for eintrag in daten %}
+            <tr>
+                <td>{{ eintrag.0 }}</td>
+                <td>{{ eintrag.1 }}</td>
+                <td>{{ eintrag.2 }}</td>
+                <td>{{ eintrag.3 }}</td>
+                <td>{{ eintrag.4 }}</td>
+                <td>{{ eintrag.5 }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <p><strong>Gesamtsumme:</strong> {{ gesamtsumme }} EUR</p>
+    {% else %}
+    <div class="leer-hinweis">Keine Kostendaten gefunden.</div>
+    {% endif %}
+</div>
+{% endblock %}

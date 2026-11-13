@@ -1,0 +1,4416 @@
+{% extends "lizenzen/base.html" %}
+
+{% block title %}Datenquellen{% endblock %}
+
+{% block content %}
+<style>
+    .datenquellen-seite {
+        max-width: 1120px;
+        margin: 0 auto;
+    }
+
+    .datenquellen-kopf {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 30px;
+        margin-bottom: 24px;
+    }
+
+    .datenquellen-kopf-text {
+        max-width: 700px;
+    }
+
+    .datenquellen-kopf h1 {
+        margin: 0 0 8px;
+        color: #222222;
+        font-size: 31px;
+        line-height: 1.15;
+    }
+
+    .datenquellen-kopf p {
+        margin: 0;
+        color: #666666;
+        font-size: 14px;
+        line-height: 1.55;
+    }
+
+    .hauptaktion {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        min-height: 45px;
+        padding: 0 18px;
+        border: 0;
+        border-radius: 12px;
+        background: var(--dpz-green);
+        color: #ffffff;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: 0 9px 22px rgba(58, 127, 49, 0.19);
+        transition:
+            background 0.18s ease,
+            transform 0.18s ease,
+            box-shadow 0.18s ease;
+    }
+
+    .hauptaktion:hover {
+        background: var(--dpz-green-dark);
+        transform: translateY(-1px);
+        box-shadow: 0 13px 28px rgba(58, 127, 49, 0.23);
+    }
+
+    .datenquellen-hinweis {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 22px;
+        padding: 13px 15px;
+        border: 1px solid rgba(58, 127, 49, 0.18);
+        border-radius: 14px;
+        background: rgba(58, 127, 49, 0.055);
+        color: #4d614a;
+        font-size: 12px;
+        line-height: 1.45;
+    }
+
+    .datenquellen-hinweis-symbol {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 32px;
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        background: rgba(58, 127, 49, 0.13);
+        color: var(--dpz-green-dark);
+        font-size: 15px;
+        font-weight: 850;
+    }
+
+    .sync-rueckmeldung {
+        margin-bottom: 22px;
+        padding: 13px 15px;
+        border-radius: 13px;
+        font-size: 13px;
+        line-height: 1.45;
+    }
+
+    .sync-rueckmeldung-erfolg {
+        border: 1px solid rgba(58, 127, 49, 0.25);
+        background: rgba(58, 127, 49, 0.08);
+        color: var(--dpz-green-dark);
+    }
+
+    .sync-rueckmeldung-hinweis {
+        border: 1px solid rgba(170, 110, 0, 0.22);
+        background: rgba(190, 130, 0, 0.08);
+        color: #745000;
+    }
+
+    .sync-rueckmeldung-fehler {
+        border: 1px solid rgba(160, 0, 0, 0.20);
+        background: rgba(160, 0, 0, 0.07);
+        color: #870000;
+    }
+
+    .status-uebersicht {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 28px;
+    }
+
+    .status-karte {
+        min-width: 0;
+        padding: 16px 17px;
+        border: 1px solid #e5e5e5;
+        border-radius: 15px;
+        background: #fafafa;
+    }
+
+    .status-karte span {
+        display: block;
+        margin-bottom: 5px;
+        color: #777777;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .status-karte strong {
+        display: block;
+        overflow: hidden;
+        color: #262626;
+        font-size: 20px;
+        line-height: 1.2;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .status-karte.status-gruen strong {
+        color: var(--dpz-green-dark);
+    }
+
+    .bereich-kopf {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 15px;
+    }
+
+    .bereich-kopf h2 {
+        margin: 0 0 4px;
+        color: #222222;
+        font-size: 21px;
+    }
+
+    .bereich-kopf p {
+        margin: 0;
+        color: #737373;
+        font-size: 12px;
+        line-height: 1.45;
+    }
+
+    .bereich-anzahl {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 31px;
+        height: 31px;
+        padding: 0 10px;
+        border-radius: 999px;
+        background: rgba(58, 127, 49, 0.10);
+        color: var(--dpz-green-dark);
+        font-size: 12px;
+        font-weight: 850;
+    }
+
+    .verbindungen-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: stretch;
+        gap: 18px;
+    }
+
+    .verbindung-karte {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 300px;
+        padding: 21px;
+        border: 1px solid #e3e3e3;
+        border-radius: 19px;
+        background: #ffffff;
+        box-shadow: 0 9px 27px rgba(0, 0, 0, 0.04);
+        box-sizing: border-box;
+        transition:
+            border-color 0.18s ease,
+            box-shadow 0.18s ease,
+            transform 0.18s ease;
+    }
+
+    .verbindung-karte:hover {
+        border-color: rgba(58, 127, 49, 0.28);
+        box-shadow: 0 15px 34px rgba(0, 0, 0, 0.065);
+        transform: translateY(-2px);
+    }
+
+    .verbindung-kopf {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 19px;
+    }
+
+    .verbindung-identitaet {
+        display: flex;
+        align-items: flex-start;
+        gap: 13px;
+        min-width: 0;
+    }
+
+    .verbindung-symbol {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 48px;
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        background: rgba(58, 127, 49, 0.11);
+        color: var(--dpz-green-dark);
+        font-size: 15px;
+        font-weight: 850;
+        letter-spacing: 0.3px;
+    }
+
+    .verbindung-titel {
+        min-width: 0;
+    }
+
+    .verbindung-titel h3 {
+        margin: 2px 0 5px;
+        overflow: hidden;
+        color: #222222;
+        font-size: 18px;
+        line-height: 1.25;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .verbindung-titel span {
+        display: block;
+        color: #858585;
+        font-size: 11px;
+    }
+
+    .verbindung-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        flex: 0 0 auto;
+        padding: 6px 9px;
+        border-radius: 999px;
+        background: #eeeeee;
+        color: #666666;
+        font-size: 10px;
+        font-weight: 800;
+    }
+
+    .verbindung-status::before {
+        content: "";
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: currentColor;
+    }
+
+    .verbindung-status.verbunden,
+    .verbindung-status.verfuegbar {
+        background: rgba(58, 127, 49, 0.11);
+        color: var(--dpz-green-dark);
+    }
+
+    .verbindung-status.fehler {
+        background: rgba(160, 0, 0, 0.09);
+        color: #8a0000;
+    }
+
+    .verbindung-status.einrichtung_erforderlich,
+    .verbindung-status.nicht_eingerichtet {
+        background: rgba(184, 112, 0, 0.11);
+        color: #805200;
+    }
+
+    .verbindung-inhalt {
+        flex: 1 1 auto;
+    }
+
+    .verbindung-beschreibung {
+        margin: 0 0 15px;
+        color: #555555;
+        font-size: 13px;
+        line-height: 1.55;
+    }
+
+    .verbindung-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+    }
+
+    .verbindung-chip {
+        display: inline-flex;
+        align-items: center;
+        padding: 5px 9px;
+        border-radius: 999px;
+        background: #f1f1f1;
+        color: #666666;
+        font-size: 10px;
+        font-weight: 700;
+    }
+
+    .verbindung-fuss {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        margin-top: auto;
+        padding-top: 16px;
+        border-top: 1px solid #ededed;
+    }
+
+    .verbindung-fuss-text {
+        min-height: 31px;
+        color: #888888;
+        font-size: 11px;
+        line-height: 1.4;
+    }
+
+    .verbindung-aktionen {
+        display: grid;
+        align-items: stretch;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .verbindung-aktionen.zwei-aktionen {
+        grid-template-columns: repeat(
+            2,
+            minmax(0, 1fr)
+        );
+    }
+
+    .verbindung-aktionen.vier-aktionen {
+        grid-template-columns: repeat(
+            4,
+            minmax(0, 1fr)
+        );
+    }
+
+    .sync-formular {
+        display: flex;
+        width: 100%;
+        margin: 0;
+    }
+
+    .aktion-sekundaer,
+    .aktion-primaer {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-width: 0;
+        min-height: 40px;
+        padding: 0 10px;
+        border-radius: 10px;
+        font-family: inherit;
+        font-size: 11px;
+        font-weight: 800;
+        line-height: 1;
+        text-align: center;
+        text-decoration: none;
+        white-space: nowrap;
+        cursor: pointer;
+        box-sizing: border-box;
+        transition:
+            border-color 0.18s ease,
+            background 0.18s ease,
+            color 0.18s ease;
+    }
+
+    .aktion-sekundaer {
+        border: 1px solid #d9d9d9;
+        background: #ffffff;
+        color: #222222;
+    }
+
+    .aktion-sekundaer:hover {
+        border-color: var(--dpz-green);
+        background: rgba(58, 127, 49, 0.06);
+        color: var(--dpz-green-dark);
+    }
+
+    .aktion-primaer {
+        border: 1px solid var(--dpz-green);
+        background: var(--dpz-green);
+        color: #ffffff;
+    }
+
+    .aktion-primaer:hover:not(:disabled) {
+        border-color: var(--dpz-green-dark);
+        background: var(--dpz-green-dark);
+    }
+
+    .aktion-primaer:disabled {
+        border-color: #cccccc;
+        background: #cccccc;
+        color: #777777;
+        cursor: not-allowed;
+    }
+
+    .aktion-gefahr {
+        color: #8b2f2f;
+    }
+
+    .aktion-gefahr:hover {
+        border-color: rgba(150, 30, 30, 0.45);
+        background: rgba(150, 30, 30, 0.06);
+        color: #8b0000;
+    }
+
+    .verbindungen-leer {
+        grid-column: 1 / -1;
+        padding: 34px;
+        border: 1px dashed #d4d4d4;
+        border-radius: 18px;
+        background: #fafafa;
+        text-align: center;
+    }
+
+    .verbindungen-leer strong {
+        display: block;
+        margin-bottom: 7px;
+        color: #333333;
+        font-size: 17px;
+    }
+
+    .verbindungen-leer p {
+        margin: 0;
+        color: #777777;
+        font-size: 12px;
+    }
+
+    .datenquelle-modal-overlay {
+        position: fixed;
+        z-index: 3000;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 26px;
+        background: rgba(0, 0, 0, 0.52);
+        backdrop-filter: blur(5px);
+    }
+
+    .datenquelle-modal-overlay.versteckt {
+        display: none;
+    }
+
+    .datenquelle-modal-box {
+        width: min(
+            980px,
+            calc(100vw - 56px)
+        );
+        height: min(
+            800px,
+            calc(100vh - 48px)
+        );
+        min-width: 720px;
+        overflow: hidden;
+        border-radius: 21px;
+        background: #ffffff;
+        box-shadow: 0 30px 90px rgba(0, 0, 0, 0.32);
+    }
+
+    .datenquelle-modal-kopf {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 58px;
+        padding: 0 17px 0 20px;
+        border-bottom: 1px solid #e7e7e7;
+    }
+
+    .datenquelle-modal-kopf strong {
+        color: #222222;
+        font-size: 14px;
+    }
+
+    .datenquelle-modal-schliessen {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 33px;
+        height: 33px;
+        border: 0;
+        border-radius: 10px;
+        background: #eeeeee;
+        color: #333333;
+        font-size: 19px;
+        cursor: pointer;
+    }
+
+    .datenquelle-modal-frame {
+        width: 100%;
+        height: calc(100% - 58px);
+        border: 0;
+        background: #f5f5f5;
+    }
+
+    @media (max-width: 1050px) {
+        .verbindung-aktionen.vier-aktionen {
+            grid-template-columns: repeat(
+                2,
+                minmax(0, 1fr)
+            );
+        }
+    }
+
+    @media (max-width: 900px) {
+        .datenquellen-kopf {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .hauptaktion {
+            width: 100%;
+        }
+
+        .status-uebersicht,
+        .verbindungen-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .verbindung-aktionen.vier-aktionen {
+            grid-template-columns: repeat(
+                4,
+                minmax(0, 1fr)
+            );
+        }
+    }
+
+    @media (max-width: 760px) {
+        .datenquelle-modal-overlay {
+            padding: 8px;
+        }
+
+        .datenquelle-modal-box {
+            width: 100%;
+            min-width: 0;
+            height: calc(100vh - 16px);
+            border-radius: 16px;
+        }
+
+        .datenquelle-modal-kopf {
+            height: 54px;
+            padding: 0 14px 0 17px;
+        }
+
+        .datenquelle-modal-frame {
+            height: calc(100% - 54px);
+        }
+    }
+
+    @media (max-width: 650px) {
+        .status-uebersicht {
+            grid-template-columns: 1fr;
+        }
+
+        .verbindung-aktionen.vier-aktionen,
+        .verbindung-aktionen.zwei-aktionen {
+            grid-template-columns: repeat(
+                2,
+                minmax(0, 1fr)
+            );
+        }
+    }
+
+    @media (max-width: 430px) {
+        .verbindung-identitaet {
+            flex-direction: column;
+        }
+
+        .verbindung-aktionen.vier-aktionen,
+        .verbindung-aktionen.zwei-aktionen {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .synchronisationsverlauf {
+        margin-top: 32px;
+    }
+
+    .synchronisationsverlauf-rahmen {
+        overflow-x: auto;
+        border: 1px solid #dfe5ec;
+        border-radius: 14px;
+        background: #ffffff;
+    }
+
+    .synchronisationsverlauf-tabelle {
+        width: 100%;
+        min-width: 980px;
+        border-collapse: collapse;
+    }
+
+    .synchronisationsverlauf-tabelle th,
+    .synchronisationsverlauf-tabelle td {
+        padding: 14px 16px;
+        text-align: left;
+        vertical-align: top;
+        border-bottom: 1px solid #edf0f4;
+    }
+
+    .synchronisationsverlauf-tabelle th {
+        font-size: 12px;
+        font-weight: 700;
+        color: #5f6b7a;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        background: #f8fafc;
+    }
+
+    .synchronisationsverlauf-tabelle tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    .lauf-quelle {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .lauf-quelle strong {
+        color: #1c2733;
+    }
+
+    .lauf-quelle span,
+    .lauf-zeit,
+    .lauf-ausloeser {
+        font-size: 13px;
+        color: #6b7684;
+    }
+
+    .lauf-status {
+        display: inline-flex;
+        align-items: center;
+        padding: 5px 9px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+        background: #edf1f5;
+        color: #52606d;
+    }
+
+    .lauf-status.ok {
+        background: #e8f7ee;
+        color: #237a46;
+    }
+
+    .lauf-status.fehler {
+        background: #fdecec;
+        color: #b42318;
+    }
+
+    .lauf-status.laeuft {
+        background: #fff4d6;
+        color: #946200;
+    }
+
+    .lauf-zaehler {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .lauf-zaehler span {
+        padding: 4px 7px;
+        border-radius: 7px;
+        font-size: 12px;
+        color: #465364;
+        background: #f1f4f7;
+        white-space: nowrap;
+    }
+
+    .lauf-meldung {
+        max-width: 360px;
+        color: #394555;
+        line-height: 1.45;
+    }
+
+    .lauf-fehlerdetails {
+        margin-top: 7px;
+        color: #b42318;
+        font-size: 13px;
+    }
+
+    .synchronisationsverlauf-leer {
+        padding: 28px;
+        text-align: center;
+        color: #6b7684;
+    }
+
+
+
+    /* Konsolidierte Datenquellen-Oberfläche */
+
+    .datenquellen-seite {
+        max-width: 1180px;
+    }
+
+    .datenquellen-kopf {
+        margin-bottom: 20px;
+    }
+
+    .status-uebersicht {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 0 0 26px;
+    }
+
+    .status-karte {
+        width: auto;
+        min-width: 150px;
+        padding: 11px 15px;
+        border: 1px solid #e7ebef;
+        border-radius: 12px;
+        background: #fafbfc;
+        box-shadow: none;
+    }
+
+    .status-karte span {
+        display: inline;
+        margin: 0;
+        color: #6f7883;
+        font-size: 12px;
+    }
+
+    .status-karte strong {
+        display: inline;
+        margin-left: 7px;
+        color: #25303b;
+        font-size: 15px;
+    }
+
+    .verbindungen-grid {
+        align-items: start;
+        gap: 14px;
+    }
+
+    .verbindung-karte {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        height: auto;
+        padding: 16px 17px;
+        border-color: #e5e9ed;
+        border-radius: 16px;
+        box-shadow: none;
+        transition:
+            border-color 0.18s ease,
+            box-shadow 0.18s ease;
+    }
+
+    .verbindung-karte:hover {
+        border-color: #cfd8d0;
+        box-shadow: 0 10px 26px rgba(24, 39, 29, 0.06);
+        transform: none;
+    }
+
+    .verbindung-kopf {
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 0;
+    }
+
+    .verbindung-identitaet {
+        flex: 1;
+        min-width: 0;
+        align-items: flex-start;
+    }
+
+    .verbindung-symbol {
+        flex: 0 0 38px;
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        font-size: 14px;
+    }
+
+    .verbindung-titel {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .verbindung-titel h3 {
+        overflow: visible;
+        margin: 0 0 2px;
+        color: #222222;
+        font-size: 17px;
+        line-height: 1.25;
+        text-overflow: clip;
+        white-space: normal;
+        word-break: normal;
+    }
+
+    .verbindung-titel > span {
+        display: block;
+        color: #858d96;
+        font-size: 12px;
+        line-height: 1.3;
+    }
+
+    .verbindung-status {
+        flex: 0 0 auto;
+        margin-left: 8px;
+        padding: 5px 9px;
+        font-size: 11px;
+    }
+
+    .verbindung-inhalt {
+        flex: 1;
+        min-height: 0;
+    }
+
+    .verbindung-beschreibung {
+        min-height: 0;
+        max-width: 520px;
+        margin: 12px 0 0;
+        color: #53606c;
+        font-size: 13px;
+        line-height: 1.45;
+    }
+
+    .verbindung-chips,
+    .verbindung-fuss-text {
+        display: none;
+    }
+
+    .verbindung-fuss {
+        margin-top: 14px;
+        padding-top: 13px;
+        border-top: 1px solid #edf0f2;
+    }
+
+    .verbindung-aktionen,
+    .verbindung-aktionen.zwei-aktionen,
+    .verbindung-aktionen.vier-aktionen {
+        display: flex;
+        align-items: stretch;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .verbindung-aktionen > a,
+    .verbindung-aktionen > button,
+    .verbindung-aktionen > form,
+    .verbindung-aktionen > details {
+        flex: 0 0 132px;
+        width: 132px;
+        min-width: 132px;
+        margin: 0;
+    }
+
+    .verbindung-aktionen .aktion-primaer,
+    .verbindung-aktionen .aktion-sekundaer,
+    .karten-menue > summary {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        width: 100%;
+        height: 38px;
+        min-height: 38px;
+        padding: 0 12px;
+        border-radius: 9px;
+        font-size: 11px;
+        font-weight: 800;
+        line-height: 1;
+        text-align: center;
+    }
+
+    details > summary {
+        list-style: none !important;
+        -webkit-appearance: none;
+        appearance: none;
+    }
+
+    details > summary::marker,
+    details > summary::-webkit-details-marker {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        content: "" !important;
+    }
+
+    .karten-menue {
+        position: relative;
+    }
+
+    .karten-menue > summary {
+        position: relative;
+        padding-right: 30px;
+        border: 1px solid #d9dfe4;
+        background: #ffffff;
+        color: #303b46;
+        cursor: pointer;
+    }
+
+    .karten-menue > summary::after {
+        position: absolute;
+        top: 50%;
+        right: 13px;
+        width: 6px;
+        height: 6px;
+        border-right: 1.5px solid #707b73;
+        border-bottom: 1.5px solid #707b73;
+        content: "";
+        transform:
+            translateY(-65%)
+            rotate(45deg);
+        transition: transform 0.18s ease;
+    }
+
+    .karten-menue[open] > summary::after {
+        transform:
+            translateY(-25%)
+            rotate(225deg);
+    }
+
+    .karten-menue > summary:hover,
+    .karten-menue[open] > summary {
+        border-color: #bfd0c0;
+        background: #f5f8f5;
+        color: var(--dpz-green-dark);
+    }
+
+    .karten-menue-inhalt {
+        position: absolute;
+        right: 0;
+        bottom: 45px;
+        z-index: 20;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        width: 180px;
+        padding: 8px;
+        border: 1px solid #e0e5e8;
+        border-radius: 12px;
+        background: #ffffff;
+        box-shadow: 0 14px 34px rgba(25, 35, 45, 0.14);
+    }
+
+    .karten-menue-inhalt .aktion-sekundaer {
+        width: 100%;
+        text-align: left;
+        border: 0;
+        background: transparent;
+    }
+
+    .karten-menue-inhalt .aktion-sekundaer:hover {
+        background: #f4f6f7;
+    }
+
+    .karten-menue-inhalt .aktion-gefahr {
+        color: #b42318;
+    }
+
+    /* Gesamter Aktivitätenbereich */
+
+    .aktivitaeten-gesamt {
+        margin-top: 26px;
+        border: 0;
+    }
+
+    .aktivitaeten-gesamt-kopf {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-sizing: border-box;
+        width: 100%;
+        min-height: 66px;
+        padding: 14px 18px;
+        border: 1px solid #e0e7e1;
+        border-radius: 18px;
+        background: #f7faf7;
+        cursor: pointer;
+        transition:
+            border-color 0.18s ease,
+            background 0.18s ease;
+    }
+
+    .aktivitaeten-gesamt-kopf:hover {
+        border-color: #c6d5c7;
+        background: #f2f7f2;
+    }
+
+    .aktivitaeten-gesamt-kopf h2 {
+        margin: 0 0 3px;
+        color: #222222;
+        font-size: 18px;
+        line-height: 1.2;
+    }
+
+    .aktivitaeten-gesamt-kopf p {
+        margin: 0;
+        color: #717b74;
+        font-size: 12px;
+    }
+
+    .aktivitaeten-gesamt-rechts {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 0 0 auto;
+    }
+
+
+    .aktivitaeten-gesamt:not([open])
+    > .aktivitaeten-liste {
+        display: none;
+    }
+
+    .aktivitaeten-gesamt[open]
+    > .aktivitaeten-liste {
+        display: block;
+        margin-top: 10px;
+    }
+
+    /* Einzelne Aktivitäten */
+
+    .aktivitaeten-liste {
+        overflow: hidden;
+        border: 1px solid #e3e8ec;
+        border-radius: 16px;
+        background: #ffffff;
+    }
+
+    .aktivitaet {
+        border-bottom: 1px solid #edf0f2;
+    }
+
+    .aktivitaet:last-child {
+        border-bottom: 0;
+    }
+
+    .aktivitaet > summary {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 10px 19px;
+        cursor: pointer;
+    }
+
+    .aktivitaet > summary:hover {
+        background: #fafbfb;
+    }
+
+    .aktivitaet-hauptbereich {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .aktivitaet-kopfzeile {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 9px;
+        margin-bottom: 5px;
+    }
+
+    .aktivitaet-kopfzeile strong {
+        color: #26313c;
+        font-size: 15px;
+    }
+
+    .aktivitaet-meta {
+        color: #7a8490;
+        font-size: 12px;
+    }
+
+    .aktivitaet-meldung {
+        overflow: hidden;
+        max-width: 760px;
+        color: #56616c;
+        font-size: 13px;
+        line-height: 1.45;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .aktivitaet-rechts {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .aktivitaet-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 9px;
+        border-radius: 999px;
+        background: #eef1f3;
+        color: #596673;
+        font-size: 11px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .aktivitaet-status::before {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+        content: "";
+    }
+
+    .aktivitaet-status.ok {
+        background: #e9f7ee;
+        color: #287a46;
+    }
+
+    .aktivitaet-status.fehler {
+        background: #fdecec;
+        color: #b42318;
+    }
+
+    .aktivitaet-status.teilweise_erfolgreich {
+        background: #fff4d6;
+        color: #8a6200;
+    }
+
+    .aktivitaet-status.laeuft {
+        background: #fff5d9;
+        color: #8a6200;
+    }
+
+    .aktivitaet-pfeil,
+    .aktivitaet > summary::after {
+        display: none !important;
+        content: none !important;
+    }
+
+    .aktivitaet-details {
+        padding: 0 19px 19px;
+    }
+
+    .aktivitaet-details-inhalt {
+        display: grid;
+        grid-template-columns:
+            repeat(4, minmax(110px, 1fr));
+        gap: 12px;
+        padding: 15px;
+        border-radius: 12px;
+        background: #f7f9fa;
+    }
+
+    .aktivitaet-detail {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .aktivitaet-detail span {
+        color: #7b8590;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .aktivitaet-detail strong {
+        color: #35414d;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .aktivitaet-zaehler {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin-top: 13px;
+    }
+
+    .aktivitaet-zaehler span {
+        padding: 5px 8px;
+        border-radius: 8px;
+        background: #eef2f4;
+        color: #53606c;
+        font-size: 12px;
+    }
+
+    .aktivitaet-fehler {
+        margin-top: 13px;
+        padding: 11px 13px;
+        border-radius: 10px;
+        background: #fff1f0;
+        color: #b42318;
+        font-size: 13px;
+        line-height: 1.45;
+        white-space: pre-line;
+    }
+
+    .synchronisationsverlauf-leer {
+        padding: 30px;
+        color: #76818c;
+        text-align: center;
+    }
+
+    @media (max-width: 850px) {
+        .verbindungen-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .verbindung-aktionen > a,
+        .verbindung-aktionen > button,
+        .verbindung-aktionen > form,
+        .verbindung-aktionen > details {
+            flex: 1 1 calc(50% - 4px);
+            width: auto;
+            min-width: 130px;
+        }
+
+        .aktivitaet > summary {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .aktivitaet-rechts {
+            justify-content: flex-end;
+        }
+
+        .aktivitaet-details-inhalt {
+            grid-template-columns:
+                repeat(2, minmax(110px, 1fr));
+        }
+    }
+
+
+    /* Aktivitäten-Pill: Anzahl und Pfeil rechts bündeln */
+
+    .aktivitaeten-gesamt > summary {
+        list-style: none !important;
+        -webkit-appearance: none !important;
+        appearance: none !important;
+    }
+
+    .aktivitaeten-gesamt > summary::marker,
+    .aktivitaeten-gesamt
+    > summary::-webkit-details-marker {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        content: "" !important;
+    }
+
+    .aktivitaeten-gesamt-kopf {
+        position: relative;
+        padding-right: 52px;
+    }
+
+    .aktivitaeten-gesamt-rechts {
+        margin-left: auto;
+        margin-right: 0;
+    }
+
+    .aktivitaeten-gesamt-kopf::after {
+        position: absolute;
+        top: 50%;
+        right: 21px;
+        display: block !important;
+        width: 8px;
+        height: 8px;
+        border-right: 2px solid #657168;
+        border-bottom: 2px solid #657168;
+        content: "" !important;
+        transform:
+            translateY(-65%)
+            rotate(45deg);
+        transition: transform 0.18s ease;
+    }
+
+    .aktivitaeten-gesamt[open]
+    > .aktivitaeten-gesamt-kopf::after {
+        transform:
+            translateY(-25%)
+            rotate(225deg);
+    }
+
+
+    /* Gleich hohe Datenquellenkarten pro Zeile */
+
+    .verbindungen-grid {
+        align-items: stretch;
+    }
+
+    .verbindung-karte {
+        height: 100%;
+    }
+
+    
+.verbindung-chip.erfolg {
+    background: #eef8eb;
+    border-color: #bddbb8;
+    color: #255d25;
+}
+
+.verbindung-chip.dezent {
+    background: #f6f7f8;
+    border-color: #dde2e6;
+    color: #6b7280;
+}
+
+.verbindung-automatik {
+        margin-top: 18px;
+        padding: 13px 15px;
+        border: 1px solid #e7e9ec;
+        border-radius: 12px;
+        background: #f8f9fa;
+    }
+
+    .verbindung-automatik.aktiv {
+        border-color: #d8e9df;
+        background: #f5faf7;
+    }
+
+    .verbindung-automatik-kopf {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    .verbindung-automatik-label {
+        color: #4f5965;
+        font-size: 0.84rem;
+        font-weight: 600;
+    }
+
+    .verbindung-automatik-rechts {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .verbindung-automatik-status {
+        display: inline-flex;
+        align-items: center;
+        min-height: 25px;
+        padding: 0 9px;
+        border-radius: 999px;
+        background: #e5f1e8;
+        color: #2f6e49;
+        font-size: 0.73rem;
+        font-weight: 750;
+        white-space: nowrap;
+    }
+
+    .verbindung-automatik:not(.aktiv)
+    .verbindung-automatik-status {
+        background: #eceff2;
+        color: #68717b;
+    }
+
+    .verbindung-automatik-einstellen {
+        min-height: 27px;
+        padding: 0 7px;
+        border: 0;
+        border-radius: 7px;
+        background: transparent;
+        color: #626c76;
+        font-size: 0.74rem;
+        font-weight: 650;
+        cursor: pointer;
+        transition:
+            background 0.15s ease,
+            color 0.15s ease;
+    }
+
+    .verbindung-automatik-einstellen:hover {
+        background: rgba(0, 0, 0, 0.045);
+        color: #303840;
+    }
+
+    .verbindung-automatik.aktiv
+    .verbindung-automatik-status {
+        color: #2f6e49;
+    }
+
+    .verbindung-automatik-hinweis {
+        display: block;
+        margin-top: 5px;
+        color: #7a838d;
+        font-size: 0.78rem;
+        line-height: 1.45;
+    }
+
+
+    /* Einheitliche Aktionsleisten der Datenquellen */
+    .verbindung-aktionen,
+    .verbindung-aktionen.zwei-aktionen,
+    .verbindung-aktionen.vier-aktionen {
+        display: flex;
+        align-items: stretch;
+        flex-wrap: nowrap;
+        gap: 9px;
+        width: 100%;
+    }
+
+    .verbindung-aktionen > a,
+    .verbindung-aktionen > button,
+    .verbindung-aktionen > form,
+    .verbindung-aktionen > details {
+        flex: 1 1 0;
+        width: auto;
+        min-width: 0;
+        margin: 0;
+    }
+
+    .verbindung-aktionen .aktion-primaer,
+    .verbindung-aktionen .aktion-sekundaer,
+    .karten-menue > summary {
+        height: 37px;
+        min-height: 37px;
+        border-radius: 9px;
+        font-size: 11px;
+        transition:
+            transform 0.18s ease,
+            box-shadow 0.18s ease,
+            background-color 0.18s ease,
+            border-color 0.18s ease,
+            color 0.18s ease;
+    }
+
+    .verbindung-aktionen .aktion-sekundaer,
+    .karten-menue > summary {
+        border: 1px solid #d9dfe4;
+        background: #ffffff;
+        color: #303b46;
+        box-shadow: 0 2px 7px rgba(31, 38, 45, 0.04);
+    }
+
+    .verbindung-aktionen .aktion-sekundaer:hover,
+    .karten-menue > summary:hover,
+    .karten-menue[open] > summary {
+        border-color: #c5d2c6;
+        background: #f5f8f5;
+        color: var(--dpz-green-dark);
+        box-shadow: 0 5px 13px rgba(31, 38, 45, 0.08);
+        transform: translateY(-1px);
+    }
+
+    .verbindung-aktionen .aktion-primaer {
+        border: 1px solid var(--dpz-green);
+        background: var(--dpz-green);
+        color: #ffffff;
+        box-shadow: 0 3px 9px rgba(58, 127, 49, 0.14);
+    }
+
+    .verbindung-aktionen .aktion-primaer:hover:not(:disabled) {
+        border-color: var(--dpz-green-dark);
+        background: var(--dpz-green-dark);
+        box-shadow: 0 6px 15px rgba(58, 127, 49, 0.20);
+        transform: translateY(-1px);
+    }
+
+    .verbindung-aktionen .aktion-primaer:active:not(:disabled),
+    .verbindung-aktionen .aktion-sekundaer:active,
+    .karten-menue > summary:active {
+        box-shadow: none;
+        transform: translateY(0);
+    }
+
+    .verbindung-aktionen .aktion-primaer:focus-visible,
+    .verbindung-aktionen .aktion-sekundaer:focus-visible,
+    .karten-menue > summary:focus-visible {
+        outline: 3px solid var(--dpz-green-soft);
+        outline-offset: 2px;
+    }
+
+    @media (max-width: 520px) {
+        .verbindung-aktionen {
+            flex-wrap: wrap;
+        }
+
+        .verbindung-aktionen > a,
+        .verbindung-aktionen > button,
+        .verbindung-aktionen > form,
+        .verbindung-aktionen > details {
+            flex: 1 1 calc(50% - 5px);
+            min-width: 120px;
+        }
+    }
+
+
+
+
+    .aktivitaeten-filter {
+        display: grid;
+        grid-template-columns:
+            minmax(150px, 1.2fr)
+            minmax(140px, 1fr)
+            minmax(140px, 1fr)
+            auto;
+        gap: 10px;
+        padding: 14px;
+        border-bottom: 1px solid #e7ebee;
+        background: #f8fafb;
+    }
+
+    .aktivitaeten-filter label {
+        min-width: 0;
+    }
+
+    .aktivitaeten-filter label > span {
+        display: block;
+        margin-bottom: 5px;
+        color: #77828c;
+        font-size: 10px;
+        font-weight: 750;
+        text-transform: uppercase;
+        letter-spacing: 0.035em;
+    }
+
+    .aktivitaeten-filter select {
+        width: 100%;
+        min-height: 40px;
+        padding: 0 38px 0 12px;
+        border: 1px solid #d9dfe4;
+        border-radius: 10px;
+        background-color: #ffffff;
+        background-image:
+            linear-gradient(
+                45deg,
+                transparent 50%,
+                #6f7a84 50%
+            ),
+            linear-gradient(
+                135deg,
+                #6f7a84 50%,
+                transparent 50%
+            );
+        background-position:
+            calc(100% - 15px) 17px,
+            calc(100% - 10px) 17px;
+        background-size: 5px 5px, 5px 5px;
+        background-repeat: no-repeat;
+        color: #35414c;
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1;
+        box-sizing: border-box;
+        appearance: none;
+        -webkit-appearance: none;
+        cursor: pointer;
+        box-shadow:
+            0 1px 2px rgba(31, 38, 45, 0.03);
+        transition:
+            border-color 0.18s ease,
+            background-color 0.18s ease,
+            box-shadow 0.18s ease,
+            color 0.18s ease;
+    }
+
+    .aktivitaeten-filter select:hover {
+        border-color: #c7d0d6;
+        background-color: #fbfcfc;
+        color: #252d34;
+        box-shadow:
+            0 4px 10px rgba(31, 38, 45, 0.06);
+    }
+
+    .aktivitaeten-filter select:focus {
+        outline: none;
+        border-color: var(--dpz-green);
+        background-color: #ffffff;
+        box-shadow:
+            0 0 0 3px var(--dpz-green-soft),
+            0 4px 10px rgba(31, 38, 45, 0.06);
+    }
+
+    .aktivitaeten-filter select:focus-visible {
+        outline: none;
+    }
+
+    .aktivitaeten-filter-reset {
+        align-self: end;
+        min-height: 37px;
+        padding: 0 13px;
+        border: 1px solid #d9dfe4;
+        border-radius: 9px;
+        background: #ffffff;
+        color: #53606c;
+        font-family: inherit;
+        font-size: 11px;
+        font-weight: 750;
+        cursor: pointer;
+        transition:
+            border-color 0.18s ease,
+            background-color 0.18s ease,
+            color 0.18s ease;
+    }
+
+    .aktivitaeten-filter-reset:hover {
+        border-color: #c5d2c6;
+        background: #f3f7f3;
+        color: var(--dpz-green-dark);
+    }
+
+    .aktivitaet[hidden] {
+        display: none;
+    }
+
+    @media (max-width: 850px) {
+        .aktivitaeten-filter {
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 560px) {
+        .aktivitaeten-filter {
+            grid-template-columns: 1fr;
+        }
+
+        .aktivitaeten-filter-reset {
+            width: 100%;
+        }
+    }
+
+
+    .aktivitaet-hinweis {
+        margin-top: 14px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: #f4fbf2;
+        border: 1px solid #d7ead2;
+        color: #2f6b2f;
+        font-size: 13px;
+        line-height: 1.45;
+    }
+
+    .aktivitaet-details-inhalt {
+        background: #f8faf8;
+        border-radius: 14px;
+        padding: 14px;
+        border: 1px solid #edf2ed;
+    }
+
+    .aktivitaet-zaehler {
+        margin-top: 12px;
+    }
+
+
+
+    .aktivitaet summary {
+        padding: 14px 18px;
+        min-height: unset;
+    }
+
+    .aktivitaet-hauptbereich {
+        gap: 2px;
+    }
+
+    .aktivitaet-kopfzeile {
+        margin-bottom: 2px;
+    }
+
+    .aktivitaet-meldung {
+        margin-top: 0;
+        line-height: 1.2;
+    }
+
+    .aktivitaet {
+        min-height: unset;
+    }
+
+
+    .synchronisationsverlauf .aktivitaet > summary {
+        padding: 10px 18px !important;
+        min-height: 0 !important;
+    }
+
+    .synchronisationsverlauf .aktivitaet-hauptbereich {
+        gap: 0 !important;
+    }
+
+    .synchronisationsverlauf .aktivitaet-kopfzeile {
+        margin-bottom: 0 !important;
+        line-height: 1.2 !important;
+    }
+
+    .synchronisationsverlauf .aktivitaet-meldung {
+        margin-top: 2px !important;
+        line-height: 1.15 !important;
+        font-size: 12px !important;
+    }
+
+    .synchronisationsverlauf .aktivitaet {
+        min-height: 0 !important;
+    }
+
+
+    .synchronisationsverlauf .aktivitaet > summary {
+        padding: 10px 19px !important;
+    }
+
+    .aktivitaet-rechts {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .aktivitaet-details-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        color: #64748b;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .aktivitaet-pfeil {
+        background: transparent !important;
+        width: auto !important;
+        height: auto !important;
+        color: #64748b !important;
+    }
+
+
+/* wirklich kompakter aktivitaeten-verlauf */
+
+    .synchronisationsverlauf .aktivitaet > summary {
+        padding: 12px 24px !important;
+        min-height: auto !important;
+        align-items: center !important;
+    }
+
+    .synchronisationsverlauf .aktivitaet-hauptbereich {
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+        min-height: 0 !important;
+    }
+
+    .synchronisationsverlauf .aktivitaet-kopfzeile {
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+        margin: 0 !important;
+    }
+
+    .synchronisationsverlauf .aktivitaet-kopfzeile strong {
+        font-size: 15px !important;
+        line-height: 1.2 !important;
+    }
+
+    .synchronisationsverlauf .aktivitaet-meta {
+        font-size: 13px !important;
+        line-height: 1.2 !important;
+    }
+
+    .synchronisationsverlauf .aktivitaet-meldung {
+        display: none !important;
+    }
+
+    .synchronisationsverlauf .aktivitaet-rechts {
+        margin-left: auto !important;
+    }
+
+
+/* finaler kompakter aktivitaeten-verlauf */
+.synchronisationsverlauf .aktivitaet > summary {
+    display: flex !important;
+    align-items: center !important;
+    padding: 8px 18px !important;
+    min-height: 0 !important;
+    height: auto !important;
+}
+
+.synchronisationsverlauf .aktivitaet-hauptbereich {
+    display: block !important;
+    min-height: 0 !important;
+}
+
+.synchronisationsverlauf .aktivitaet-kopfzeile {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.1 !important;
+}
+
+.synchronisationsverlauf .aktivitaet-kopfzeile strong,
+.synchronisationsverlauf .aktivitaet-meta {
+    line-height: 1.1 !important;
+}
+
+.synchronisationsverlauf .aktivitaet-meldung {
+    display: none !important;
+}
+
+.synchronisationsverlauf .aktivitaet-rechts {
+    margin-left: auto !important;
+}
+
+
+/* FINAL: Aktivitätsliste kompakt */
+details.aktivitaet > summary {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    box-sizing: border-box !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    max-height: 48px !important;
+    padding: 0 18px !important;
+    gap: 14px !important;
+    overflow: hidden !important;
+}
+
+details.aktivitaet > summary:hover {
+    background: #fafbfb !important;
+}
+
+details.aktivitaet .aktivitaet-hauptbereich {
+    display: flex !important;
+    align-items: center !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    height: 100% !important;
+}
+
+details.aktivitaet .aktivitaet-kopfzeile {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+    min-height: 0 !important;
+}
+
+details.aktivitaet .aktivitaet-kopfzeile strong {
+    font-size: 14px !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+}
+
+details.aktivitaet .aktivitaet-meta {
+    font-size: 12px !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+    color: #64748b !important;
+}
+
+details.aktivitaet .aktivitaet-meldung {
+    display: none !important;
+}
+
+details.aktivitaet .aktivitaet-rechts {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    margin-left: auto !important;
+    height: 100% !important;
+}
+
+details.aktivitaet .aktivitaet-status {
+    line-height: 1 !important;
+    padding: 6px 10px !important;
+}
+
+details.aktivitaet .aktivitaet-details-pill {
+    line-height: 1 !important;
+}
+
+
+/* ultra kompakte Aktivitätsliste */
+details.aktivitaet > summary {
+    height: 36px !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+    padding: 0 16px !important;
+}
+
+details.aktivitaet .aktivitaet-kopfzeile strong {
+    font-size: 13px !important;
+}
+
+details.aktivitaet .aktivitaet-meta {
+    font-size: 11px !important;
+}
+
+details.aktivitaet .aktivitaet-status {
+    font-size: 11px !important;
+    padding: 4px 8px !important;
+}
+
+details.aktivitaet .aktivitaet-details-pill {
+    font-size: 11px !important;
+}
+
+details.aktivitaet .aktivitaet-details {
+    padding: 8px 16px 12px !important;
+}
+
+
+/* Aktivitätsliste: kompakt aber lesbar */
+details.aktivitaet > summary {
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    padding: 0 18px !important;
+}
+
+details.aktivitaet .aktivitaet-hauptbereich {
+    flex: 1 1 auto !important;
+    max-width: none !important;
+}
+
+details.aktivitaet .aktivitaet-kopfzeile {
+    gap: 12px !important;
+}
+
+details.aktivitaet .aktivitaet-kopfzeile strong {
+    min-width: 150px !important;
+    font-size: 14px !important;
+}
+
+details.aktivitaet .aktivitaet-meta {
+    font-size: 12px !important;
+}
+
+details.aktivitaet .aktivitaet-rechts {
+    min-width: 150px !important;
+    justify-content: flex-end !important;
+}
+
+
+/* Detail-Zähler nebeneinander */
+details.aktivitaet .aktivitaet-zaehler {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 6px !important;
+    margin-top: 8px !important;
+}
+
+details.aktivitaet .aktivitaet-zaehler span {
+    width: auto !important;
+    display: inline-flex !important;
+    white-space: nowrap !important;
+}
+
+
+/* Detail-Chips optisch in einer gemeinsamen Zeile */
+details.aktivitaet .aktivitaet-zaehler {
+    display: inline-flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 6px !important;
+    margin-top: 8px !important;
+    margin-right: 6px !important;
+    vertical-align: top !important;
+}
+
+details.aktivitaet .aktivitaet-zaehler + .aktivitaet-zaehler {
+    margin-left: 0 !important;
+}
+
+details.aktivitaet .aktivitaet-zaehler span {
+    display: inline-flex !important;
+    width: auto !important;
+    white-space: nowrap !important;
+}
+
+</style>
+
+<div class="karte seiten-karte datenquellen-seite">
+    <div class="datenquellen-kopf">
+        <div class="datenquellen-kopf-text">
+            <h1>Datenquellen</h1>
+
+            <p>
+                Verbinde externe Systeme mit dem Lizenzmanagement,
+                teste die Verbindung und synchronisiere Lizenzdaten
+                über einen kontrollierten, lesenden Zugriff.
+            </p>
+        </div>
+
+        <button
+            type="button"
+            class="hauptaktion datenquelle-oeffnen-button"
+            data-url="{% url 'synchronisation_hinzufuegen' %}?modal=1"
+            data-titel="Neue Datenquelle"
+        >
+            + Neue Verbindung
+        </button>
+    </div>
+
+    <section>
+        {% if sync_meldung %}
+            <div
+                class="
+                    datenquellen-statushinweis
+                    {% if sync_status == 'fehler' %}
+                        fehler
+                    {% elif sync_status == 'teilweise_erfolgreich' %}
+                        warnung
+                    {% elif sync_status == 'erfolg' %}
+                        erfolg
+                    {% endif %}
+                "
+            >
+                <span class="datenquellen-statushinweis-punkt"></span>
+
+                <div class="datenquellen-statusinhalt">
+                    <strong>
+                        {% if sync_status == 'fehler' %}
+                            Synchronisation fehlgeschlagen
+                        {% elif sync_status == 'teilweise_erfolgreich' %}
+                            Synchronisation teilweise erfolgreich
+                        {% else %}
+                            Synchronisation erfolgreich
+                        {% endif %}
+                    </strong>
+                    {% if sync_status == 'erfolg' %}
+                        <small>
+                            Der Abgleich ist abgeschlossen.
+                        </small>
+                    {% else %}
+                        <small>{{ sync_meldung }}</small>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="datenquellen-filterleiste">
+            <div
+                class="datenquellen-typenfilter"
+                role="group"
+                aria-label="Datenquellen filtern"
+            >
+                <button
+                    type="button"
+                    class="datenquellen-filter aktiv"
+                    data-filter-typ="alle"
+                >
+                    Alle
+                </button>
+
+                <button
+                    type="button"
+                    class="datenquellen-filter"
+                    data-filter-typ="rest_api"
+                >
+                    REST-API
+                </button>
+
+                <button
+                    type="button"
+                    class="datenquellen-filter"
+                    data-filter-typ="csv"
+                >
+                    CSV
+                </button>
+
+                <button
+                    type="button"
+                    class="datenquellen-filter"
+                    data-filter-typ="ldap"
+                >
+                    LDAP
+                </button>
+
+            </div>
+
+            <label class="datenquellen-suche">
+                <span aria-hidden="true">⌕</span>
+
+                <input
+                    type="search"
+                    id="datenquellen-suchfeld"
+                    placeholder="Datenquelle suchen …"
+                    autocomplete="off"
+                >
+            </label>
+
+        </div>
+
+        <p
+            id="datenquellen-filter-leer"
+            class="datenquellen-filter-leer"
+            hidden
+        >
+            Keine passende Datenquelle gefunden.
+        </p>
+
+        <div class="verbindungen-grid">
+            {% for quelle in eingerichtete_verbindungen %}
+                <article
+                    class="verbindung-karte"
+                    data-datenquelle-typ="{{ quelle.typ|lower }}"
+                    data-datenquelle-name="{{ quelle.name|lower }}"
+                >
+                    <div class="verbindung-kopf">
+                        <div class="verbindung-identitaet">
+                            <div class="verbindung-symbol">
+                                {% if quelle.typ == "adobe" %}
+                                    A
+                                {% elif quelle.typ == "ad" %}
+                                    AD
+                                {% elif quelle.typ == "csv" %}
+                                    CSV
+                                {% else %}
+                                    API
+                                {% endif %}
+                            </div>
+
+                            <div class="verbindung-titel">
+                                <h3>
+                                    {{ quelle.name }}
+                                </h3>
+
+                                <span>
+                                    {% if quelle.typ == "adobe" %}
+                                        Adobe-Integration
+                                    {% elif quelle.typ == "ad" %}
+                                        Active Directory · LDAP-Verbindung
+                                    {% elif quelle.typ == "csv" %}
+                                        CSV-Datei
+                                    {% elif quelle.typ == "rest_api" %}
+                                        REST-API-Verbindung
+                                        {% if quelle.zuweisungen_endpunkt %}
+                                            · mit Benutzerzuweisungen
+                                        {% else %}
+                                            · nur Lizenzdaten
+                                        {% endif %}
+                                    {% else %}
+                                        REST-API-Verbindung
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+
+                        <span
+                            class="
+                                verbindung-status
+                                {% if quelle.synchronisierung_laeuft %}
+                                    laeuft
+                                {% else %}
+                                    {{ quelle.status }}
+                                {% endif %}
+                            "
+                        >
+                            {% if quelle.synchronisierung_laeuft %}
+                                Läuft …
+                            {% else %}
+                                {{ quelle.status_anzeige }}
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <div class="verbindung-inhalt">
+                        <p class="verbindung-beschreibung">
+                            {{ quelle.beschreibung }}
+                        </p>
+
+                        <div class="verbindung-chips">
+                            {% if quelle.typ == "adobe" %}
+                                <span class="verbindung-chip">
+                                    Read-only
+                                </span>
+
+                                <span class="verbindung-chip">
+                                    Benutzerabgleich
+                                </span>
+
+                            {% elif quelle.typ == "ad" %}
+                                <span class="verbindung-chip">
+                                    LDAP
+                                </span>
+
+                                <span class="verbindung-chip">
+                                    Benutzerabgleich
+                                </span>
+
+                            {% elif quelle.typ == "csv" %}
+                                <span class="verbindung-chip">
+                                    Datei
+                                </span>
+
+                                <span class="verbindung-chip">
+                                    Lokaler Import
+                                </span>
+
+                            {% elif quelle.typ == "rest_api" %}
+                                <span class="verbindung-chip">
+                                    Lizenzdaten
+                                </span>
+
+                                {% if quelle.zuweisungen_endpunkt %}
+                                    <span class="verbindung-chip erfolg">
+                                        Benutzerzuweisungen verbunden
+                                    </span>
+                                {% else %}
+                                    <span class="verbindung-chip dezent">
+                                        Nur Lizenzdaten
+                                    </span>
+                                {% endif %}
+
+                                {% if quelle.auth_anzeige %}
+                                    <span class="verbindung-chip">
+                                        {{ quelle.auth_anzeige }}
+                                    </span>
+                                {% else %}
+                                    <span class="verbindung-chip">
+                                        Keine Anmeldung
+                                    </span>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div
+                        class="
+                            verbindung-automatik
+                            {% if quelle.automatische_synchronisation %}
+                                aktiv
+                            {% endif %}
+                        "
+                    >
+                        <div class="verbindung-automatik-kopf">
+                            <span class="verbindung-automatik-label">
+                                Automatische Synchronisation
+                            </span>
+
+                            <div class="verbindung-automatik-rechts">
+                                <span class="verbindung-automatik-status">
+                                    {% if quelle.automatische_synchronisation %}
+                                        {{ quelle.sync_intervall_anzeige|default:"Aktiv" }}
+                                    {% else %}
+                                        Aus
+                                    {% endif %}
+                                </span>
+
+                                <button
+                                    type="button"
+                                    class="
+                                        verbindung-automatik-einstellen
+                                        datenquelle-oeffnen-button
+                                    "
+                                    data-url="{% url 'datenquelle_automatik' quelle.id %}?modal=1"
+                                    data-titel="Automatische Synchronisation"
+                                >
+                                    Ändern
+                                </button>
+                            </div>
+                        </div>
+
+                        {% if quelle.automatische_synchronisation and quelle.naechste_synchronisation_anzeige %}
+                            <span class="verbindung-automatik-hinweis">
+                                Nächster Lauf:
+                                {{ quelle.naechste_synchronisation_anzeige }}
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="verbindung-fuss">
+                        <div class="verbindung-fuss-text">
+                            {% if quelle.synchronisierung_laeuft %}
+                                Synchronisierung läuft gerade.
+                            {% elif quelle.kann_synchronisieren %}
+                                Daten abrufen und mit dem lokalen
+                                Bestand abgleichen.
+                            {% else %}
+                                Verbindung ist eingerichtet.
+                            {% endif %}
+                        </div>
+
+                        <div
+                            class="verbindung-aktionen"
+                        >
+                            {% if quelle.url %}
+                                <a
+                                    href="{{ quelle.url }}"
+                                    class="aktion-sekundaer"
+                                >
+                                    Öffnen
+                                </a>
+                            {% endif %}
+
+                            {% if quelle.typ == "csv" or quelle.typ == "rest_api" %}
+                                <button
+                                    type="button"
+                                    class="
+                                        aktion-sekundaer
+                                        datenquelle-oeffnen-button
+                                    "
+                                    {% if quelle.typ == "csv" %}
+                                        data-url="{% url 'csv_datenquelle_bearbeiten' quelle.id %}?modal=1"
+                                        data-titel="CSV-Datenquelle bearbeiten"
+                                    {% else %}
+                                        data-url="{% url 'datenquelle_bearbeiten' quelle.id %}?modal=1"
+                                        data-titel="REST-API-Verbindung bearbeiten"
+                                    {% endif %}
+                                >
+                                    Bearbeiten
+                                </button>
+
+                                <details class="karten-menue">
+                                    <summary
+                                        aria-label="Weitere Aktionen"
+                                        title="Weitere Aktionen"
+                                    >
+                                        Mehr
+                                    </summary>
+
+                                    <div class="karten-menue-inhalt">
+                                        {% if quelle.aktiv %}
+                                            <form
+                                                method="post"
+                                                action="{% url 'datenquelle_deaktivieren' quelle.id %}"
+                                                class="sync-formular"
+                                            >
+                                                {% csrf_token %}
+
+                                                <button
+                                                    type="submit"
+                                                    class="aktion-sekundaer"
+                                                >
+                                                    Deaktivieren
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <form
+                                                method="post"
+                                                action="{% url 'datenquelle_reaktivieren' quelle.id %}"
+                                                class="sync-formular"
+                                            >
+                                                {% csrf_token %}
+
+                                                <button
+                                                    type="submit"
+                                                    class="aktion-sekundaer"
+                                                >
+                                                    Aktivieren
+                                                </button>
+                                            </form>
+                                        {% endif %}
+
+                                        <form
+                                            method="post"
+                                            action="{% url 'datenquelle_loeschen' quelle.id %}"
+                                            class="sync-formular"
+                                            onsubmit="return confirm(
+                                                'Soll die Datenquelle „{{ quelle.name|escapejs }}“ wirklich endgültig gelöscht werden?'
+                                            );"
+                                        >
+                                            {% csrf_token %}
+
+                                            <button
+                                                type="submit"
+                                                class="
+                                                    aktion-sekundaer
+                                                    aktion-gefahr
+                                                "
+                                            >
+                                                Löschen
+                                            </button>
+                                        </form>
+                                    </div>
+                                </details>
+                            {% endif %}
+
+                            {% if quelle.kann_synchronisieren %}
+                                <form
+                                    method="post"
+                                    action="{% url 'datenquelle_synchronisieren' quelle.id %}"
+                                    class="
+                                        sync-formular
+                                        synchronisieren-formular
+                                    "
+                                >
+                                    {% csrf_token %}
+
+                                    <button
+                                        type="submit"
+                                        class="aktion-primaer"
+                                        {% if quelle.synchronisierung_laeuft %}
+                                            disabled
+                                        {% endif %}
+                                    >
+                                        {% if quelle.synchronisierung_laeuft %}
+                                            Läuft …
+                                        {% else %}
+                                            Synchronisieren
+                                        {% endif %}
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </article>
+            {% empty %}
+                <div class="verbindungen-leer">
+                    <strong>
+                        Noch keine Datenquelle eingerichtet
+                    </strong>
+
+                    <p>
+                        Über „Neue Verbindung“ kannst du eine
+                        REST-API einrichten.
+                    </p>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <details class="synchronisationsverlauf aktivitaeten-gesamt">
+        <summary class="aktivitaeten-gesamt-kopf">
+            <div>
+                <h2>
+                    Letzte Aktivitäten
+                </h2>
+
+                <p>
+                    Synchronisationsverlauf anzeigen
+                </p>
+            </div>
+
+            <div class="aktivitaeten-gesamt-rechts">
+                <span
+                    class="bereich-anzahl"
+                    id="aktivitaeten-anzahl"
+                >
+                    {{ synchronisationslaeufe|length }}
+                </span>
+            </div>
+        </summary>
+
+        <div class="aktivitaeten-liste">
+            {% if synchronisationslaeufe %}
+                <div class="aktivitaeten-filter">
+                    <label>
+                        <span>Datenquelle</span>
+
+                        <select id="aktivitaeten-filter-quelle">
+                            <option value="">
+                                Alle Datenquellen
+                            </option>
+                        </select>
+                    </label>
+
+                    <label>
+                        <span>Status</span>
+
+                        <select id="aktivitaeten-filter-status">
+                            <option value="">Alle Status</option>
+                            <option value="ok">Erfolgreich</option>
+                            <option value="teilweise_erfolgreich">
+                                Teilweise erfolgreich
+                            </option>
+                            <option value="fehler">
+                                Fehlgeschlagen
+                            </option>
+                            <option value="laeuft">Läuft</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        <span>Ausführung</span>
+
+                        <select id="aktivitaeten-filter-ausfuehrung">
+                            <option value="">Alle Ausführungen</option>
+                            <option value="manuell">Manuell</option>
+                            <option value="automatisch">
+                                Automatisch
+                            </option>
+                        </select>
+                    </label>
+
+                    <button
+                        type="button"
+                        id="aktivitaeten-filter-zuruecksetzen"
+                        class="aktivitaeten-filter-reset"
+                    >
+                        Zurücksetzen
+                    </button>
+                </div>
+            {% endif %}
+
+            {% for lauf in synchronisationslaeufe %}
+                <details
+                    class="aktivitaet"
+                    data-quelle="{{ lauf.datenquelle_name|escape }}"
+                    data-status="{{ lauf.status|escape }}"
+                    data-ausfuehrung="{{ lauf.ausgeloest_durch|escape }}"
+                >
+                    <summary>
+                        <div class="aktivitaet-hauptbereich">
+                            <div class="aktivitaet-kopfzeile">
+                                <strong>
+                                    {{ lauf.datenquelle_name }}
+                                </strong>
+
+                                <span class="aktivitaet-meta">
+                                    {{ lauf.gestartet_anzeige }}
+                                    ·
+                                    {% if lauf.ausgeloest_durch == "manuell" %}
+                                        Manuell
+                                    {% else %}
+                                        {{ lauf.ausgeloest_durch }}
+                                    {% endif %}
+                                </span>
+                            </div>
+
+                        </div>
+
+                        <div class="aktivitaet-rechts">
+                            <span
+                                class="
+                                    aktivitaet-status
+                                    {{ lauf.status }}
+                                "
+                            >
+                                {% if lauf.status == "ok" %}
+                                    Erfolgreich
+                                {% elif lauf.status == "teilweise_erfolgreich" %}
+                                    Teilweise erfolgreich
+                                {% elif lauf.status == "fehler" %}
+                                    Fehlgeschlagen
+                                {% elif lauf.status == "laeuft" %}
+                                    Läuft
+                                {% else %}
+                                    {{ lauf.status }}
+                                {% endif %}
+                            </span>
+
+                            <span class="aktivitaet-details-pill">
+                                Details
+                                <span class="aktivitaet-pfeil">⌄</span>
+                            </span>
+
+                        </div>
+                    </summary>
+
+                    <div class="aktivitaet-details">
+                        <div class="aktivitaet-details-inhalt">
+                            <div class="aktivitaet-detail">
+                                <span>Gestartet</span>
+                                <strong>
+                                    {{ lauf.gestartet_anzeige }}
+                                </strong>
+                            </div>
+
+                            <div class="aktivitaet-detail">
+                                <span>Beendet</span>
+                                <strong>
+                                    {% if lauf.beendet_am %}
+                                        {{ lauf.beendet_anzeige }}
+                                    {% else %}
+                                        Noch nicht beendet
+                                    {% endif %}
+                                </strong>
+                            </div>
+
+                            <div class="aktivitaet-detail">
+                                <span>Dauer</span>
+                                <strong>
+                                    {% if lauf.dauer_sekunden is not None %}
+                                        {% if lauf.dauer_sekunden == 0 %}
+                                            Unter 1 Sekunde
+                                        {% else %}
+                                            {{ lauf.dauer_sekunden }}
+                                            Sekunden
+                                        {% endif %}
+                                    {% else %}
+                                        –
+                                    {% endif %}
+                                </strong>
+                            </div>
+
+                            <div class="aktivitaet-detail">
+                                <span>Ausführung</span>
+                                <strong>
+                                    {% if lauf.ausgeloest_durch == "manuell" %}
+                                        Manuell
+                                    {% else %}
+                                        {{ lauf.ausgeloest_durch }}
+                                    {% endif %}
+                                </strong>
+                            </div>
+                        </div>
+
+                        {% if lauf.angelegt or lauf.aktualisiert or lauf.deaktiviert or lauf.unveraendert or lauf.fehlerhaft %}
+                            <div class="aktivitaet-zaehler">
+                                {% if lauf.angelegt %}
+                                    <span>
+                                        {{ lauf.angelegt }} neu
+                                    </span>
+                                {% endif %}
+
+                                {% if lauf.aktualisiert %}
+                                    <span>
+                                        {{ lauf.aktualisiert }}
+                                        aktualisiert
+                                    </span>
+                                {% endif %}
+
+                                {% if lauf.deaktiviert %}
+                                    <span>
+                                        {{ lauf.deaktiviert }}
+                                        deaktiviert
+                                    </span>
+                                {% endif %}
+
+                                {% if lauf.unveraendert %}
+                                    <span>
+                                        {{ lauf.unveraendert }}
+                                        unverändert
+                                    </span>
+                                {% endif %}
+
+                                {% if lauf.fehlerhaft %}
+                                    <span>
+                                        {{ lauf.fehlerhaft }}
+                                        fehlerhaft
+                                    </span>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+
+                        {% if lauf.zuweisungen_verarbeitet or lauf.zuweisungen_neu or lauf.zuweisungen_reaktiviert or lauf.zuweisungen_bereits_aktiv or lauf.zuweisungen_deaktiviert or lauf.zuweisungen_fehlerhaft %}
+                            <div class="aktivitaet-zaehler">
+                                <span>
+                                    Benutzerzuweisungen:
+                                    {{ lauf.zuweisungen_verarbeitet }}
+                                    verarbeitet
+                                </span>
+
+                                {% if lauf.zuweisungen_neu %}
+                                    <span>
+                                        {{ lauf.zuweisungen_neu }} neu
+                                    </span>
+                                {% endif %}
+
+                                {% if lauf.zuweisungen_reaktiviert %}
+                                    <span>
+                                        {{ lauf.zuweisungen_reaktiviert }}
+                                        reaktiviert
+                                    </span>
+                                {% endif %}
+
+                                {% if lauf.zuweisungen_bereits_aktiv %}
+                                    <span>
+                                        {{ lauf.zuweisungen_bereits_aktiv }}
+                                        bereits aktiv
+                                    </span>
+                                {% endif %}
+
+                                {% if lauf.zuweisungen_deaktiviert %}
+                                    <span>
+                                        {{ lauf.zuweisungen_deaktiviert }}
+                                        deaktiviert
+                                    </span>
+                                {% endif %}
+
+                            </div>
+                        {% endif %}
+
+                        {% if lauf.konfliktdetails %}
+                            <details class="aktivitaet-konflikt konflikt-panel">
+                                <summary class="konflikt-panel-summary">
+                                    <div class="konflikt-panel-links">
+                                        <strong>
+                                            Zuordnung prüfen
+                                        </strong>
+
+                                        <span>
+                                            {{ lauf.zuweisungen_konflikte }}
+                                            Einträge prüfen
+                                        </span>
+                                    </div>
+
+                                    <div class="konflikt-panel-rechts">
+                                        {% if lauf.zuweisungen_nicht_gefunden %}
+                                            <span>
+                                                {{ lauf.zuweisungen_nicht_gefunden }}
+                                                Benutzer fehlt
+                                            </span>
+                                        {% endif %}
+
+                                        {% if lauf.zuweisungen_mehrdeutig %}
+                                            <span>
+                                                {{ lauf.zuweisungen_mehrdeutig }}
+                                                mehrdeutig
+                                            </span>
+                                        {% endif %}
+
+                                        {% if lauf.zuweisungen_fehlerhaft %}
+                                            <span>
+                                                {{ lauf.zuweisungen_fehlerhaft }}
+                                                nicht automatisch zugeordnet
+                                            </span>
+                                        {% endif %}
+
+                                        <b class="konflikt-panel-toggle">
+                                            Details
+                                            <i>⌄</i>
+                                        </b>
+                                    </div>
+                                </summary>
+
+                                <div class="konflikt-liste">
+                                    {% for konflikt in lauf.konfliktdetails %}
+                                        <div class="konflikt-eintrag">
+                                            <div class="konflikt-kopf">
+                                                {% if konflikt.typ == "benutzer_nicht_gefunden" or konflikt.typ == "nicht_gefunden" %}
+                                                    <span class="konflikt-symbol kritisch">!</span>
+                                                    <strong>Benutzer nicht zugeordnet</strong>
+                                                {% elif konflikt.typ == "mehrdeutiger_benutzer" or konflikt.typ == "mehrdeutig" %}
+                                                    <span class="konflikt-symbol warnung">?</span>
+                                                    <strong>Benutzer mehrfach gefunden</strong>
+                                                {% elif konflikt.typ == "lizenzzuordnung_nicht_eindeutig" %}
+                                                    <span class="konflikt-symbol warnung">?</span>
+                                                    <strong>Zuordnung nicht eindeutig</strong>
+                                                {% elif konflikt.typ == "lizenz_nicht_gefunden" or konflikt.typ == "zuweisung_fehlgeschlagen" %}
+                                                    <span class="konflikt-symbol kritisch">!</span>
+                                                    <strong>Lizenz nicht automatisch erkannt</strong>
+                                                {% else %}
+                                                    <span class="konflikt-symbol warnung">!</span>
+                                                    <strong>Prüfung erforderlich</strong>
+                                                {% endif %}
+                                            </div>
+
+                                            <div class="konflikt-meta">
+                                                {% if konflikt.email %}
+                                                    <span>{{ konflikt.email }}</span>
+                                                {% endif %}
+
+                                                {% if konflikt.benutzername %}
+                                                    <span>{{ konflikt.benutzername }}</span>
+                                                {% endif %}
+
+                                                {% if konflikt.externe_lizenz_id %}
+                                                    <span>{{ konflikt.externe_lizenz_id }}</span>
+                                                {% endif %}
+
+                                                {% if konflikt.lizenzname %}
+                                                    <span>{{ konflikt.lizenzname }}</span>
+                                                {% endif %}
+
+                                                {% if konflikt.anzahl_zuweisungen %}
+                                                    <span>
+                                                        {{ konflikt.anzahl_zuweisungen }}
+                                                        Benutzer oder Geräte
+                                                    </span>
+                                                {% endif %}
+
+                                                {% if konflikt.trefferanzahl %}
+                                                    <span>{{ konflikt.trefferanzahl }} Treffer</span>
+                                                {% endif %}
+
+                                                {% if konflikt.gefunden_ueber %}
+                                                    <span>über {{ konflikt.gefunden_ueber }}</span>
+                                                {% endif %}
+
+                                                {% if konflikt.meldung %}
+                                                    <span>{{ konflikt.meldung }}</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </details>
+                        {% elif lauf.zuweisungen_nicht_gefunden or lauf.zuweisungen_mehrdeutig or lauf.zuweisungen_fehlerhaft %}
+                            <div class="aktivitaet-konflikt">
+                                <strong>
+                                    Zuordnung prüfen
+                                </strong>
+                            </div>
+                        {% endif %}
+
+                        {% if lauf.fehlerdetails %}
+                            <div class="aktivitaet-fehler">
+                                {{ lauf.fehlerdetails }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </details>
+            {% empty %}
+                <div class="synchronisationsverlauf-leer">
+                    Noch keine Aktivitäten vorhanden.
+                </div>
+            {% endfor %}
+
+            {% if synchronisationslaeufe %}
+                <div
+                    id="aktivitaeten-filter-leer"
+                    class="synchronisationsverlauf-leer"
+                    hidden
+                >
+                    Keine Aktivitäten entsprechen den
+                    ausgewählten Filtern.
+                </div>
+            {% endif %}
+        </div>
+    </details>
+
+</div>
+
+<div
+    class="datenquelle-modal-overlay versteckt"
+    id="datenquelle-modal-overlay"
+>
+    <div class="datenquelle-modal-box">
+        <div class="datenquelle-modal-kopf">
+            <strong id="datenquelle-modal-titel">
+                Neue Datenquelle
+            </strong>
+
+            <button
+                type="button"
+                class="datenquelle-modal-schliessen"
+                id="datenquelle-modal-schliessen"
+                aria-label="Dialog schließen"
+            >
+                ×
+            </button>
+        </div>
+
+        <iframe
+            class="datenquelle-modal-frame"
+            id="datenquelle-modal-frame"
+            title="Datenquelle einrichten"
+        ></iframe>
+    </div>
+</div>
+
+<script>
+    const datenquelleOeffnenButtons =
+        document.querySelectorAll(
+            ".datenquelle-oeffnen-button"
+        );
+
+    const datenquelleModalOverlay =
+        document.getElementById(
+            "datenquelle-modal-overlay"
+        );
+
+    const datenquelleModalFrame =
+        document.getElementById(
+            "datenquelle-modal-frame"
+        );
+
+    const datenquelleModalTitel =
+        document.getElementById(
+            "datenquelle-modal-titel"
+        );
+
+    const datenquelleModalSchliessenButton =
+        document.getElementById(
+            "datenquelle-modal-schliessen"
+        );
+
+
+    function datenquelleModalOeffnen(event) {
+        if (
+            !datenquelleModalOverlay
+            || !datenquelleModalFrame
+        ) {
+            return;
+        }
+
+        const button = event.currentTarget;
+
+        const zielUrl =
+            button.dataset.url
+            || "{% url 'synchronisation_hinzufuegen' %}?modal=1";
+
+        const titel =
+            button.dataset.titel
+            || "Neue Datenquelle";
+
+        datenquelleModalFrame.src = zielUrl;
+
+        if (datenquelleModalTitel) {
+            datenquelleModalTitel.textContent =
+                titel;
+        }
+
+        datenquelleModalOverlay.classList.remove(
+            "versteckt"
+        );
+
+        document.body.style.overflow = "hidden";
+    }
+
+
+    function datenquelleModalSchliessen() {
+        if (
+            !datenquelleModalOverlay
+            || !datenquelleModalFrame
+        ) {
+            return;
+        }
+
+        datenquelleModalFrame.src = "";
+
+        datenquelleModalOverlay.classList.add(
+            "versteckt"
+        );
+
+        document.body.style.overflow = "";
+    }
+
+
+    datenquelleOeffnenButtons.forEach(
+        function (button) {
+            button.addEventListener(
+                "click",
+                datenquelleModalOeffnen
+            );
+        }
+    );
+
+    document.addEventListener(
+        "click",
+        function (event) {
+            document.querySelectorAll(
+                ".karten-menue[open]"
+            ).forEach(function (menue) {
+                if (!menue.contains(event.target)) {
+                    menue.open = false;
+                }
+            });
+        }
+    );
+
+
+    if (datenquelleModalSchliessenButton) {
+        datenquelleModalSchliessenButton
+            .addEventListener(
+                "click",
+                datenquelleModalSchliessen
+            );
+    }
+
+
+    if (datenquelleModalOverlay) {
+        datenquelleModalOverlay.addEventListener(
+            "click",
+            function (event) {
+                if (
+                    event.target
+                    === datenquelleModalOverlay
+                ) {
+                    datenquelleModalSchliessen();
+                }
+            }
+        );
+    }
+
+
+    window.addEventListener(
+        "message",
+        function (event) {
+            if (
+                event.origin
+                !== window.location.origin
+            ) {
+                return;
+            }
+
+            if (
+                event.data
+                === "datenquelle_modal_schliessen"
+            ) {
+                datenquelleModalSchliessen();
+                return;
+            }
+
+            if (
+                event.data
+                && event.data.type
+                    === "datenquelle_gespeichert"
+            ) {
+                datenquelleModalSchliessen();
+                window.location.reload();
+            }
+        }
+    );
+
+
+    document
+        .querySelectorAll(
+            ".synchronisieren-formular"
+        )
+        .forEach(function (formular) {
+            formular.addEventListener(
+                "submit",
+                function () {
+                    const button =
+                        formular.querySelector(
+                            ".aktion-primaer"
+                        );
+
+                    if (!button) {
+                        return;
+                    }
+
+                    button.disabled = true;
+                    button.textContent =
+                        "Läuft …";
+                }
+            );
+        });
+
+
+    document.addEventListener(
+        "keydown",
+        function (event) {
+            if (event.key === "Escape") {
+                document.querySelectorAll(
+                    ".karten-menue[open]"
+                ).forEach(function (menue) {
+                    menue.open = false;
+                });
+            }
+
+            if (
+                event.key === "Escape"
+                && datenquelleModalOverlay
+                && !datenquelleModalOverlay
+                    .classList.contains("versteckt")
+            ) {
+                datenquelleModalSchliessen();
+            }
+        }
+    );
+
+    const aktivitaeten = Array.from(
+        document.querySelectorAll(".aktivitaet")
+    );
+
+    const aktivitaetenQuelle =
+        document.getElementById(
+            "aktivitaeten-filter-quelle"
+        );
+
+    const aktivitaetenStatus =
+        document.getElementById(
+            "aktivitaeten-filter-status"
+        );
+
+    const aktivitaetenAusfuehrung =
+        document.getElementById(
+            "aktivitaeten-filter-ausfuehrung"
+        );
+
+    const aktivitaetenReset =
+        document.getElementById(
+            "aktivitaeten-filter-zuruecksetzen"
+        );
+
+    const aktivitaetenAnzahl =
+        document.getElementById(
+            "aktivitaeten-anzahl"
+        );
+
+    const aktivitaetenLeer =
+        document.getElementById(
+            "aktivitaeten-filter-leer"
+        );
+
+
+    function filterwertNormalisieren(wert) {
+        return String(wert || "")
+            .trim()
+            .toLocaleLowerCase("de");
+    }
+
+
+    function aktivitaetenQuellenFuellen() {
+        if (!aktivitaetenQuelle) {
+            return;
+        }
+
+        const quellen = Array.from(
+            new Set(
+                aktivitaeten
+                    .map(function (aktivitaet) {
+                        return aktivitaet.dataset.quelle || "";
+                    })
+                    .filter(Boolean)
+            )
+        ).sort(function (a, b) {
+            return a.localeCompare(b, "de");
+        });
+
+        quellen.forEach(function (quelle) {
+            const option =
+                document.createElement("option");
+
+            option.value = quelle;
+            option.textContent = quelle;
+
+            aktivitaetenQuelle.appendChild(option);
+        });
+    }
+
+
+    function aktivitaetenFiltern() {
+        const quelle = filterwertNormalisieren(
+            aktivitaetenQuelle
+                ? aktivitaetenQuelle.value
+                : ""
+        );
+
+        const status = filterwertNormalisieren(
+            aktivitaetenStatus
+                ? aktivitaetenStatus.value
+                : ""
+        );
+
+        const ausfuehrung = filterwertNormalisieren(
+            aktivitaetenAusfuehrung
+                ? aktivitaetenAusfuehrung.value
+                : ""
+        );
+
+        let sichtbar = 0;
+
+        aktivitaeten.forEach(function (aktivitaet) {
+            const passtQuelle =
+                !quelle
+                || filterwertNormalisieren(
+                    aktivitaet.dataset.quelle
+                ) === quelle;
+
+            const passtStatus =
+                !status
+                || filterwertNormalisieren(
+                    aktivitaet.dataset.status
+                ) === status;
+
+            const passtAusfuehrung =
+                !ausfuehrung
+                || filterwertNormalisieren(
+                    aktivitaet.dataset.ausfuehrung
+                ) === ausfuehrung;
+
+            const passt =
+                passtQuelle
+                && passtStatus
+                && passtAusfuehrung;
+
+            aktivitaet.hidden = !passt;
+
+            if (passt) {
+                sichtbar += 1;
+            }
+        });
+
+        if (aktivitaetenAnzahl) {
+            aktivitaetenAnzahl.textContent =
+                String(sichtbar);
+        }
+
+        if (aktivitaetenLeer) {
+            aktivitaetenLeer.hidden =
+                sichtbar !== 0;
+        }
+    }
+
+
+    aktivitaetenQuellenFuellen();
+
+    [
+        aktivitaetenQuelle,
+        aktivitaetenStatus,
+        aktivitaetenAusfuehrung,
+    ].forEach(function (filter) {
+        if (filter) {
+            filter.addEventListener(
+                "change",
+                aktivitaetenFiltern
+            );
+        }
+    });
+
+
+    if (aktivitaetenReset) {
+        aktivitaetenReset.addEventListener(
+            "click",
+            function () {
+                if (aktivitaetenQuelle) {
+                    aktivitaetenQuelle.value = "";
+                }
+
+                if (aktivitaetenStatus) {
+                    aktivitaetenStatus.value = "";
+                }
+
+                if (aktivitaetenAusfuehrung) {
+                    aktivitaetenAusfuehrung.value = "";
+                }
+
+                aktivitaetenFiltern();
+            }
+        );
+    }
+
+</script>
+
+<style>
+    .datenquellen-filterleiste {
+        display: grid;
+        grid-template-columns:
+            minmax(0, 1fr)
+            minmax(260px, 320px);
+        align-items: center;
+        gap: 24px;
+        margin: 18px 0 22px;
+        padding: 12px;
+        border: 1px solid #e3e7e4;
+        border-radius: 14px;
+        background: #ffffff;
+        box-shadow:
+            0 4px 16px rgba(28, 74, 39, 0.04);
+    }
+
+    .datenquellen-typenfilter {
+        display: inline-flex;
+        align-items: center;
+        justify-self: start;
+        gap: 4px;
+        padding: 4px;
+        border: 1px solid #e5ebe6;
+        border-radius: 12px;
+        background: #f7faf7;
+    }
+
+    .datenquellen-filter {
+        min-height: 38px;
+        padding: 8px 16px;
+        border: 1px solid transparent;
+        border-radius: 9px;
+        background: transparent;
+        color: #536057;
+        font: inherit;
+        font-size: 0.9rem;
+        font-weight: 650;
+        cursor: pointer;
+        transition:
+            background 160ms ease,
+            color 160ms ease,
+            border-color 160ms ease,
+            box-shadow 160ms ease;
+    }
+
+    .datenquellen-filter:hover {
+        background: #edf5ee;
+        color: #1f5f2f;
+    }
+
+    .datenquellen-filter.aktiv {
+        border-color: #9fc7a6;
+        background: #e7f3e9;
+        color: #23662f;
+        box-shadow:
+            0 2px 8px rgba(45, 123, 56, 0.10);
+    }
+
+    .datenquellen-suche {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+        justify-self: stretch;
+        min-height: 42px;
+        padding: 0 13px;
+        border: 1px solid #dce5dd;
+        border-radius: 11px;
+        background: #f8faf8;
+        color: #7c8a80;
+        transition:
+            border-color 160ms ease,
+            background 160ms ease,
+            box-shadow 160ms ease;
+    }
+
+    .datenquellen-suche:focus-within {
+        border-color: #5fa56b;
+        background: #ffffff;
+        box-shadow:
+            0 0 0 3px rgba(56, 142, 67, 0.12);
+    }
+
+    .datenquellen-suche input {
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: #0f172a;
+        font: inherit;
+    }
+
+    .datenquellen-suche input::placeholder {
+        color: #94a3b8;
+    }
+
+    .datenquellen-statushinweis {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        width: fit-content;
+        max-width: 100%;
+        margin: 8px 0 10px;
+        padding: 4px 8px;
+        box-sizing: border-box;
+        border: 0;
+        border-radius: 8px;
+        background: transparent;
+        color: #748078;
+        font-size: 0.78rem;
+        font-weight: 550;
+        line-height: 1.35;
+    }
+
+    .datenquellen-statushinweis.erfolg {
+        color: #5f7b64;
+    }
+
+    .datenquellen-statushinweis.fehler {
+        color: #a35b54;
+    }
+
+    .datenquellen-statushinweis-punkt {
+        width: 5px;
+        height: 5px;
+        flex: 0 0 5px;
+        border-radius: 50%;
+        background: currentColor;
+        opacity: 0.65;
+    }
+
+    .datenquellen-statushinweis strong {
+        display: block;
+        font-size: 13px;
+        margin-bottom: 2px;
+    }
+
+    .datenquellen-statushinweis small {
+        display: block;
+        font-size: 12px;
+        line-height: 1.4;
+        opacity: .85;
+    }
+
+    .datenquellen-statusinhalt {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .datenquellen-filter-leer {
+        margin: 18px 0;
+        padding: 20px;
+        border: 1px dashed #cbd5e1;
+        border-radius: 12px;
+        background: #f8fafc;
+        color: #64748b;
+        text-align: center;
+    }
+
+    .verbindung-karte.datenquelle-ausgeblendet {
+        display: none;
+    }
+
+    @media (max-width: 850px) {
+        .datenquellen-filterleiste {
+            grid-template-columns: 1fr;
+            align-items: stretch;
+            gap: 12px;
+        }
+
+        .datenquellen-suche {
+            width: 100%;
+        }
+    }
+
+    .aktivitaet-hinweis {
+        margin-top: 14px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: #f4fbf2;
+        border: 1px solid #d7ead2;
+        color: #2f6b2f;
+        font-size: 13px;
+        line-height: 1.45;
+    }
+
+    .aktivitaet-details-inhalt {
+        background: #f8faf8;
+        border-radius: 14px;
+        padding: 14px;
+        border: 1px solid #edf2ed;
+    }
+
+    .aktivitaet-zaehler {
+        margin-top: 12px;
+    }
+
+
+
+    .aktivitaet summary {
+        padding: 14px 18px;
+        min-height: unset;
+    }
+
+    .aktivitaet-hauptbereich {
+        gap: 2px;
+    }
+
+    .aktivitaet-kopfzeile {
+        margin-bottom: 2px;
+    }
+
+    .aktivitaet-meldung {
+        margin-top: 0;
+        line-height: 1.2;
+    }
+
+    .aktivitaet {
+        min-height: unset;
+    }
+
+
+    .synchronisationsverlauf .aktivitaet > summary {
+        padding: 10px 18px !important;
+        min-height: 0 !important;
+    }
+
+    .synchronisationsverlauf .aktivitaet-hauptbereich {
+        gap: 0 !important;
+    }
+
+    .synchronisationsverlauf .aktivitaet-kopfzeile {
+        margin-bottom: 0 !important;
+        line-height: 1.2 !important;
+    }
+
+    .synchronisationsverlauf .aktivitaet-meldung {
+        margin-top: 2px !important;
+        line-height: 1.15 !important;
+        font-size: 12px !important;
+    }
+
+    .synchronisationsverlauf .aktivitaet {
+        min-height: 0 !important;
+    }
+
+
+    .synchronisationsverlauf .aktivitaet > summary {
+        padding: 10px 19px !important;
+    }
+
+    .aktivitaet-rechts {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .aktivitaet-details-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        color: #64748b;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .aktivitaet-pfeil {
+        background: transparent !important;
+        width: auto !important;
+        height: auto !important;
+        color: #64748b !important;
+    }
+
+
+/* wirklich kompakter aktivitaeten-verlauf */
+
+    .synchronisationsverlauf .aktivitaet > summary {
+        padding: 12px 24px !important;
+        min-height: auto !important;
+        align-items: center !important;
+    }
+
+    .synchronisationsverlauf .aktivitaet-hauptbereich {
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+        min-height: 0 !important;
+    }
+
+    .synchronisationsverlauf .aktivitaet-kopfzeile {
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+        margin: 0 !important;
+    }
+
+    .synchronisationsverlauf .aktivitaet-kopfzeile strong {
+        font-size: 15px !important;
+        line-height: 1.2 !important;
+    }
+
+    .synchronisationsverlauf .aktivitaet-meta {
+        font-size: 13px !important;
+        line-height: 1.2 !important;
+    }
+
+    .synchronisationsverlauf .aktivitaet-meldung {
+        display: none !important;
+    }
+
+    .synchronisationsverlauf .aktivitaet-rechts {
+        margin-left: auto !important;
+    }
+
+
+/* finaler kompakter aktivitaeten-verlauf */
+.synchronisationsverlauf .aktivitaet > summary {
+    display: flex !important;
+    align-items: center !important;
+    padding: 8px 18px !important;
+    min-height: 0 !important;
+    height: auto !important;
+}
+
+.synchronisationsverlauf .aktivitaet-hauptbereich {
+    display: block !important;
+    min-height: 0 !important;
+}
+
+.synchronisationsverlauf .aktivitaet-kopfzeile {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.1 !important;
+}
+
+.synchronisationsverlauf .aktivitaet-kopfzeile strong,
+.synchronisationsverlauf .aktivitaet-meta {
+    line-height: 1.1 !important;
+}
+
+.synchronisationsverlauf .aktivitaet-meldung {
+    display: none !important;
+}
+
+.synchronisationsverlauf .aktivitaet-rechts {
+    margin-left: auto !important;
+}
+
+
+/* FINAL: Aktivitätsliste kompakt */
+details.aktivitaet > summary {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    box-sizing: border-box !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    max-height: 48px !important;
+    padding: 0 18px !important;
+    gap: 14px !important;
+    overflow: hidden !important;
+}
+
+details.aktivitaet > summary:hover {
+    background: #fafbfb !important;
+}
+
+details.aktivitaet .aktivitaet-hauptbereich {
+    display: flex !important;
+    align-items: center !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    height: 100% !important;
+}
+
+details.aktivitaet .aktivitaet-kopfzeile {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+    min-height: 0 !important;
+}
+
+details.aktivitaet .aktivitaet-kopfzeile strong {
+    font-size: 14px !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+}
+
+details.aktivitaet .aktivitaet-meta {
+    font-size: 12px !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+    color: #64748b !important;
+}
+
+details.aktivitaet .aktivitaet-meldung {
+    display: none !important;
+}
+
+details.aktivitaet .aktivitaet-rechts {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    margin-left: auto !important;
+    height: 100% !important;
+}
+
+details.aktivitaet .aktivitaet-status {
+    line-height: 1 !important;
+    padding: 6px 10px !important;
+}
+
+details.aktivitaet .aktivitaet-details-pill {
+    line-height: 1 !important;
+}
+
+
+/* ultra kompakte Aktivitätsliste */
+details.aktivitaet > summary {
+    height: 36px !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+    padding: 0 16px !important;
+}
+
+details.aktivitaet .aktivitaet-kopfzeile strong {
+    font-size: 13px !important;
+}
+
+details.aktivitaet .aktivitaet-meta {
+    font-size: 11px !important;
+}
+
+details.aktivitaet .aktivitaet-status {
+    font-size: 11px !important;
+    padding: 4px 8px !important;
+}
+
+details.aktivitaet .aktivitaet-details-pill {
+    font-size: 11px !important;
+}
+
+details.aktivitaet .aktivitaet-details {
+    padding: 8px 16px 12px !important;
+}
+
+
+/* FINAL WIRKLICH LETZTER OVERRIDE: kompakte Aktivitätszeilen */
+details.aktivitaet > summary {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
+    padding: 0 16px !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+}
+
+details.aktivitaet .aktivitaet-hauptbereich {
+    display: flex !important;
+    align-items: center !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+details.aktivitaet .aktivitaet-kopfzeile {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+}
+
+details.aktivitaet .aktivitaet-kopfzeile strong {
+    font-size: 13px !important;
+    line-height: 1 !important;
+}
+
+details.aktivitaet .aktivitaet-meta {
+    font-size: 11px !important;
+    line-height: 1 !important;
+}
+
+details.aktivitaet .aktivitaet-rechts {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    height: 100% !important;
+    margin: 0 0 0 auto !important;
+    padding: 0 !important;
+}
+
+details.aktivitaet .aktivitaet-status {
+    font-size: 11px !important;
+    line-height: 1 !important;
+    padding: 4px 8px !important;
+}
+
+details.aktivitaet .aktivitaet-details-pill {
+    font-size: 11px !important;
+    line-height: 1 !important;
+}
+
+details.aktivitaet .aktivitaet-meldung {
+    display: none !important;
+}
+
+
+/* Aktivitätsliste: kompakt aber lesbar */
+details.aktivitaet > summary {
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    padding: 0 18px !important;
+}
+
+details.aktivitaet .aktivitaet-hauptbereich {
+    flex: 1 1 auto !important;
+    max-width: none !important;
+}
+
+details.aktivitaet .aktivitaet-kopfzeile {
+    gap: 12px !important;
+}
+
+details.aktivitaet .aktivitaet-kopfzeile strong {
+    min-width: 150px !important;
+    font-size: 14px !important;
+}
+
+details.aktivitaet .aktivitaet-meta {
+    font-size: 12px !important;
+}
+
+details.aktivitaet .aktivitaet-rechts {
+    min-width: 150px !important;
+    justify-content: flex-end !important;
+}
+
+
+/* Detail-Zähler nebeneinander */
+details.aktivitaet .aktivitaet-zaehler {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 6px !important;
+    margin-top: 8px !important;
+}
+
+details.aktivitaet .aktivitaet-zaehler span {
+    width: auto !important;
+    display: inline-flex !important;
+    white-space: nowrap !important;
+}
+
+
+/* Detail-Chips optisch in einer gemeinsamen Zeile */
+details.aktivitaet .aktivitaet-zaehler {
+    display: inline-flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 6px !important;
+    margin-top: 8px !important;
+    margin-right: 6px !important;
+    vertical-align: top !important;
+}
+
+details.aktivitaet .aktivitaet-zaehler + .aktivitaet-zaehler {
+    margin-left: 0 !important;
+}
+
+details.aktivitaet .aktivitaet-zaehler span {
+    display: inline-flex !important;
+    width: auto !important;
+    white-space: nowrap !important;
+}
+
+
+/* Konflikt-Hinweis im Synchronisationsverlauf */
+.aktivitaet-konflikt {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: #fff8e6;
+    border: 1px solid #ead58b;
+    color: #6f5208;
+    font-size: 12px;
+}
+
+.aktivitaet-konflikt strong {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 12px;
+}
+
+.aktivitaet-konflikt div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.aktivitaet-konflikt span {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: #fffdf5;
+    border: 1px solid #eedc9a;
+    font-weight: 700;
+}
+
+
+details.aktivitaet .aktivitaet-zaehler .chip-konflikt {
+    background: #fff8e6 !important;
+    border: 1px solid #ead58b !important;
+    color: #6f5208 !important;
+}
+
+
+/* Strukturierte Konfliktdetails */
+.konflikt-liste {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    margin-top: 8px !important;
+}
+
+.konflikt-eintrag {
+    background: #ffffff;
+    border: 1px solid #ead58b;
+    border-radius: 12px;
+    padding: 10px 12px;
+}
+
+.konflikt-kopf {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.konflikt-kopf strong {
+    margin: 0 !important;
+    font-size: 13px !important;
+    color: #3f3210;
+}
+
+.konflikt-symbol {
+    width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.konflikt-symbol.kritisch {
+    background: #fdecec;
+    color: #b42318;
+}
+
+.konflikt-symbol.warnung {
+    background: #fff4d6;
+    color: #8a6200;
+}
+
+.konflikt-meta {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    margin-bottom: 6px;
+}
+
+.konflikt-meta span {
+    background: #fff8e6 !important;
+    border: 1px solid #eedc9a !important;
+    border-radius: 999px !important;
+    padding: 4px 8px !important;
+    font-size: 11px !important;
+    color: #6f5208 !important;
+}
+
+.konflikt-eintrag p {
+    margin: 4px 0 0;
+    color: #6b5a25;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+
+/* Aufklappbare Konfliktdetails */
+.konflikt-zusammenfassung {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.konflikt-zusammenfassung > div:first-child {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.konflikt-zusammenfassung > div:first-child span {
+    color: #7a6217;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.konflikt-badges {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+}
+
+.konflikt-badges span {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: #fffdf5;
+    border: 1px solid #eedc9a;
+    color: #6f5208;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.konflikt-details {
+    margin-top: 10px;
+}
+
+.konflikt-details > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    color: #6f5208;
+    font-size: 12px;
+    font-weight: 800;
+    list-style: none;
+}
+
+.konflikt-details > summary::-webkit-details-marker {
+    display: none;
+}
+
+.konflikt-details > summary span {
+    transition: transform .15s ease;
+}
+
+.konflikt-details[open] > summary span {
+    transform: rotate(180deg);
+}
+
+.konflikt-liste {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    margin-top: 8px !important;
+}
+
+.konflikt-eintrag {
+    background: #ffffff;
+    border: 1px solid #ead58b;
+    border-radius: 12px;
+    padding: 10px 12px;
+}
+
+.konflikt-kopf {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.konflikt-kopf strong {
+    margin: 0 !important;
+    font-size: 13px !important;
+    color: #3f3210;
+}
+
+.konflikt-symbol {
+    width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.konflikt-symbol.kritisch {
+    background: #fdecec;
+    color: #b42318;
+}
+
+.konflikt-symbol.warnung {
+    background: #fff4d6;
+    color: #8a6200;
+}
+
+.konflikt-meta {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    margin-bottom: 6px;
+}
+
+.konflikt-meta span {
+    background: #fff8e6 !important;
+    border: 1px solid #eedc9a !important;
+    border-radius: 999px !important;
+    padding: 4px 8px !important;
+    font-size: 11px !important;
+    color: #6f5208 !important;
+}
+
+.konflikt-eintrag p {
+    margin: 4px 0 0;
+    color: #6b5a25;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+
+/* FINAL: saubere kompakte Konfliktbox */
+.konflikt-panel {
+    margin-top: 10px !important;
+    padding: 0 !important;
+    border-radius: 14px !important;
+    background: #fff8e6 !important;
+    border: 1px solid #ead58b !important;
+    overflow: hidden !important;
+}
+
+.konflikt-panel > summary,
+.konflikt-panel > summary:hover {
+    list-style: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 14px !important;
+    padding: 12px 14px !important;
+    cursor: pointer !important;
+    background: transparent !important;
+}
+
+.konflikt-panel > summary::marker,
+.konflikt-panel > summary::-webkit-details-marker,
+.konflikt-panel > summary::after {
+    display: none !important;
+    content: none !important;
+}
+
+.konflikt-panel-links {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+}
+
+.konflikt-panel-links strong {
+    margin: 0 !important;
+    color: #5f4608 !important;
+    font-size: 13px !important;
+    line-height: 1.2 !important;
+}
+
+.konflikt-panel-links span {
+    color: #8a6b12 !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+}
+
+.konflikt-panel-rechts {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+}
+
+.konflikt-panel-rechts > span {
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 4px 8px !important;
+    border-radius: 999px !important;
+    background: #fffdf5 !important;
+    border: 1px solid #eedc9a !important;
+    color: #6f5208 !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+}
+
+.konflikt-panel-toggle {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    margin-left: 4px !important;
+    color: #6f5208 !important;
+    font-size: 11px !important;
+    font-weight: 900 !important;
+}
+
+.konflikt-panel-toggle i {
+    font-style: normal !important;
+    transition: transform .15s ease !important;
+}
+
+.konflikt-panel[open] .konflikt-panel-toggle i {
+    transform: rotate(180deg) !important;
+}
+
+.konflikt-panel .konflikt-liste {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    padding: 0 14px 14px !important;
+    margin: 0 !important;
+}
+
+.konflikt-panel .konflikt-eintrag {
+    background: #ffffff !important;
+    border: 1px solid #f0d889 !important;
+    border-radius: 12px !important;
+    padding: 10px !important;
+}
+
+.konflikt-panel .konflikt-kopf {
+    display: flex !important;
+    align-items: center !important;
+    gap: 7px !important;
+    margin: 0 0 8px !important;
+}
+
+.konflikt-panel .konflikt-kopf strong {
+    margin: 0 !important;
+    color: #3f3210 !important;
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+}
+
+.konflikt-panel .konflikt-symbol {
+    width: 18px !important;
+    height: 18px !important;
+    border-radius: 999px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 11px !important;
+    font-weight: 900 !important;
+    flex: 0 0 auto !important;
+}
+
+.konflikt-panel .konflikt-symbol.kritisch {
+    background: #fdecec !important;
+    color: #b42318 !important;
+}
+
+.konflikt-panel .konflikt-symbol.warnung {
+    background: #fff4d6 !important;
+    color: #8a6200 !important;
+}
+
+.konflikt-panel .konflikt-meta {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 5px !important;
+    margin: 0 !important;
+}
+
+.konflikt-panel .konflikt-meta span {
+    display: inline-flex !important;
+    max-width: 100% !important;
+    padding: 3px 7px !important;
+    border-radius: 999px !important;
+    background: #f8faf8 !important;
+    border: 1px solid #e8ece8 !important;
+    color: #53606c !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.konflikt-panel .konflikt-eintrag p {
+    display: none !important;
+}
+
+@media (max-width: 1100px) {
+    .konflikt-panel .konflikt-liste {
+        grid-template-columns: 1fr !important;
+    }
+
+    .konflikt-panel > summary {
+        align-items: flex-start !important;
+        flex-direction: column !important;
+    }
+
+    .konflikt-panel-rechts {
+        justify-content: flex-start !important;
+    }
+}
+
+
+.datenquellen-statushinweis.warnung {
+    background: #fff8e6;
+    border-color: #ead58b;
+    color: #6f5208;
+}
+
+.datenquellen-statushinweis.warnung .datenquellen-statushinweis-punkt {
+    background: #f59e0b;
+}
+
+</style>
+
+<script>
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+            const filterButtons = Array.from(
+                document.querySelectorAll(
+                    ".datenquellen-filter"
+                )
+            );
+
+            const suchfeld = document.getElementById(
+                "datenquellen-suchfeld"
+            );
+
+            const karten = Array.from(
+                document.querySelectorAll(
+                    ".verbindung-karte"
+                )
+            );
+
+            const leerHinweis = document.getElementById(
+                "datenquellen-filter-leer"
+            );
+
+            let aktiverTyp = "alle";
+
+            function datenquellenFiltern() {
+                const suchbegriff = (
+                    suchfeld
+                        ? suchfeld.value
+                        : ""
+                )
+                    .trim()
+                    .toLowerCase();
+
+                let sichtbareAnzahl = 0;
+
+                karten.forEach(function (karte) {
+                    const typ = (
+                        karte.dataset.datenquelleTyp
+                        || ""
+                    ).toLowerCase();
+
+                    const name = (
+                        karte.dataset.datenquelleName
+                        || ""
+                    ).toLowerCase();
+
+                    const typPasst = (
+                        aktiverTyp === "alle"
+                        || (
+                            aktiverTyp === "rest_api"
+                            && (
+                                typ === "rest_api"
+                                || typ === "adobe"
+                            )
+                        )
+                        || (
+                            aktiverTyp === "ldap"
+                            && typ === "ad"
+                        )
+                        || typ === aktiverTyp
+                    );
+
+                    const suchePasst = (
+                        !suchbegriff
+                        || name.includes(suchbegriff)
+                    );
+
+                    const sichtbar = (
+                        typPasst
+                        && suchePasst
+                    );
+
+                    karte.classList.toggle(
+                        "datenquelle-ausgeblendet",
+                        !sichtbar
+                    );
+
+                    if (sichtbar) {
+                        sichtbareAnzahl += 1;
+                    }
+                });
+
+                if (leerHinweis) {
+                    leerHinweis.hidden = (
+                        sichtbareAnzahl !== 0
+                    );
+                }
+            }
+
+            filterButtons.forEach(function (button) {
+                button.addEventListener(
+                    "click",
+                    function () {
+                        aktiverTyp = (
+                            button.dataset.filterTyp
+                            || "alle"
+                        );
+
+                        filterButtons.forEach(
+                            function (andererButton) {
+                                andererButton.classList.toggle(
+                                    "aktiv",
+                                    andererButton === button
+                                );
+                            }
+                        );
+
+                        datenquellenFiltern();
+                    }
+                );
+            });
+
+            if (suchfeld) {
+                suchfeld.addEventListener(
+                    "input",
+                    datenquellenFiltern
+                );
+            }
+        }
+    );
+</script>
+
+{% endblock %}

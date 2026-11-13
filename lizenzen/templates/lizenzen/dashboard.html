@@ -1,0 +1,1237 @@
+{% extends "lizenzen/base.html" %}
+{% load formatierung %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+{% include "lizenzen/partials/bestand_uebersicht_styles.html" %}
+
+<style>
+    .dashboard-v2-shell {
+        width: min(1180px, calc(100vw - 436px));
+        max-width: 1180px;
+        margin: 0 auto;
+        color: #232523;
+    }
+
+    .dashboard-v2-hero {
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 270px;
+        gap: 46px;
+        align-items: center;
+        margin-bottom: 16px;
+        padding: 34px 40px;
+        border-radius: 24px;
+        background: linear-gradient(135deg, #1b1d1b 0%, #121512 100%);
+        color: #ffffff;
+        box-shadow: 0 18px 44px rgba(0, 0, 0, 0.16);
+    }
+
+    .dashboard-v2-label {
+        display: block;
+        color: #72ad69;
+        font-size: 10px;
+        font-weight: 850;
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
+    }
+
+    .dashboard-v2-hero h1 {
+        margin: 9px 0 8px;
+        color: #ffffff;
+        font-size: 38px;
+        line-height: 1.08;
+        letter-spacing: -0.045em;
+    }
+
+    .dashboard-v2-hero-text > p {
+        max-width: 630px;
+        margin: 0;
+        color: rgba(255, 255, 255, 0.68);
+        font-size: 13px;
+        line-height: 1.55;
+    }
+
+    .dashboard-v2-aktionen {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 19px;
+    }
+
+    .dashboard-v2-aktion {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 38px;
+        padding: 0 14px;
+        border: 1px solid rgba(255, 255, 255, 0.13);
+        border-radius: 10px;
+        background: transparent;
+        color: rgba(255, 255, 255, 0.82);
+        font-size: 11px;
+        font-weight: 800;
+        text-decoration: none;
+        transition: background 0.18s ease, border-color 0.18s ease;
+    }
+
+    .dashboard-v2-aktion:hover {
+        border-color: rgba(255, 255, 255, 0.24);
+        background: rgba(255, 255, 255, 0.07);
+        color: #ffffff;
+    }
+
+    .dashboard-v2-aktion.primaer {
+        border-color: var(--dpz-green);
+        background: var(--dpz-green);
+        color: #ffffff;
+    }
+
+    .dashboard-v2-aktion.primaer:hover {
+        border-color: #478e3f;
+        background: #478e3f;
+    }
+
+    .dashboard-v2-bilanz {
+        position: relative;
+        top: 12px;
+        box-sizing: border-box;
+        width: 100%;
+        padding: 16px 18px;
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        border-radius: 15px;
+        background: rgba(255, 255, 255, 0.035);
+        transition:
+            opacity 0.16s ease,
+            transform 0.16s ease,
+            visibility 0.16s ease;
+    }
+
+    .dashboard-v2-hero.konto-menue-offen .dashboard-v2-bilanz {
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(4px) scale(0.985);
+    }
+
+    .dashboard-v2-rechte-spalte {
+        width: 270px;
+        align-self: center;
+    }
+
+    .dashboard-konto {
+        position: absolute;
+        top: 17px;
+        right: 40px;
+        z-index: 8;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .dashboard-konto-trigger {
+        display: grid;
+        grid-template-columns: 28px minmax(0, 1fr) 12px;
+        gap: 8px;
+        align-items: center;
+        width: 154px;
+        padding: 5px 7px;
+        border: 1px solid rgba(255, 255, 255, 0.13);
+        border-radius: 11px;
+        background: rgba(255, 255, 255, 0.055);
+        color: white;
+        cursor: pointer;
+        text-align: left;
+        backdrop-filter: blur(12px);
+        transition:
+            background 0.18s ease,
+            border-color 0.18s ease,
+            transform 0.18s ease;
+    }
+
+    .dashboard-konto-trigger:hover,
+    .dashboard-konto.offen .dashboard-konto-trigger {
+        border-color: rgba(114, 173, 105, 0.55);
+        background: rgba(255, 255, 255, 0.09);
+        transform: translateY(-1px);
+    }
+
+    .dashboard-konto-avatar {
+        display: grid;
+        width: 28px;
+        height: 28px;
+        place-items: center;
+        border-radius: 8px;
+        background: linear-gradient(145deg, #4c9a42, #34732d);
+        color: white;
+        font-size: 9px;
+        font-weight: 900;
+        box-shadow: 0 7px 18px rgba(58, 127, 49, 0.28);
+    }
+
+    .dashboard-konto-identitaet {
+        min-width: 0;
+    }
+
+    .dashboard-konto-identitaet strong {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .dashboard-konto-identitaet strong {
+        color: rgba(255, 255, 255, 0.92);
+        font-size: 11px;
+    }
+
+    .dashboard-konto-pfeil {
+        color: rgba(255, 255, 255, 0.55);
+        font-size: 10px;
+        transition: transform 0.18s ease;
+    }
+
+    .dashboard-konto.offen .dashboard-konto-pfeil {
+        transform: rotate(180deg);
+    }
+
+    .dashboard-konto-menue {
+        position: absolute;
+        top: calc(100% + 9px);
+        right: 0;
+        width: 230px;
+        padding: 7px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 15px;
+        background: #222522;
+        box-shadow: 0 20px 48px rgba(0, 0, 0, 0.34);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-5px) scale(0.98);
+        transform-origin: top right;
+        transition:
+            opacity 0.16s ease,
+            visibility 0.16s ease,
+            transform 0.16s ease;
+    }
+
+    .dashboard-konto.offen .dashboard-konto-menue {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0) scale(1);
+    }
+
+    .dashboard-konto-option,
+    .dashboard-konto-menue form button {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        min-height: 36px;
+        padding: 0 11px;
+        border: 0;
+        border-radius: 9px;
+        background: transparent;
+        color: rgba(255, 255, 255, 0.82);
+        font: inherit;
+        font-size: 11px;
+        font-weight: 760;
+        text-decoration: none;
+        cursor: pointer;
+        box-sizing: border-box;
+    }
+
+    .dashboard-konto-option:hover,
+    .dashboard-konto-menue form button:hover {
+        background: rgba(255, 255, 255, 0.075);
+        color: white;
+    }
+
+    .dashboard-konto-option span:last-child {
+        color: #72ad69;
+        font-size: 13px;
+    }
+
+    .dashboard-konto-menue form {
+        margin: 4px 0 0;
+        padding-top: 4px;
+        border-top: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .dashboard-v2-zeitraum {
+        display: flex;
+        width: fit-content;
+        flex: 0 0 auto;
+        padding: 3px;
+        border: 1px solid #dfe5df;
+        border-radius: 999px;
+        background: #f2f5f2;
+    }
+
+    .dashboard-v2-zeitraum-option {
+        min-width: 66px;
+        padding: 7px 13px;
+        border: 0;
+        border-radius: 999px;
+        background: transparent;
+        color: #6f746f;
+        font: inherit;
+        font-size: 10px;
+        font-weight: 800;
+        cursor: pointer;
+        transition:
+            background 0.18s ease,
+            color 0.18s ease;
+    }
+
+    .dashboard-v2-zeitraum-option.aktiv {
+        background: var(--dpz-green);
+        color: #ffffff;
+    }
+
+    .dashboard-v2-zeitraum-option:focus-visible {
+        outline: 2px solid var(--dpz-green);
+        outline-offset: 2px;
+    }
+
+    .dashboard-v2-bilanz > span {
+        display: block;
+        color: rgba(255, 255, 255, 0.55);
+        font-size: 9px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+    }
+
+    .dashboard-v2-bilanz > strong {
+        display: block;
+        margin: 6px 0 17px;
+        color: #ffffff;
+        font-size: 25px;
+        line-height: 1;
+        letter-spacing: -0.035em;
+    }
+
+    .dashboard-v2-bilanz-zeile,
+    .dashboard-v2-fortschritt-kopf {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .dashboard-v2-bilanz-zeile {
+        margin-bottom: 8px;
+        color: rgba(255, 255, 255, 0.62);
+        font-size: 10px;
+        font-weight: 750;
+    }
+
+    .dashboard-v2-bilanz-zeile strong {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 11px;
+    }
+
+    .dashboard-v2-hero-fortschritt,
+    .dashboard-v2-fortschritt {
+        display: block;
+        overflow: hidden;
+        width: 100%;
+        border-radius: 999px;
+    }
+
+    .dashboard-v2-hero-fortschritt {
+        height: 5px;
+        background: rgba(255, 255, 255, 0.12);
+    }
+
+    .dashboard-v2-hero-fortschritt span,
+    .dashboard-v2-fortschritt span {
+        display: block;
+        width: var(--fortschritt);
+        height: 100%;
+        border-radius: inherit;
+        background: var(--dpz-green);
+    }
+
+    .dashboard-v2-kennzahlen {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .dashboard-v2-kennzahl {
+        min-width: 0;
+        min-height: 92px;
+        padding: 18px 21px;
+        border: 1px solid #e4e8e4;
+        border-radius: 17px;
+        background: #ffffff;
+        color: #242624;
+        box-sizing: border-box;
+        text-decoration: none;
+        box-shadow: 0 7px 22px rgba(0, 0, 0, 0.04);
+        transition:
+            background 0.18s ease,
+            border-color 0.18s ease,
+            box-shadow 0.18s ease;
+    }
+
+    .dashboard-v2-kennzahl:hover {
+        border-color: rgba(58, 127, 49, 0.24);
+        background: #f8faf8;
+        color: #242624;
+        box-shadow: 0 9px 24px rgba(0, 0, 0, 0.055);
+    }
+
+    .dashboard-v2-kennzahl-text span,
+    .dashboard-v2-kennzahl-text small {
+        display: block;
+    }
+
+    .dashboard-v2-kennzahl-text span {
+        margin-bottom: 7px;
+        color: #777b77;
+        font-size: 9px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.055em;
+    }
+
+    .dashboard-v2-kennzahl-text strong {
+        display: block;
+        color: #202220;
+        font-size: 25px;
+        line-height: 1;
+        letter-spacing: -0.04em;
+    }
+
+    .dashboard-v2-kennzahl-text small {
+        margin-top: 6px;
+        overflow: hidden;
+        color: #929592;
+        font-size: 9px;
+        font-weight: 700;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .dashboard-v2-hinweise {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .dashboard-v2-hinweis {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        min-height: 62px;
+        padding: 11px 20px;
+        border: 1px solid #e4e8e4;
+        border-radius: 15px;
+        background: #ffffff;
+        color: #2a2c2a;
+        box-sizing: border-box;
+        text-decoration: none;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.032);
+        transition:
+            background 0.18s ease,
+            border-color 0.18s ease,
+            box-shadow 0.18s ease;
+    }
+
+    .dashboard-v2-hinweis:hover {
+        border-color: rgba(58, 127, 49, 0.24);
+        background: #f8faf8;
+        color: #2a2c2a;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.045);
+    }
+
+    .dashboard-v2-hinweis-text {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+    }
+
+    .dashboard-v2-hinweis-text::before {
+        width: 7px;
+        height: 7px;
+        flex: 0 0 auto;
+        border-radius: 50%;
+        background: #a6aaa6;
+        content: "";
+    }
+
+    .dashboard-v2-hinweis.auffaellig .dashboard-v2-hinweis-text::before {
+        background: #b47729;
+    }
+
+    .dashboard-v2-hinweis-text span,
+    .dashboard-v2-hinweis-text small {
+        display: block;
+    }
+
+    .dashboard-v2-hinweis-text span {
+        margin-bottom: 3px;
+        font-size: 11px;
+        font-weight: 820;
+    }
+
+    .dashboard-v2-hinweis-text small {
+        overflow: hidden;
+        color: #848784;
+        font-size: 9px;
+        font-weight: 700;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .dashboard-v2-hinweis > strong {
+        color: #242624;
+        font-size: 21px;
+        letter-spacing: -0.035em;
+    }
+
+    .dashboard-v2-auslastung {
+        padding: 27px 28px 24px;
+        border: 1px solid #e3e7e3;
+        border-radius: 20px;
+        background: #ffffff;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.045);
+    }
+
+    .dashboard-v2-bereich-kopf {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 17px;
+    }
+
+    .dashboard-v2-bereich-titel {
+        min-width: 0;
+    }
+
+    .dashboard-v2-bereich-kopf h2 {
+        margin: 0 0 5px;
+        color: #222422;
+        font-size: 22px;
+        line-height: 1.2;
+        letter-spacing: -0.03em;
+    }
+
+    .dashboard-v2-bereich-kopf p {
+        margin: 0;
+        color: #7e817e;
+        font-size: 11px;
+        line-height: 1.5;
+    }
+
+    .dashboard-v2-lizenzliste {
+        display: grid;
+        gap: 9px;
+    }
+
+    .dashboard-v2-lizenz-spalten,
+    .dashboard-v2-lizenz {
+        display: grid;
+        grid-template-columns:
+            minmax(150px, 1.2fr)
+            minmax(145px, 1fr)
+            minmax(82px, 0.62fr)
+            minmax(145px, 0.92fr)
+            minmax(92px, auto);
+        gap: 14px;
+        align-items: center;
+    }
+
+    .dashboard-v2-lizenz-spalten {
+        padding: 0 19px 2px;
+        color: #858985;
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 0.075em;
+        text-transform: uppercase;
+    }
+
+    .dashboard-v2-lizenz-spalten span:last-child {
+        text-align: right;
+    }
+
+    .dashboard-v2-lizenz {
+        min-width: 0;
+        padding: 16px 18px;
+        border: 1px solid #e5e9e5;
+        border-radius: 15px;
+        background: #fafbfa;
+        color: #2a2c2a;
+        text-decoration: none;
+        transition:
+            background 0.18s ease,
+            border-color 0.18s ease,
+            box-shadow 0.18s ease;
+    }
+
+    .dashboard-v2-lizenz > * {
+        min-width: 0;
+    }
+
+    .dashboard-v2-lizenz:hover {
+        border-color: rgba(58, 127, 49, 0.24);
+        background: #ffffff;
+        color: #2a2c2a;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.045);
+    }
+
+    .dashboard-v2-lizenz-identitaet,
+    .dashboard-v2-lizenz-name,
+    .dashboard-v2-lizenz-kosten,
+    .dashboard-v2-lizenz-kapazitaet,
+    .dashboard-v2-lizenz-kosten strong,
+    .dashboard-v2-lizenz-kosten span {
+        display: block;
+        min-width: 0;
+    }
+
+    .dashboard-v2-lizenz-name strong {
+        display: block;
+        margin-bottom: 3px;
+        color: #242624;
+        font-size: 13px;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+    }
+
+    .dashboard-v2-lizenz-name span,
+    .dashboard-v2-lizenz-kosten span {
+        color: #898c89;
+        font-size: 9px;
+        font-weight: 700;
+    }
+
+    .dashboard-v2-fortschritt-kopf {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 8px;
+        color: #6d716d;
+        font-size: 10px;
+        font-weight: 750;
+    }
+
+    .dashboard-v2-fortschritt-kopf strong {
+        color: #2f6930;
+        font-size: 11px;
+        white-space: nowrap;
+    }
+
+    .dashboard-v2-fortschritt {
+        height: 7px;
+        background: #e5e9e5;
+    }
+
+    .dashboard-v2-lizenz-kapazitaet strong {
+        display: block;
+        margin-bottom: 3px;
+        color: #242624;
+        font-size: 14px;
+        line-height: 1.2;
+    }
+
+    .dashboard-v2-lizenz-kapazitaet span {
+        color: #898c89;
+        font-size: 9px;
+        font-weight: 700;
+    }
+
+    .dashboard-v2-lizenz-kosten strong {
+        margin-bottom: 3px;
+        color: #242624;
+        font-size: 14px;
+        line-height: 1.3;
+        letter-spacing: -0.015em;
+        overflow-wrap: anywhere;
+    }
+
+    .dashboard-v2-lizenz-fuss {
+        display: flex;
+        align-items: flex-end;
+        flex-direction: column;
+        gap: 8px;
+        color: #777b77;
+        font-size: 9px;
+        font-weight: 750;
+        text-align: right;
+        white-space: normal;
+    }
+
+    .dashboard-v2-status {
+        display: inline-flex;
+        align-items: center;
+        min-height: 22px;
+        padding: 0 8px;
+        border-radius: 999px;
+        background: rgba(58, 127, 49, 0.09);
+        color: var(--dpz-green-dark);
+    }
+
+    .dashboard-v2-status.voll,
+    .dashboard-v2-status.warnung {
+        background: rgba(179, 113, 28, 0.10);
+        color: #86581f;
+    }
+
+    .dashboard-v2-lizenz-oeffnen {
+        color: var(--dpz-green-dark);
+        transition: transform 0.18s ease;
+    }
+
+    .dashboard-v2-lizenz:hover .dashboard-v2-lizenz-oeffnen {
+        transform: translateX(2px);
+    }
+
+    .dashboard-v2-leer {
+        padding: 34px 20px;
+        border: 1px solid #e5e9e5;
+        border-radius: 15px;
+        background: #fafbfa;
+        color: #777b77;
+        font-size: 11px;
+        text-align: center;
+    }
+
+    @media (max-width: 1100px) {
+        .dashboard-v2-hero {
+            grid-template-columns: minmax(0, 1fr) 230px;
+            gap: 30px;
+        }
+
+        .dashboard-v2-rechte-spalte,
+        .dashboard-konto-menue {
+            width: 230px;
+        }
+
+        .dashboard-v2-lizenz-spalten {
+            display: none;
+        }
+
+        .dashboard-v2-lizenz {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .dashboard-v2-lizenz-fuss {
+            align-items: flex-start;
+            flex-direction: row;
+            text-align: left;
+        }
+    }
+
+    @media (max-width: 900px) {
+        .dashboard-v2-shell {
+            width: 100%;
+        }
+
+        .dashboard-v2-hero {
+            grid-template-columns: 1fr;
+        }
+
+        .dashboard-v2-bilanz {
+            top: auto;
+            padding: 16px 18px;
+        }
+
+        .dashboard-v2-rechte-spalte {
+            display: flex;
+            width: 100%;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .dashboard-konto {
+            position: relative;
+            top: auto;
+            right: auto;
+            justify-content: flex-start;
+        }
+
+        .dashboard-konto-menue {
+            right: auto;
+            left: 0;
+            width: min(270px, calc(100vw - 48px));
+        }
+
+        .dashboard-v2-kennzahlen {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+    }
+
+    @media (max-width: 700px) {
+        .dashboard-v2-hero {
+            padding: 28px 24px;
+            border-radius: 20px;
+        }
+
+        .dashboard-v2-hero h1 {
+            font-size: 32px;
+        }
+
+        .dashboard-v2-aktionen {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .dashboard-v2-aktion {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .dashboard-v2-hinweise,
+        .dashboard-v2-lizenz {
+            grid-template-columns: 1fr;
+        }
+
+        .dashboard-v2-auslastung {
+            padding: 23px 22px 20px;
+        }
+
+        .dashboard-v2-bereich-kopf {
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .dashboard-v2-lizenz {
+            gap: 15px;
+        }
+    }
+
+    @media (max-width: 520px) {
+        .dashboard-v2-kennzahlen {
+            grid-template-columns: 1fr;
+        }
+
+    }
+</style>
+
+<div class="dashboard-v2-shell">
+    <section class="dashboard-v2-hero">
+        <div class="dashboard-v2-hero-text">
+            <span class="dashboard-v2-label">Übersicht</span>
+
+            <h1>Lizenzmanagement</h1>
+
+            <p>
+                Bestand, Nutzung und Kosten auf einen Blick – mit
+                direktem Zugriff auf die wichtigsten Aufgaben.
+            </p>
+
+            <div class="dashboard-v2-aktionen">
+                <a
+                    class="dashboard-v2-aktion primaer bestand-modal-oeffnen"
+                    href="{% url 'lizenz_hinzufuegen' %}"
+                    data-modal-url="{% url 'lizenz_hinzufuegen' %}?modal=1"
+                    data-modal-titel="Lizenz hinzufügen"
+                    data-modal-bereich="Dashboard"
+                    data-modal-groesse="breit"
+                >
+                    + Lizenz hinzufügen
+                </a>
+
+                <a class="dashboard-v2-aktion" href="{% url 'lizenzen_liste' %}">
+                    Lizenzen verwalten
+                </a>
+
+                <a
+                    class="dashboard-v2-aktion"
+                    href="{% url 'synchronisation_uebersicht' %}"
+                >
+                    Datenquellen
+                </a>
+            </div>
+        </div>
+
+        <div class="dashboard-v2-rechte-spalte">
+            <div class="dashboard-konto" id="dashboard-konto">
+                <button
+                    type="button"
+                    class="dashboard-konto-trigger"
+                    id="dashboard-konto-trigger"
+                    aria-expanded="false"
+                    aria-controls="dashboard-konto-menue"
+                >
+                    <span class="dashboard-konto-avatar" aria-hidden="true">
+                        {% if request.user.first_name %}
+                            {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+                        {% else %}
+                            {{ request.user.username|first|upper }}
+                        {% endif %}
+                    </span>
+                    <span class="dashboard-konto-identitaet">
+                        <strong>
+                            {% if request.user.get_full_name %}
+                                {{ request.user.get_full_name }}
+                            {% else %}
+                                {{ request.user.username }}
+                            {% endif %}
+                        </strong>
+                    </span>
+                    <span class="dashboard-konto-pfeil" aria-hidden="true">▼</span>
+                </button>
+
+                <div
+                    class="dashboard-konto-menue"
+                    id="dashboard-konto-menue"
+                    aria-hidden="true"
+                >
+                    <a
+                        class="dashboard-konto-option bestand-modal-oeffnen"
+                        href="{% url 'profil_bearbeiten' %}"
+                        data-modal-url="{% url 'profil_bearbeiten' %}?modal=1"
+                        data-modal-titel="Mein Profil"
+                        data-modal-bereich="Konto"
+                        data-modal-groesse="kompakt"
+                    >
+                        <span>Profil bearbeiten</span><span>›</span>
+                    </a>
+
+                    {% if request.user.is_staff %}
+                        <a
+                            class="dashboard-konto-option bestand-modal-oeffnen"
+                            href="{% url 'team_verwalten' %}"
+                            data-modal-url="{% url 'team_verwalten' %}?modal=1"
+                            data-modal-titel="Team verwalten"
+                            data-modal-bereich="Team"
+                            data-modal-groesse="breit"
+                        >
+                            <span>Team verwalten</span><span>›</span>
+                        </a>
+                    {% endif %}
+
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button type="submit">Abmelden <span>→</span></button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="dashboard-v2-bilanz">
+                <span
+                    data-kosten-monat="Monatliche Gesamtkosten"
+                    data-kosten-jahr="Jährliche Gesamtkosten"
+                >Monatliche Gesamtkosten</span>
+                <strong
+                    data-kosten-monat="{{ dashboard_kennzahlen.monatskosten|betrag_de }} EUR"
+                    data-kosten-jahr="{{ dashboard_kennzahlen.jahreskosten|betrag_de }} EUR"
+                >{{ dashboard_kennzahlen.monatskosten|betrag_de }} EUR</strong>
+
+                <div class="dashboard-v2-bilanz-zeile">
+                    <span>Gesamtauslastung</span>
+                    <strong>{{ dashboard_kennzahlen.auslastung }} %</strong>
+                </div>
+
+                <div
+                    class="dashboard-v2-hero-fortschritt"
+                    role="progressbar"
+                    aria-label="Gesamtauslastung"
+                    aria-valuenow="{{ dashboard_kennzahlen.auslastung }}"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    style="--fortschritt: {{ dashboard_kennzahlen.auslastung }}%;"
+                >
+                    <span></span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="dashboard-v2-kennzahlen" aria-label="Zentrale Kennzahlen">
+        <a class="dashboard-v2-kennzahl" href="{% url 'lizenzen_liste' %}">
+            <span class="dashboard-v2-kennzahl-text">
+                <span>Lizenzen gesamt</span>
+                <strong>{{ dashboard_kennzahlen.gesamt }}</strong>
+                <small>{{ dashboard_kennzahlen.lizenztypen }} Lizenztypen</small>
+            </span>
+        </a>
+
+        <a class="dashboard-v2-kennzahl" href="{% url 'lizenzen_liste' %}">
+            <span class="dashboard-v2-kennzahl-text">
+                <span>Vergeben</span>
+                <strong>{{ dashboard_kennzahlen.vergeben }}</strong>
+                <small>{{ dashboard_kennzahlen.auslastung }} % Auslastung</small>
+            </span>
+        </a>
+
+        <a class="dashboard-v2-kennzahl" href="{% url 'benutzer_liste' %}">
+            <span class="dashboard-v2-kennzahl-text">
+                <span>Aktive Benutzer</span>
+                <strong>{{ dashboard_kennzahlen.aktive_benutzer }}</strong>
+                <small>Aktuell im Bestand</small>
+            </span>
+        </a>
+
+        <a class="dashboard-v2-kennzahl" href="{% url 'lizenzen_liste' %}">
+            <span class="dashboard-v2-kennzahl-text">
+                <span>Freie Lizenzen</span>
+                <strong>{{ dashboard_kennzahlen.frei }}</strong>
+                <small>
+                    {% if dashboard_kennzahlen.frei == 0 %}
+                        Keine Reserve
+                    {% else %}
+                        Sofort verfügbar
+                    {% endif %}
+                </small>
+            </span>
+        </a>
+    </section>
+
+    <aside class="dashboard-v2-hinweise" aria-label="Hinweise">
+        <a
+            class="dashboard-v2-hinweis bestand-modal-oeffnen {% if ablaufende_lizenzen %}auffaellig{% endif %}"
+            href="{% url 'ablaufende_lizenzen' %}"
+            data-modal-url="{% url 'ablaufende_lizenzen' %}?modal=1"
+            data-modal-titel="Ablaufende Lizenzen"
+            data-modal-bereich="Hinweis"
+            data-modal-groesse="kompakt"
+        >
+            <span class="dashboard-v2-hinweis-text">
+                <span>
+                    <span>Ablaufende Lizenzen</span>
+                    <small>Innerhalb der nächsten 30 Tage</small>
+                </span>
+            </span>
+            <strong>{{ ablaufende_lizenzen|length }}</strong>
+        </a>
+
+        <a
+            class="dashboard-v2-hinweis bestand-modal-oeffnen {% if deaktivierte_benutzer %}auffaellig{% endif %}"
+            href="{% url 'deaktivierte_benutzer' %}"
+            data-modal-url="{% url 'deaktivierte_benutzer' %}?modal=1"
+            data-modal-titel="Deaktivierte Benutzer"
+            data-modal-bereich="Hinweis"
+            data-modal-groesse="breit"
+        >
+            <span class="dashboard-v2-hinweis-text">
+                <span>
+                    <span>Deaktivierte Benutzer</span>
+                    <small>Mit noch zugewiesenen Lizenzen</small>
+                </span>
+            </span>
+            <strong>{{ deaktivierte_benutzer|length }}</strong>
+        </a>
+    </aside>
+
+    <section class="dashboard-v2-auslastung">
+        <header class="dashboard-v2-bereich-kopf">
+            <div class="dashboard-v2-bereich-titel">
+                <h2>Kosten und Auslastung</h2>
+                <p
+                    data-kosten-monat="Monatliche Kosten, Belegung und verfügbare Kapazität je Lizenz."
+                    data-kosten-jahr="Jährliche Kosten, Belegung und verfügbare Kapazität je Lizenz."
+                >
+                    Monatliche Kosten, Belegung und verfügbare Kapazität je Lizenz.
+                </p>
+            </div>
+
+            <div
+                class="dashboard-v2-zeitraum"
+                role="group"
+                aria-label="Kostenzeitraum auswählen"
+            >
+                <button
+                    class="dashboard-v2-zeitraum-option aktiv"
+                    type="button"
+                    data-zeitraum="monat"
+                    aria-pressed="true"
+                >
+                    Monat
+                </button>
+                <button
+                    class="dashboard-v2-zeitraum-option"
+                    type="button"
+                    data-zeitraum="jahr"
+                    aria-pressed="false"
+                >
+                    Jahr
+                </button>
+            </div>
+        </header>
+
+        {% if reporting %}
+            <div class="dashboard-v2-lizenzliste">
+                <div class="dashboard-v2-lizenz-spalten" aria-hidden="true">
+                    <span>Lizenz</span>
+                    <span>Nutzung</span>
+                    <span>Verfügbar</span>
+                    <span
+                        data-kosten-monat="Monatliche Kosten"
+                        data-kosten-jahr="Jährliche Kosten"
+                    >Monatliche Kosten</span>
+                    <span>Status</span>
+                </div>
+                {% for eintrag in reporting %}
+                    <a
+                        class="dashboard-v2-lizenz"
+                        href="{% url 'lizenz_detail' eintrag.id %}"
+                    >
+                        <span class="dashboard-v2-lizenz-identitaet">
+                            <span class="dashboard-v2-lizenz-name">
+                                <strong title="{{ eintrag.name }}">
+                                    {{ eintrag.name }}
+                                </strong>
+                                <span>{{ eintrag.anbieter|default:"Kein Anbieter" }}</span>
+                            </span>
+                        </span>
+
+                        <span class="dashboard-v2-lizenz-nutzung">
+                            <span class="dashboard-v2-fortschritt-kopf">
+                                <span>
+                                    {{ eintrag.vergeben }} / {{ eintrag.gesamt }} genutzt
+                                </span>
+                                <strong>{{ eintrag.auslastung }} %</strong>
+                            </span>
+
+                            <span
+                                class="dashboard-v2-fortschritt"
+                                role="progressbar"
+                                aria-label="Auslastung von {{ eintrag.name }}"
+                                aria-valuenow="{{ eintrag.auslastung }}"
+                                aria-valuemin="0"
+                                aria-valuemax="100"
+                                style="--fortschritt: {{ eintrag.auslastung }}%;"
+                            >
+                                <span></span>
+                            </span>
+                        </span>
+
+                        <span class="dashboard-v2-lizenz-kapazitaet">
+                            <strong>{{ eintrag.frei }} frei</strong>
+                            <span>von {{ eintrag.gesamt }} Lizenzen</span>
+                        </span>
+
+                        <span class="dashboard-v2-lizenz-kosten">
+                            <strong
+                                data-kosten-monat="{{ eintrag.gesamt_kosten|betrag_de }} EUR"
+                                data-kosten-jahr="{{ eintrag.jahreskosten|betrag_de }} EUR"
+                            >{{ eintrag.gesamt_kosten|betrag_de }} EUR</strong>
+                            <span
+                                data-kosten-monat="pro Monat · {{ eintrag.monatskosten_je_lizenz|betrag_de }} EUR je Lizenz"
+                                data-kosten-jahr="pro Jahr · {{ eintrag.jahreskosten_je_lizenz|betrag_de }} EUR je Lizenz"
+                            >pro Monat · {{ eintrag.monatskosten_je_lizenz|betrag_de }} EUR je Lizenz</span>
+                        </span>
+
+                        <span class="dashboard-v2-lizenz-fuss">
+                            <span class="dashboard-v2-status {{ eintrag.status_klasse }}">
+                                {{ eintrag.status }}
+                            </span>
+                            <span class="dashboard-v2-lizenz-oeffnen">Öffnen →</span>
+                        </span>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="dashboard-v2-leer">
+                Noch keine Lizenz- und Kostendaten vorhanden.
+            </div>
+        {% endif %}
+    </section>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const dashboard = document.querySelector(".dashboard-v2-shell");
+
+        if (!dashboard) {
+            return;
+        }
+
+        const konto = document.getElementById("dashboard-konto");
+        const kontoHero = dashboard.querySelector(".dashboard-v2-hero");
+        const kontoTrigger = document.getElementById(
+            "dashboard-konto-trigger"
+        );
+        const kontoMenue = document.getElementById(
+            "dashboard-konto-menue"
+        );
+
+        function kontoMenueSetzen(istOffen) {
+            if (!konto || !kontoTrigger || !kontoMenue) {
+                return;
+            }
+
+            konto.classList.toggle("offen", istOffen);
+            if (kontoHero) {
+                kontoHero.classList.toggle(
+                    "konto-menue-offen",
+                    istOffen
+                );
+            }
+            kontoTrigger.setAttribute(
+                "aria-expanded",
+                String(istOffen)
+            );
+            kontoMenue.setAttribute(
+                "aria-hidden",
+                String(!istOffen)
+            );
+        }
+
+        if (kontoTrigger) {
+            kontoTrigger.addEventListener("click", function () {
+                kontoMenueSetzen(
+                    !konto.classList.contains("offen")
+                );
+            });
+        }
+
+        document.addEventListener("click", function (event) {
+            if (konto && !konto.contains(event.target)) {
+                kontoMenueSetzen(false);
+            }
+        });
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape") {
+                kontoMenueSetzen(false);
+            }
+        });
+
+        const optionen = dashboard.querySelectorAll(
+            ".dashboard-v2-zeitraum-option"
+        );
+        const kostenElemente = dashboard.querySelectorAll(
+            "[data-kosten-monat][data-kosten-jahr]"
+        );
+
+        optionen.forEach(function (option) {
+            option.addEventListener("click", function () {
+                const zeitraum = option.dataset.zeitraum;
+                const datenfeld = (
+                    zeitraum === "jahr"
+                    ? "kostenJahr"
+                    : "kostenMonat"
+                );
+
+                optionen.forEach(function (andereOption) {
+                    const istAktiv = andereOption === option;
+                    andereOption.classList.toggle("aktiv", istAktiv);
+                    andereOption.setAttribute(
+                        "aria-pressed",
+                        String(istAktiv)
+                    );
+                });
+
+                kostenElemente.forEach(function (element) {
+                    element.textContent = element.dataset[datenfeld];
+                });
+            });
+        });
+    });
+</script>
+
+{% include "lizenzen/partials/bestand_modal.html" %}
+{% endblock %}
