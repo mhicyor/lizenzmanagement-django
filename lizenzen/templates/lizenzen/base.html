@@ -109,16 +109,46 @@
         }
 
         .sidebar-demo a {
-            align-self: flex-start;
-            color: #8cb67e;
-            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 32px;
+            color: #a6c99a;
+            font-size: 12px;
+            font-weight: 500;
             text-decoration: none;
-            text-underline-offset: 3px;
+            transition: color .18s ease;
+        }
+
+        .sidebar-source-code {
+            width: 16px;
+            height: 16px;
+            flex: 0 0 auto;
+            opacity: .8;
+        }
+
+        .sidebar-source-arrow {
+            width: 14px;
+            height: 14px;
+            margin-left: auto;
+            padding: 5px;
+            border-radius: 7px;
+            background: rgba(166, 201, 154, .06);
+            transition: transform .18s ease, background .18s ease;
         }
 
         .sidebar-demo a:hover {
-            color: #c4dfb9;
-            text-decoration: underline;
+            color: #d7eccf;
+        }
+
+        .sidebar-demo a:hover .sidebar-source-arrow {
+            transform: translate(1px, -1px);
+            background: rgba(166, 201, 154, .14);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .sidebar-demo a, .sidebar-source-arrow { transition: none; }
+            .sidebar-demo a:hover .sidebar-source-arrow { transform: none; }
         }
 
         .sidebar a:focus-visible,
@@ -1847,7 +1877,11 @@
             <div class="sidebar-footer">
                 <div class="sidebar-demo">
                     <strong>Lizenzmanagement-Demo</strong>
-                    <a href="https://github.com/mhicyor/lizenzmanagement-django" target="_blank" rel="noopener noreferrer">Quellcode auf GitHub <span aria-hidden="true">↗</span></a>
+                    <a href="https://github.com/mhicyor/lizenzmanagement-django" target="_blank" rel="noopener noreferrer">
+                        <svg class="sidebar-source-code" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 5-5 5 5 5m8-10 5 5-5 5m-3-12-2 14"/></svg>
+                        <span>Quellcode auf GitHub</span>
+                        <svg class="sidebar-source-arrow" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 15 15 5M6 5h9v9"/></svg>
+                    </a>
                 </div>
             </div>
             </nav>
