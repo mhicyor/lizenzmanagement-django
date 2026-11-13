@@ -812,9 +812,48 @@
 
     @media (max-width: 520px) {
         .dashboard-v2-kennzahlen {
-            grid-template-columns: 1fr;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
+    }
+    @media (max-width: 700px) {
+        .dashboard-v2-hero { padding: 20px; gap: 16px; border-radius: 22px; }
+        .dashboard-v2-label { margin-bottom: 20px; }
+        .dashboard-v2-hero h1 { font-size: clamp(25px, 7vw, 32px); }
+        .dashboard-v2-hero-text > p { font-size: 12px; line-height: 1.5; }
+        .dashboard-v2-aktionen { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); margin-top: 16px; gap: 8px; }
+        .dashboard-v2-aktion { min-height: 42px; padding: 0 8px; font-size: 11px; }
+        .dashboard-v2-aktion.primaer { grid-column: 1 / -1; }
+        .dashboard-konto { position: absolute; top: 12px; right: 16px; }
+        .dashboard-konto-trigger { width: auto; grid-template-columns: 28px; padding: 5px; }
+        .dashboard-konto-identitaet, .dashboard-konto-pfeil { display: none; }
+        .dashboard-konto-menue { left: auto; right: 0; }
+        .dashboard-v2-bilanz { padding: 14px; border-radius: 15px; }
+        .dashboard-v2-bilanz > strong { font-size: 26px; }
+        .dashboard-v2-bilanz-zeile { margin-top: 12px; }
+        .dashboard-v2-kennzahlen { gap: 10px; }
+        .dashboard-v2-kennzahl { padding: 14px; min-height: 100px; border-radius: 16px; }
+        .dashboard-v2-kennzahl-text span { font-size: 10px; letter-spacing: .02em; }
+        .dashboard-v2-kennzahl-text strong { font-size: 27px; }
+        .dashboard-v2-kennzahl-text small { font-size: 10px; white-space: normal; }
+        .dashboard-v2-hinweise { gap: 8px; }
+        .dashboard-v2-hinweis { padding: 12px 14px; min-height: 0; border-radius: 14px; }
+        .dashboard-v2-auslastung { padding: 16px 12px; border-radius: 20px; }
+        .dashboard-v2-bereich-kopf { gap: 12px; margin-bottom: 14px; }
+        .dashboard-v2-bereich-kopf h2 { font-size: 21px; }
+        .dashboard-v2-bereich-kopf p { font-size: 12px; }
+        .dashboard-v2-zeitraum { align-self: flex-end; }
+        .dashboard-v2-lizenz { grid-template-columns: minmax(0,1fr) minmax(0,1fr); grid-template-areas: 'name name' 'usage usage' 'free cost' 'foot foot'; gap: 12px 8px; padding: 16px; border-radius: 16px; }
+        .dashboard-v2-lizenz-identitaet { grid-area: name; }
+        .dashboard-v2-lizenz-nutzung { grid-area: usage; }
+        .dashboard-v2-lizenz-kapazitaet { grid-area: free; }
+        .dashboard-v2-lizenz-kosten { grid-area: cost; text-align: right; }
+        .dashboard-v2-lizenz-fuss { grid-area: foot; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid #e8ece7; }
+        .dashboard-v2-lizenz-name strong { font-size: 15px; white-space: normal; }
+        .dashboard-v2-lizenz-name span { font-size: 11px; }
+        .dashboard-v2-lizenz-kosten span, .dashboard-v2-lizenz-kapazitaet span { font-size: 10px; }
+        .dashboard-v2-lizenz-kosten strong, .dashboard-v2-lizenz-kapazitaet strong { font-size: 15px; }
+        .dashboard-v2-lizenz-oeffnen { font-size: 12px; padding: 6px 0 6px 12px; }
     }
 </style>
 
@@ -861,6 +900,7 @@
                     type="button"
                     class="dashboard-konto-trigger"
                     id="dashboard-konto-trigger"
+                    aria-label="Kontomenü öffnen"
                     aria-expanded="false"
                     aria-controls="dashboard-konto-menue"
                 >

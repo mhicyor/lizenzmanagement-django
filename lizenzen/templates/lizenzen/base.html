@@ -1729,15 +1729,34 @@
         margin-top: 4px;
     }
     </style>
+<style>
+.sidebar-header { display: contents; }
+.mobile-menu-toggle { display: none; }
+@media (max-width: 700px) {
+    .sidebar { margin: 0 16px; gap: 0; }
+    .sidebar-header { display: flex; align-items: center; justify-content: space-between; min-height: 70px; }
+    .sidebar-brand { padding: 10px 0; min-height: 60px; }
+    .sidebar-brand img, .sidebar-brand svg { width: 166px; }
+    .mobile-menu-toggle { display: inline-flex; align-items: center; gap: 8px; padding: 10px 12px; min-height: 44px; border: 1px solid #dce3d9; border-radius: 13px; background: white; color: #263823; font: 600 13px Arial,sans-serif; cursor: pointer; }
+    .sidebar-navigation { display: none !important; flex: none; padding: 14px; margin-bottom: 8px; max-height: calc(100dvh - 100px); }
+    .sidebar.menu-open .sidebar-navigation { display: flex !important; }
+    .sidebar-navigation .nav-main, .sidebar-navigation .nav-group-title { margin-bottom: 8px; min-height: 44px; box-sizing: border-box; }
+    .sidebar-footer { padding-top: 14px; }
+    .content { padding: 8px 16px 28px; }
+}
+</style>
 </head>
 
 <body>
     <div class="layout">
         <aside class="sidebar" aria-label="Seitennavigation">
+            <div class="sidebar-header">
             <a class="sidebar-brand" href="/dashboard/" aria-label="DPZ · Zur Übersicht">
                 <img src="{% static 'lizenzen/dpz-logo.svg' %}" alt="Deutsches Primatenzentrum">
             </a>
-            <nav class="sidebar-navigation" aria-label="Hauptnavigation">
+            <button type="button" class="mobile-menu-toggle" aria-expanded="false" aria-controls="main-navigation"><span aria-hidden="true">☰</span> Menü</button>
+            </div>
+            <nav class="sidebar-navigation" id="main-navigation" aria-label="Hauptnavigation">
 
             <a
                 class="nav-main {% if request.path == '/dashboard/' %}nav-active{% endif %}"
@@ -1849,6 +1868,19 @@
         }
 
         document.addEventListener("DOMContentLoaded", function () {
+            const rail = document.querySelector('.sidebar');
+            const menuToggle = document.querySelector('.mobile-menu-toggle');
+            menuToggle.addEventListener('click', function () {
+                const open = rail.classList.toggle('menu-open');
+                menuToggle.setAttribute('aria-expanded', String(open));
+            });
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape' && rail.classList.contains('menu-open')) {
+                    rail.classList.remove('menu-open');
+                    menuToggle.setAttribute('aria-expanded', 'false');
+                    menuToggle.focus();
+                }
+            });
             const currentPath = window.location.pathname;
 
             const lizenzenMenu = document.getElementById("lizenzen-menu");
