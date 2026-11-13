@@ -4,8 +4,7 @@
 ohne Anmeldung, mit fiktiven Daten und serverseitigem Schreibschutz.
 
 Eine webbasierte Anwendung zur Verwaltung von Softwarelizenzen, Benutzern,
-Geräten, Kosten und Datenquellen. Entwickelt von **Muhammed Hicyorulmazlar**
-im Umfeld des Deutschen Primatenzentrums (DPZ).
+Geräten, Kosten und Datenquellen. Entwickelt im Umfeld des Deutschen Primatenzentrums (DPZ).
 
 Diese eigenständige öffentliche Ausgabe zeigt den echten Django-Anwendungscode
 mit neu erzeugten, vollständig fiktiven Daten. Sie enthält keine internen
