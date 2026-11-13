@@ -25,6 +25,16 @@ Teamverwaltung und Synchronisation. In der öffentlichen Ausgabe sind diese
 Aktionen serverseitig gesperrt. Der Demo-Zugang erfolgt automatisch als
 „Demo Gast“, ohne Registrierung oder gemeinsames Passwort.
 
+## Acknowledgements
+
+Vielen Dank an das [Deutsche Primatenzentrum (DPZ)](https://www.dpz.eu/)
+und das IT-Team für die Möglichkeit, diese Anwendung im Rahmen meines
+Praktikums zu entwickeln, sowie für den fachlichen Austausch und das Feedback
+aus der Praxis.
+
+Die öffentliche Portfolio-Demo ist eine getrennte Ausgabe mit ausschließlich
+fiktiven Beispieldaten. Die Rechte am DPZ-Namen und -Logo verbleiben beim DPZ.
+
 ## Technik
 
 Python 3.14 · Django 6 · SQLite · HTML/CSS/JavaScript · Gunicorn · WhiteNoise
